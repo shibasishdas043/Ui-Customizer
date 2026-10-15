@@ -8,6 +8,9 @@ import { optimizeWallpaperResolution } from './imageOptimizer'
 import {
   fetchUnsplashCollectionPhotos,
   fetchUnsplashSearchPhotos,
+  fetchWallhavenPhotos,
+  fetchBingDailyPhotos,
+  fetchRedditPhotos,
   cleanCollectionId,
   DEFAULT_COLLECTIONS,
   getSeenPhotoKeys,
@@ -37,6 +40,7 @@ export interface PreloadTargetOptions {
   customCollectionId?: string
   unsplashCollectionId?: string
   customSearchQuery?: string
+  redditSubreddit?: string
 }
 
 /**
@@ -79,6 +83,18 @@ export function getTabBufferKey(
   if (provider === 'unsplash_search') {
     const q = (options.customSearchQuery || 'nature').trim().toLowerCase()
     return `${BUFFER_KEY_PREFIX}search_${encodeURIComponent(q)}`
+  }
+  if (provider === 'wallhaven') {
+    const q = (options.customSearchQuery || 'random').trim().toLowerCase()
+    return `${BUFFER_KEY_PREFIX}wh_${encodeURIComponent(q)}`
+  }
+  if (provider === 'bing') {
+    return `${BUFFER_KEY_PREFIX}bing`
+  }
+  if (provider === 'reddit') {
+    const sub = (options.redditSubreddit || 'wallpapers').trim().toLowerCase()
+    const q = (options.customSearchQuery || '').trim().toLowerCase()
+    return `${BUFFER_KEY_PREFIX}reddit_${sub}_${encodeURIComponent(q)}`
   }
   return `${BUFFER_KEY_PREFIX}default_${options.defaultCategory || 'all'}`
 }
@@ -244,6 +260,12 @@ export function replenishPreloadBufferInBackground(
           pool = await fetchUnsplashCollectionPhotos(colId)
         } else if (provider === 'unsplash_search') {
           pool = await fetchUnsplashSearchPhotos(options.customSearchQuery || 'nature, mountains')
+        } else if (provider === 'wallhaven') {
+          pool = await fetchWallhavenPhotos(options.customSearchQuery || '')
+        } else if (provider === 'bing') {
+          pool = await fetchBingDailyPhotos()
+        } else if (provider === 'reddit') {
+          pool = await fetchRedditPhotos(options.redditSubreddit || 'wallpapers', options.customSearchQuery)
         } else {
           let cat = options.defaultCategory || 'all'
           if (cat === 'all') {
@@ -288,10 +310,14 @@ export function replenishPreloadBufferInBackground(
         return !existingKeys.has(k) && !seenKeys.has(k)
       })
 
-      // If unseen candidates are fewer than needed, dynamically fetch the NEXT page from Unsplash
+      // If unseen candidates are fewer than needed, dynamically fetch the NEXT page from remote source
       if (
         unseenCandidates.length < neededCount &&
-        (provider === 'unsplash_search' || provider === 'unsplash_collection' || provider === 'default')
+        (provider === 'unsplash_search' ||
+          provider === 'unsplash_collection' ||
+          provider === 'default' ||
+          provider === 'wallhaven' ||
+          provider === 'reddit')
       ) {
         try {
           let nextPagePool: UnsplashPhoto[] = []
@@ -300,6 +326,10 @@ export function replenishPreloadBufferInBackground(
           } else if (provider === 'unsplash_collection') {
             const colId = cleanCollectionId(options.customCollectionId || options.unsplashCollectionId || '')
             nextPagePool = await fetchUnsplashCollectionPhotos(colId)
+          } else if (provider === 'wallhaven') {
+            nextPagePool = await fetchWallhavenPhotos(options.customSearchQuery || '')
+          } else if (provider === 'reddit') {
+            nextPagePool = await fetchRedditPhotos(options.redditSubreddit || 'wallpapers', options.customSearchQuery)
           } else {
             let cat = options.defaultCategory || 'all'
             if (cat === 'all') {

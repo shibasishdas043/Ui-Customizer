@@ -9,11 +9,16 @@ export type BackgroundProvider =
   | 'default'
   | 'unsplash_collection'
   | 'unsplash_search'
+  | 'wallhaven'
+  | 'bing'
+  | 'reddit'
   | 'custom_url'
   | 'local_file'
   | 'solid_color'
 
-export type DefaultCollectionCategory = 'all' | 'nature' | 'mountains' | 'beaches'
+export type DefaultCollectionCategory = 'all' | 'daylight' | 'nature' | 'mountains' | 'beaches'
+
+export type WallpaperTexture = 'none' | 'circuitBoard' | 'waves' | 'topographic' | 'honeycomb' | 'grain'
 
 export type WallpaperType = 'preset' | 'unsplash' | 'custom' | 'color'
 
@@ -37,6 +42,7 @@ export interface WallpaperConfig {
   defaultCategory: DefaultCollectionCategory
   customCollectionId: string
   customSearchQuery: string
+  redditSubreddit?: string
   customBackgroundUrl: string
   localImageDataUrl: string
   solidColor: string
@@ -48,11 +54,15 @@ export interface WallpaperConfig {
   wallpaperZoom?: number // 50 to 150 %
   wallpaperOffsetY?: number // 0 to 100 %
   wallpaperOffsetX?: number // 0 to 100 %
+  wallpaperTexture?: WallpaperTexture
+  wallpaperTextureOpacity?: number // 0 - 50%
   changeFrequency: WallpaperFrequency
   currentPhoto?: UnsplashPhoto | null
   lastWallpaperChange?: number
   onUpdatePhoto?: (photo: UnsplashPhoto, timestamp: number) => void
   onWallpaperReady?: (isReady: boolean) => void
+  onCycleWallpaper?: () => void
+
 
   // Backward compatibility aliases
   backgroundType?: WallpaperType

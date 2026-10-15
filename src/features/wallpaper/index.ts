@@ -14,4 +14,5 @@ export type {
   UnsplashPhoto,
   BackgroundProvider,
   DefaultCollectionCategory,
+  WallpaperTexture,
 } from './types'

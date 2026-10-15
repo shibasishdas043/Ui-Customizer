@@ -235,6 +235,7 @@ export function getQueueStorageKey(
     customCollectionId?: string
     unsplashCollectionId?: string
     customSearchQuery?: string
+    redditSubreddit?: string
   }
 ): string {
   if (provider === 'unsplash_collection') {
@@ -244,6 +245,18 @@ export function getQueueStorageKey(
   if (provider === 'unsplash_search') {
     const q = (config.customSearchQuery || 'nature').trim().toLowerCase()
     return `aura_search_queue_${encodeURIComponent(q)}`
+  }
+  if (provider === 'wallhaven') {
+    const q = (config.customSearchQuery || 'random').trim().toLowerCase()
+    return `aura_wh_queue_${encodeURIComponent(q)}`
+  }
+  if (provider === 'bing') {
+    return 'aura_bing_queue_v1'
+  }
+  if (provider === 'reddit') {
+    const sub = (config.redditSubreddit || 'wallpapers').trim().toLowerCase()
+    const q = (config.customSearchQuery || '').trim().toLowerCase()
+    return `aura_reddit_queue_${sub}_${encodeURIComponent(q)}`
   }
   return `aura_default_queue_${config.defaultCategory || 'all'}`
 }
@@ -509,6 +522,182 @@ export async function fetchUnsplashSearchPhotos(
   return DEFAULT_COLLECTIONS.mountains.fallbackPhotos
 }
 
+interface WallhavenApiItem {
+  id: string
+  url: string
+  short_url?: string
+  path: string
+  colors?: string[]
+  uploader?: {
+    username?: string
+  }
+}
+
+/**
+ * Fetches dynamic high-resolution wallpapers from Wallhaven (Open API, no key required)
+ */
+export async function fetchWallhavenPhotos(
+  query: string = '',
+  page?: number,
+): Promise<UnsplashPhoto[]> {
+  const cleanQuery = query.trim()
+  const targetPage = page !== undefined ? page : getNextPageCursor('wh', cleanQuery || 'random', 15)
+
+  try {
+    const qParam = cleanQuery ? `&q=${encodeURIComponent(cleanQuery)}` : ''
+    // SFW only (purity=100), categories 110 (General + Anime), desktop resolutions
+    const url = `https://wallhaven.cc/api/v1/search?sorting=random&categories=110&purity=100&resolutions=1920x1080,2560x1440,3840x2160${qParam}&page=${targetPage}`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Wallhaven HTTP error ${res.status}`)
+
+    const data = await res.json()
+    const rawList: WallhavenApiItem[] = data.data || []
+
+    if (Array.isArray(rawList) && rawList.length > 0) {
+      return rawList.map((item) => ({
+        id: `wh_${item.id}`,
+        url: item.path,
+        author: item.uploader?.username ? `Uploaded by ${item.uploader.username}` : 'Wallhaven',
+        username: item.uploader?.username || 'wallhaven',
+        pageUrl: item.url || item.short_url || 'https://wallhaven.cc',
+        color: item.colors?.[0] || '#0f172a',
+      }))
+    }
+  } catch (err) {
+    console.warn(`Failed to fetch Wallhaven wallpapers for page ${targetPage}:`, err)
+    throw err
+  }
+
+  throw new Error(`No wallpapers found on Wallhaven for page ${targetPage}`)
+}
+
+interface BingApiArchiveItem {
+  url: string
+  urlbase?: string
+  copyright?: string
+  copyrightlink?: string
+  title?: string
+}
+
+/**
+ * Fetches the official Microsoft Bing Daily Wallpapers (No API key required)
+ */
+export async function fetchBingDailyPhotos(): Promise<UnsplashPhoto[]> {
+  try {
+    const url = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=8&mkt=en-US'
+    const res = await fetch(url)
+    if (res.ok) {
+      const data = await res.json()
+      const list: BingApiArchiveItem[] = data.images || []
+      if (Array.isArray(list) && list.length > 0) {
+        return list.map((item, idx) => {
+          const rawUrl = item.url.startsWith('http') ? item.url : `https://www.bing.com${item.url}`
+          const highResUrl = rawUrl.replace('1920x1080', 'UHD')
+          return {
+            id: `bing_${item.urlbase || idx}`,
+            url: highResUrl,
+            author: item.copyright || item.title || 'Microsoft Bing',
+            username: 'bing',
+            pageUrl: item.copyrightlink || 'https://www.bing.com',
+            color: '#1e293b',
+          }
+        })
+      }
+    }
+  } catch (err) {
+    console.warn('Bing direct fetch error, trying open mirror:', err)
+  }
+
+  // Fallback to open CORS mirror
+  try {
+    const mirrorRes = await fetch('https://bing.biturl.top/?resolution=3840&format=json&index=0&mkt=en-US')
+    if (mirrorRes.ok) {
+      const mirrorData = await mirrorRes.json()
+      if (mirrorData.url) {
+        return [{
+          id: 'bing_mirror_today',
+          url: mirrorData.url,
+          author: mirrorData.copyright || 'Microsoft Bing',
+          username: 'bing',
+          pageUrl: mirrorData.copyright_link || 'https://www.bing.com',
+          color: '#1e293b',
+        }]
+      }
+    }
+  } catch (err) {
+    console.warn('Bing mirror fetch error:', err)
+  }
+
+  throw new Error('Failed to fetch Bing daily photos from both direct and mirror sources')
+}
+
+interface RedditPostItem {
+  id: string
+  title: string
+  author: string
+  permalink: string
+  url: string
+  url_overridden_by_dest?: string
+  is_video?: boolean
+  over_18?: boolean
+}
+
+/**
+ * Fetches high-resolution community wallpapers from Reddit (Open JSON, no API key required)
+ */
+export async function fetchRedditPhotos(
+  subreddit: string = 'wallpapers',
+  query?: string,
+): Promise<UnsplashPhoto[]> {
+  const cleanSub = subreddit.trim().replace(/^r\//i, '').replace(/[^a-zA-Z0-9_]/g, '') || 'wallpapers'
+  const cleanQ = (query || '').trim()
+
+  try {
+    let url: string
+    if (cleanQ) {
+      url = `https://www.reddit.com/r/${cleanSub}/search.json?q=${encodeURIComponent(cleanQ)}&restrict_sr=1&sort=top&t=all&limit=25`
+    } else {
+      url = `https://www.reddit.com/r/${cleanSub}/hot.json?limit=25`
+    }
+
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Reddit HTTP error ${res.status}`)
+
+    const data = await res.json()
+    const children: { data: RedditPostItem }[] = data?.data?.children || []
+    const validPhotos: UnsplashPhoto[] = []
+
+    for (const child of children) {
+      const p = child?.data
+      if (!p || p.is_video || p.over_18) continue
+
+      const rawUrl = (p.url_overridden_by_dest || p.url || '').replace(/&amp;/g, '&')
+      const isDirectImage = /\.(jpe?g|png|webp)($|\?)/i.test(rawUrl) || rawUrl.includes('i.redd.it')
+
+      if (isDirectImage) {
+        validPhotos.push({
+          id: `reddit_${p.id}`,
+          url: rawUrl,
+          author: `${p.title} (u/${p.author})`,
+          username: p.author,
+          pageUrl: `https://www.reddit.com${p.permalink}`,
+          color: '#0f172a',
+        })
+      }
+    }
+
+    if (validPhotos.length > 0) {
+      return validPhotos
+    }
+  } catch (err) {
+    console.warn(`Failed to fetch Reddit wallpapers from r/${cleanSub}:`, err)
+    throw err
+  }
+
+  throw new Error(`No direct wallpaper images found in r/${cleanSub}`)
+}
+
+
 /**
  * Resolves the next photo for the selected provider with persistent queue support
  */
@@ -517,6 +706,7 @@ export async function getNextPhotoForProvider(params: {
   defaultCategory?: DefaultCollectionCategory
   customCollectionId?: string
   customSearchQuery?: string
+  redditSubreddit?: string
   customBackgroundUrl?: string
   localImageDataUrl?: string
   currentPhotoUrl?: string
@@ -527,6 +717,7 @@ export async function getNextPhotoForProvider(params: {
     defaultCategory = 'all',
     customCollectionId = '',
     customSearchQuery = '',
+    redditSubreddit = 'wallpapers',
     customBackgroundUrl,
     localImageDataUrl,
     currentPhotoUrl,
@@ -558,7 +749,7 @@ export async function getNextPhotoForProvider(params: {
     }
   }
 
-  const queueKey = getQueueStorageKey(provider, { defaultCategory, customCollectionId, customSearchQuery })
+  const queueKey = getQueueStorageKey(provider, { defaultCategory, customCollectionId, customSearchQuery, redditSubreddit })
 
   // 1. If not forcing a refresh, pop the next photo from the queue for instant rotation
   if (!forceRefresh) {
@@ -629,6 +820,60 @@ export async function getNextPhotoForProvider(params: {
           author: entry.author || 'Recent Cache',
           username: entry.username || '',
           pageUrl: entry.pageUrl || 'https://unsplash.com',
+          color: entry.color || '#1e293b',
+        }))
+      } else {
+        pool = DEFAULT_COLLECTIONS.mountains.fallbackPhotos
+      }
+    }
+  } else if (provider === 'wallhaven') {
+    try {
+      pool = await fetchWallhavenPhotos(customSearchQuery || '')
+    } catch {
+      const recentCache = await getRecentCachedWallpapers()
+      if (recentCache.length > 0) {
+        pool = recentCache.map((entry, idx) => ({
+          id: `cached_${idx}`,
+          url: entry.url,
+          author: entry.author || 'Recent Cache',
+          username: entry.username || '',
+          pageUrl: entry.pageUrl || 'https://wallhaven.cc',
+          color: entry.color || '#1e293b',
+        }))
+      } else {
+        pool = DEFAULT_COLLECTIONS.nature.fallbackPhotos
+      }
+    }
+  } else if (provider === 'bing') {
+    try {
+      pool = await fetchBingDailyPhotos()
+    } catch {
+      const recentCache = await getRecentCachedWallpapers()
+      if (recentCache.length > 0) {
+        pool = recentCache.map((entry, idx) => ({
+          id: `cached_${idx}`,
+          url: entry.url,
+          author: entry.author || 'Recent Cache',
+          username: entry.username || '',
+          pageUrl: entry.pageUrl || 'https://www.bing.com',
+          color: entry.color || '#1e293b',
+        }))
+      } else {
+        pool = DEFAULT_COLLECTIONS.nature.fallbackPhotos
+      }
+    }
+  } else if (provider === 'reddit') {
+    try {
+      pool = await fetchRedditPhotos(redditSubreddit || 'wallpapers', customSearchQuery)
+    } catch {
+      const recentCache = await getRecentCachedWallpapers()
+      if (recentCache.length > 0) {
+        pool = recentCache.map((entry, idx) => ({
+          id: `cached_${idx}`,
+          url: entry.url,
+          author: entry.author || 'Recent Cache',
+          username: entry.username || '',
+          pageUrl: entry.pageUrl || 'https://reddit.com',
           color: entry.color || '#1e293b',
         }))
       } else {

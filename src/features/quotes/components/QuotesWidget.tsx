@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useEffect, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { RefreshCw } from 'lucide-react'
 import type { QuotesConfig } from '../types'
 import { DEFAULT_QUOTES } from '../config/quotesList'
@@ -9,33 +9,131 @@ interface QuotesWidgetProps {
 }
 
 export const QuotesWidget: React.FC<QuotesWidgetProps> = ({ config }) => {
-  const [index, setIndex] = useState(0)
+  const {
+    showQuotes,
+    quoteFrequency = 'day',
+    alwaysShowAuthor = true,
+    quoteCategory = 'all',
+    onUpdateQuote,
+  } = config
 
-  if (!config.showQuotes) return null
+  // Storage helpers that prevent uncaught security/quota errors in restricted contexts
+  const getSafeStorage = (key: string): string | null => {
+    try {
+      return localStorage.getItem(key)
+    } catch {
+      return null
+    }
+  }
 
-  const current = DEFAULT_QUOTES[index % DEFAULT_QUOTES.length]
+  const setSafeStorage = (key: string, value: string): void => {
+    try {
+      localStorage.setItem(key, value)
+    } catch {}
+  }
+
+  // Filter quotes by selected mood/category
+  const activePool = useMemo(() => {
+    if (!quoteCategory || quoteCategory === 'all') return DEFAULT_QUOTES
+    const filtered = DEFAULT_QUOTES.filter((q) => q.category === quoteCategory)
+    return filtered.length > 0 ? filtered : DEFAULT_QUOTES
+  }, [quoteCategory])
+
+  // Determine initial quote index based on rotation frequency
+  const [index, setIndex] = useState<number>(() => {
+    if (config.currentQuoteIndex !== undefined && !isNaN(config.currentQuoteIndex)) {
+      return Math.max(0, config.currentQuoteIndex) % activePool.length
+    }
+
+    const saved = getSafeStorage('aura_quote_last_index')
+    const lastTimestamp = parseInt(getSafeStorage('aura_quote_last_ts') || '0', 10)
+    const now = Date.now()
+    const parsedSaved = saved !== null ? parseInt(saved, 10) : 0
+    const safeSaved = isNaN(parsedSaved) || parsedSaved < 0 ? 0 : parsedSaved
+
+    if (quoteFrequency === 'tabs') {
+      const nextIdx = (safeSaved + 1) % activePool.length
+      setSafeStorage('aura_quote_last_index', nextIdx.toString())
+      setSafeStorage('aura_quote_last_ts', now.toString())
+      return nextIdx
+    }
+
+    if (quoteFrequency === 'hour') {
+      const hoursElapsed = Math.floor(now / 3600000) !== Math.floor(lastTimestamp / 3600000)
+      if (hoursElapsed) {
+        const nextIdx = (safeSaved + 1) % activePool.length
+        setSafeStorage('aura_quote_last_index', nextIdx.toString())
+        setSafeStorage('aura_quote_last_ts', now.toString())
+        return nextIdx
+      }
+      return safeSaved % activePool.length
+    }
+
+    if (quoteFrequency === 'day') {
+      const daysElapsed = new Date(now).toDateString() !== new Date(lastTimestamp).toDateString()
+      if (daysElapsed) {
+        const daySeed = Math.floor(now / 86400000) % activePool.length
+        setSafeStorage('aura_quote_last_index', daySeed.toString())
+        setSafeStorage('aura_quote_last_ts', now.toString())
+        return daySeed
+      }
+      return safeSaved % activePool.length
+    }
+
+    return safeSaved % activePool.length
+  })
+
+  // Keep index within bounds when pool changes
+  useEffect(() => {
+    if (index >= activePool.length || index < 0) {
+      setIndex(0)
+    }
+  }, [activePool.length, index])
+
+  const safeIndex = Math.abs(index) % activePool.length
+  const current = activePool[safeIndex] || activePool[0]
+
+  if (!showQuotes || !current || activePool.length === 0) return null
 
   const nextQuote = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setIndex((prev) => (prev + 1) % DEFAULT_QUOTES.length)
+    const nextIdx = (safeIndex + 1) % activePool.length
+    setIndex(nextIdx)
+    setSafeStorage('aura_quote_last_index', nextIdx.toString())
+    setSafeStorage('aura_quote_last_ts', Date.now().toString())
+    onUpdateQuote?.(nextIdx, Date.now())
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="group relative max-w-xl mx-auto text-center px-4 py-2 mt-4 select-none cursor-pointer transition-opacity hover:opacity-95 text-contrast drop-shadow-md"
+    <div
+      className="group relative max-w-xl mx-auto text-center px-4 py-2 mt-3 select-none cursor-pointer transition-transform active:scale-[0.99]"
       onClick={nextQuote}
-      title="Click to see another quote"
+      title="Click to discover another quote"
     >
-      <p className="text-xs sm:text-sm font-light text-white italic tracking-wide text-contrast">
-        "{current.quote}"
-      </p>
-      <div className="flex items-center justify-center gap-1.5 mt-1.5 text-[11px] font-medium text-white/80 text-contrast-subtle">
-        <span>— {current.author}</span>
-        <RefreshCw className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity text-white/80" />
-      </div>
-    </motion.div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${current.quote}_${index}`}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.4, ease: [0.215, 0.61, 0.355, 1] }}
+          className="space-y-1.5"
+        >
+          <p className="text-xs sm:text-sm font-light text-white italic tracking-wide text-contrast drop-shadow-md leading-relaxed">
+            &ldquo;{current.quote}&rdquo;
+          </p>
+
+          <div
+            className={`flex items-center justify-center gap-1.5 text-[11px] font-medium text-white/80 text-contrast-subtle transition-opacity duration-300 ${
+              alwaysShowAuthor ? 'opacity-90' : 'opacity-0 group-hover:opacity-90'
+            }`}
+          >
+            <span>— {current.author}</span>
+            <RefreshCw className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity text-white/70" />
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   )
 }
+

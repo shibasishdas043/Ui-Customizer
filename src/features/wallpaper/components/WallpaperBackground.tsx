@@ -36,7 +36,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
 
   const loadRequestId = useRef(0)
   const lastCollectionKeyRef = useRef<string>(
-    `${provider}_${config.defaultCategory || ''}_${config.customCollectionId || config.unsplashCollectionId || ''}_${config.customSearchQuery || ''}`
+    `${provider}_${config.defaultCategory || ''}_${config.customCollectionId || config.unsplashCollectionId || ''}_${config.customSearchQuery || ''}_${config.redditSubreddit || ''}`
   )
 
 
@@ -60,6 +60,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
         defaultCategory: config.defaultCategory,
         customCollectionId: config.customCollectionId || config.unsplashCollectionId,
         customSearchQuery: config.customSearchQuery,
+        redditSubreddit: config.redditSubreddit,
       })
       if (popped?.url) {
         return popped
@@ -216,7 +217,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
         return
       }
 
-      const currentCollectionKey = `${provider}_${config.defaultCategory || ''}_${config.customCollectionId || config.unsplashCollectionId || ''}_${config.customSearchQuery || ''}`
+      const currentCollectionKey = `${provider}_${config.defaultCategory || ''}_${config.customCollectionId || config.unsplashCollectionId || ''}_${config.customSearchQuery || ''}_${config.redditSubreddit || ''}`
       const hasCollectionChanged = lastCollectionKeyRef.current !== currentCollectionKey
       lastCollectionKeyRef.current = currentCollectionKey
 
@@ -224,6 +225,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
         defaultCategory: config.defaultCategory,
         customCollectionId: config.customCollectionId || config.unsplashCollectionId,
         customSearchQuery: config.customSearchQuery,
+        redditSubreddit: config.redditSubreddit,
       }
 
       // 3. If frequency is 'tabs':
@@ -333,7 +335,31 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
         return
       }
 
-      // 4. Dynamic Unsplash providers with time-based frequency ('hour', 'day', 'locked')
+      // 4. Dynamic providers with time-based frequency ('hour', 'day', 'locked', 'period')
+      const manualCycleToken = sessionStorage.getItem('aura_manual_cycle_request')
+      const isManualCycle =
+        !!manualCycleToken &&
+        manualCycleToken === config.lastWallpaperChange?.toString()
+
+      if (isManualCycle) {
+        sessionStorage.removeItem('aura_manual_cycle_request')
+        const externalPhoto = configRef.current.currentPhoto || configRef.current.currentUnsplashPhoto
+        if (externalPhoto?.url && externalPhoto.url !== activeUrlRef.current) {
+          try {
+            const finalSrc = await getOrFetchWallpaper(externalPhoto.url)
+            if (isCancelled || currentId !== loadRequestId.current) return
+
+            activeUrlRef.current = externalPhoto.url
+            setActivePhotoMetadata(externalPhoto)
+            setCanonicalPhotoKey(externalPhoto.id || externalPhoto.url)
+            setActiveImageSrc(finalSrc)
+          } catch (e) {
+            console.warn('Failed to apply manual wallpaper cycle:', e)
+          }
+          return
+        }
+      }
+
       const shouldChange = needsWallpaperChange(
         config.changeFrequency,
         config.lastWallpaperChange,
@@ -341,7 +367,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
 
       const activePhoto = configRef.current.currentPhoto || configRef.current.currentUnsplashPhoto
 
-      if (!shouldChange && activePhoto?.url) {
+      if (!hasCollectionChanged && !shouldChange && activePhoto?.url) {
         const highResUrl = optimizeWallpaperResolution(activePhoto.url)
         // Same photo: silently ensure cached binary is ready without triggering any re-mount or crossfade
         if (highResUrl !== activeUrlRef.current) {
@@ -359,7 +385,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
         return
       }
 
-      // Time threshold has expired or no photo exists yet: fetch next photo
+      // Time threshold has expired, collection changed, or no photo exists yet: fetch next photo
       try {
         const nextPhoto = await getNextPhotoForProvider({
           provider,
@@ -368,8 +394,13 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
             config.customCollectionId ||
             config.unsplashCollectionId ||
             DEFAULT_COLLECTIONS.nature.id,
-          customSearchQuery: config.customSearchQuery || 'nature, mountains',
+          customSearchQuery:
+            provider === 'wallhaven' || provider === 'reddit'
+              ? (config.customSearchQuery || '')
+              : (config.customSearchQuery || 'nature, mountains'),
+          redditSubreddit: config.redditSubreddit || 'wallpapers',
           currentPhotoUrl: activePhoto?.url,
+          forceRefresh: hasCollectionChanged,
         })
 
         if (isCancelled || currentId !== loadRequestId.current) return
@@ -529,6 +560,19 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
           )}
         </AnimatePresence>
 
+        {/* Optional Ambient Texture Overlay (Grain, Waves, Topographic, CircuitBoard, Honeycomb) */}
+        {config.wallpaperTexture && config.wallpaperTexture !== 'none' && (
+          <div
+            className="absolute inset-0 pointer-events-none z-[1]"
+            style={{
+              backgroundImage: `url("/patterns/${config.wallpaperTexture === 'grain' ? 'grain.png' : `${config.wallpaperTexture}.svg`}")`,
+              backgroundRepeat: 'repeat',
+              opacity: (config.wallpaperTextureOpacity ?? 15) / 100,
+              mixBlendMode: 'overlay',
+            }}
+          />
+        )}
+
         {/* Bonjourr-Style Ambient Contrast Vignette & Protection Gradient */}
         <div
           className="absolute inset-0 pointer-events-none"
@@ -552,20 +596,36 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
         />
       </div>
 
-      {/* Photographer attribution (Minimal Bonjourr style, pure text without blur/card) */}
+      {/* Photographer / Provider attribution (Minimal Bonjourr style, pure text without blur/card) */}
       {provider !== 'local_file' && provider !== 'custom_url' && displayPhoto?.author && (
         <div className="fixed bottom-4 left-5 z-20 pointer-events-auto">
           <a
             href={
               displayPhoto.pageUrl ||
-              `https://unsplash.com/@${displayPhoto.username || ''}?utm_source=Aura&utm_medium=referral`
+              (provider === 'wallhaven'
+                ? 'https://wallhaven.cc'
+                : provider === 'bing'
+                ? 'https://www.bing.com'
+                : provider === 'reddit'
+                ? 'https://www.reddit.com'
+                : displayPhoto.username
+                ? `https://unsplash.com/@${displayPhoto.username}?utm_source=Aura&utm_medium=referral`
+                : 'https://unsplash.com')
             }
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white opacity-40 hover:opacity-100 transition-all duration-300 cursor-pointer select-none group drop-shadow-sm hover:drop-shadow-md py-1"
           >
             <span>
-              Photo by <strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">{displayPhoto.author}</strong> on Unsplash
+              {provider === 'wallhaven' ? (
+                <>Wallpaper on <strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">Wallhaven</strong></>
+              ) : provider === 'bing' ? (
+                <><strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">{displayPhoto.author}</strong> · Bing Daily</>
+              ) : provider === 'reddit' ? (
+                <>Photo on <strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">r/{config.redditSubreddit || 'wallpapers'}</strong></>
+              ) : (
+                <>Photo by <strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">{displayPhoto.author}</strong> on Unsplash</>
+              )}
             </span>
             <ExternalLink className="w-3 h-3 text-white/30 group-hover:text-white transition-colors" />
           </a>

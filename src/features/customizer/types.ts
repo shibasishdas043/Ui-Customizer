@@ -9,6 +9,7 @@ import type {
   UnsplashPhoto,
   BackgroundProvider,
   DefaultCollectionCategory,
+  WallpaperTexture,
 } from '../wallpaper/types'
 import type { NewTabMode, StartupMode } from '../browser-settings/types'
 
@@ -39,6 +40,7 @@ export interface CustomizerSettings {
   defaultCategory: DefaultCollectionCategory
   customCollectionId: string
   customSearchQuery: string
+  redditSubreddit?: string
   customBackgroundUrl: string
   localImageDataUrl: string
   solidColor: string
@@ -50,6 +52,8 @@ export interface CustomizerSettings {
   wallpaperZoom: number // 50 to 150 %
   wallpaperOffsetY: number // 0 to 100 %
   wallpaperOffsetX: number // 0 to 100 %
+  wallpaperTexture?: WallpaperTexture
+  wallpaperTextureOpacity?: number // 0 to 50 %
   changeFrequency: WallpaperFrequency // 'tabs' | 'hour' | 'day' | 'period' | 'locked'
   currentPhoto?: UnsplashPhoto | null
   lastWallpaperChange?: number

@@ -17,6 +17,7 @@ import type {
   WallpaperFitMode,
   WallpaperPosition,
   WallpaperBaseMode,
+  WallpaperTexture,
 } from '../../../wallpaper'
 
 interface WallpaperTabProps {
@@ -52,7 +53,11 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
         provider,
         defaultCategory: settings.defaultCategory || 'all',
         customCollectionId: settings.customCollectionId || settings.unsplashCollectionId || DEFAULT_COLLECTIONS.nature.id,
-        customSearchQuery: settings.customSearchQuery || 'nature, mountains',
+        customSearchQuery:
+          provider === 'wallhaven' || provider === 'reddit'
+            ? (settings.customSearchQuery || '')
+            : (settings.customSearchQuery || 'nature, mountains'),
+        redditSubreddit: settings.redditSubreddit || 'wallpapers',
         customBackgroundUrl: settings.customBackgroundUrl,
         localImageDataUrl: settings.localImageDataUrl,
         currentPhotoUrl: activeUrl,
@@ -122,6 +127,9 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
           <option value="default" className="bg-[#0f172a] text-slate-100 py-1">Default (Nature, Mountains & Beaches)</option>
           <option value="unsplash_collection" className="bg-[#0f172a] text-slate-100 py-1">Unsplash Collection (Custom ID / URL)</option>
           <option value="unsplash_search" className="bg-[#0f172a] text-slate-100 py-1">Unsplash Search (Keywords)</option>
+          <option value="wallhaven" className="bg-[#0f172a] text-slate-100 py-1">Wallhaven (Keywords & 4K Wallpaper)</option>
+          <option value="bing" className="bg-[#0f172a] text-slate-100 py-1">Bing Daily (Image of the Day)</option>
+          <option value="reddit" className="bg-[#0f172a] text-slate-100 py-1">Reddit Wallpapers (r/wallpapers, r/EarthPorn)</option>
           <option value="custom_url" className="bg-[#0f172a] text-slate-100 py-1">Custom Image URL</option>
           <option value="local_file" className="bg-[#0f172a] text-slate-100 py-1">Local Files (Upload from Device)</option>
           <option value="solid_color" className="bg-[#0f172a] text-slate-100 py-1">Solid Background Color</option>
@@ -226,7 +234,154 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
         </div>
       )}
 
-      {/* 5. CUSTOM SECTION: Direct Image URL */}
+      {/* 4. WALLHAVEN SECTION (Open API, No key required) */}
+      {provider === 'wallhaven' && (
+        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2.5">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-medium text-slate-300">
+              Wallhaven Search Keywords
+            </label>
+            <span className="text-[10px] text-indigo-400">Press Enter to apply</span>
+          </div>
+          <input
+            type="text"
+            value={settings.customSearchQuery || ''}
+            onChange={(e) => onUpdate({ customSearchQuery: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleNextBackground()
+              }
+            }}
+            onBlur={() => {
+              handleNextBackground()
+            }}
+            placeholder="e.g. cyberpunk, nature, minimal, anime, space"
+            className="w-full px-3 py-2 rounded-xl glass-input text-xs"
+          />
+          {/* Quick category tag pills */}
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {['nature', 'cyberpunk', 'minimal', 'anime', 'space', 'japan', 'fantasy'].map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => {
+                  onUpdate({ customSearchQuery: tag })
+                  handleNextBackground()
+                }}
+                className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-all cursor-pointer capitalize ${
+                  settings.customSearchQuery?.toLowerCase() === tag
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                    : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.08]'
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-400">
+            Searches Wallhaven for 1080p, 2K & 4K wallpapers. Leave empty for random top wallpapers. No API key required.
+          </p>
+        </div>
+      )}
+
+      {/* 5. BING DAILY WALLPAPER SECTION (No key required) */}
+      {provider === 'bing' && (
+        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2.5">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-medium text-slate-300">
+              Microsoft Bing Daily Wallpaper
+            </label>
+            <span className="text-[10px] text-emerald-400 font-medium">● Live Feed</span>
+          </div>
+          <p className="text-[11px] text-slate-300 leading-relaxed">
+            Automatically presents today's official 4K landscape photograph curated by Microsoft Bing. Rotates daily with zero configuration.
+          </p>
+          {settings.currentPhoto?.author && (
+            <div className="p-2 rounded-lg bg-white/[0.02] border border-white/5 text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
+              <span className="text-slate-200 font-medium shrink-0">Today:</span>
+              <span className="truncate">{settings.currentPhoto.author}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 6. REDDIT WALLPAPERS SECTION (Open JSON, No key required) */}
+      {provider === 'reddit' && (
+        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2.5">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-medium text-slate-300">
+              Subreddit
+            </label>
+            <span className="text-[10px] text-indigo-400">Press Enter to apply</span>
+          </div>
+          {/* Subreddit Preset Chips */}
+          <div className="grid grid-cols-3 gap-1.5">
+            {[
+              { id: 'wallpapers', name: 'r/wallpapers' },
+              { id: 'EarthPorn', name: 'r/EarthPorn' },
+              { id: 'spaceporn', name: 'r/spaceporn' },
+              { id: 'MinimalWallpaper', name: 'r/Minimal' },
+              { id: 'CozyPlaces', name: 'r/CozyPlaces' },
+              { id: 'CityPorn', name: 'r/CityPorn' },
+            ].map((sub) => (
+              <button
+                key={sub.id}
+                type="button"
+                onClick={() => {
+                  onUpdate({ redditSubreddit: sub.id })
+                  handleNextBackground()
+                }}
+                className={`py-1.5 px-2 rounded-xl text-[10px] font-medium transition-all cursor-pointer text-center truncate ${
+                  (settings.redditSubreddit || 'wallpapers') === sub.id
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
+                    : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.08]'
+                }`}
+              >
+                {sub.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-1 pt-1">
+            <label className="block text-[11px] text-slate-400">Custom Subreddit</label>
+            <div className="flex items-center gap-1">
+              <span className="text-slate-500 font-mono text-xs pl-1">r/</span>
+              <input
+                type="text"
+                value={settings.redditSubreddit || ''}
+                onChange={(e) => onUpdate({ redditSubreddit: e.target.value.replace(/^r\//i, '') })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleNextBackground()
+                }}
+                onBlur={() => handleNextBackground()}
+                placeholder="e.g. wallpapers, EarthPorn, ImaginaryLandscapes"
+                className="w-full px-3 py-1.5 rounded-xl glass-input text-xs font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[11px] text-slate-400">Keywords (Optional Search)</label>
+            <input
+              type="text"
+              value={settings.customSearchQuery || ''}
+              onChange={(e) => onUpdate({ customSearchQuery: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleNextBackground()
+              }}
+              onBlur={() => handleNextBackground()}
+              placeholder="e.g. sunset, dark, mountain"
+              className="w-full px-3 py-1.5 rounded-xl glass-input text-xs"
+            />
+          </div>
+
+          <p className="text-[10px] text-slate-400">
+            Fetches top direct high-resolution images from any photography subreddit using Reddit's open JSON feed.
+          </p>
+        </div>
+      )}
+
+      {/* 7. CUSTOM SECTION: Direct Image URL */}
       {provider === 'custom_url' && (
         <div className="p-3 rounded-xl bg-white/[0.03] space-y-2">
           <div className="flex items-center justify-between">
@@ -659,6 +814,66 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
           </div>
         </div>
       )}
+
+      {/* 11. AMBIENT TEXTURE OVERLAY */}
+      <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3.5">
+        <div className="flex items-center justify-between">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            Texture & Pattern Overlay
+          </label>
+          <span className="text-[10px] text-slate-400 capitalize">
+            {settings.wallpaperTexture && settings.wallpaperTexture !== 'none'
+              ? settings.wallpaperTexture
+              : 'None'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { id: 'none', label: 'None' },
+            { id: 'grain', label: 'Film Grain' },
+            { id: 'waves', label: 'Waves' },
+            { id: 'topographic', label: 'Topographic' },
+            { id: 'circuitBoard', label: 'Circuit' },
+            { id: 'honeycomb', label: 'Honeycomb' },
+          ].map((tex) => (
+            <button
+              key={tex.id}
+              type="button"
+              onClick={() => onUpdate({ wallpaperTexture: tex.id as WallpaperTexture })}
+              className={`py-2 px-2 rounded-xl text-center font-medium text-[11px] transition-all cursor-pointer truncate ${
+                (settings.wallpaperTexture || 'none') === tex.id
+                  ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
+                  : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07]'
+              }`}
+            >
+              {tex.label}
+            </button>
+          ))}
+        </div>
+
+        {settings.wallpaperTexture && settings.wallpaperTexture !== 'none' && (
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center justify-between text-xs font-medium text-slate-300">
+              <span className="text-[11px] text-slate-400">Texture Opacity</span>
+              <span className="text-slate-400 font-mono text-[11px]">{settings.wallpaperTextureOpacity ?? 15}%</span>
+            </div>
+            <input
+              type="range"
+              min="5"
+              max="50"
+              step="1"
+              value={settings.wallpaperTextureOpacity ?? 15}
+              onChange={(e) => onUpdate({ wallpaperTextureOpacity: Number(e.target.value) })}
+              className="w-full accent-[var(--accent-color)] cursor-pointer"
+            />
+          </div>
+        )}
+
+        <p className="text-[10px] text-slate-400">
+          Adds a subtle tactile film grain or vector pattern over the background for high-end aesthetic depth.
+        </p>
+      </div>
     </div>
   )
 }
