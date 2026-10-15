@@ -1,0 +1,56 @@
+{
+  "nature": [
+    {
+      "id": "nature_1",
+      "localUrl": "/backgrounds/nature-1.webp",
+      "author": "Lise Savard",
+      "username": "rampallion",
+      "pageUrl": "https://unsplash.com/photos/green-leafed-trees-near-mountain-tzbCLKHMj08",
+      "color": "#a6c0d9"
+    },
+    {
+      "id": "nature_2",
+      "localUrl": "/backgrounds/nature-2.webp",
+      "author": "Anastasiya Romanova",
+      "username": "nanichkar",
+      "pageUrl": "https://unsplash.com/photos/trees-near-body-of-waer-aX7shhAOvp4",
+      "color": "#26260c"
+    }
+  ],
+  "mountains": [
+    {
+      "id": "mountains_1",
+      "localUrl": "/backgrounds/mountains-1.webp",
+      "author": "Patrick Hendry",
+      "username": "worldsbetweenlines",
+      "pageUrl": "https://unsplash.com/photos/green-trees-and-mountains-during-daytime-X51lLnMIUmg",
+      "color": "#a6d9d9"
+    },
+    {
+      "id": "mountains_2",
+      "localUrl": "/backgrounds/mountains-2.webp",
+      "author": "Etienne Bösiger",
+      "username": "etienneboesiger",
+      "pageUrl": "https://unsplash.com/photos/snow-coated-mountain-WTkUYzNCu-A",
+      "color": "#262626"
+    }
+  ],
+  "beaches": [
+    {
+      "id": "beaches_1",
+      "localUrl": "/backgrounds/beaches-1.webp",
+      "author": "Andrew Coelho",
+      "username": "andrewcoelho",
+      "pageUrl": "https://unsplash.com/photos/seashore-scenery-m6tAqZvy4RM",
+      "color": "#a6a6a6"
+    },
+    {
+      "id": "beaches_2",
+      "localUrl": "/backgrounds/beaches-2.webp",
+      "author": "Ragnar Vorel",
+      "username": "sonuba",
+      "pageUrl": "https://unsplash.com/photos/yatch-dock-during-daytime-dTORmw497sM",
+      "color": "#c0c0c0"
+    }
+  ]
+}

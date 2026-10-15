@@ -1,0 +1,8 @@
+export { CustomizerDrawer } from './components/CustomizerDrawer'
+export { ThemeTab } from './components/tabs/ThemeTab'
+export { WallpaperTab } from './components/tabs/WallpaperTab'
+export { WidgetsTab } from './components/tabs/WidgetsTab'
+export { CustomCssTab } from './components/tabs/CustomCssTab'
+export { useSettingsStorage } from './hooks/useSettingsStorage'
+export { DEFAULT_SETTINGS } from './config/defaultSettings'
+export type { CustomizerSettings, AccentColor, FontFamily, WeatherGeolocationMode } from './types'

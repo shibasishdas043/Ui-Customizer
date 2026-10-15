@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Aura · UI Customizer & Startpage",
+  "short_name": "Aura",
+  "version": "1.0.0",
+  "description": "A stunning, minimalist startpage and browser customizer with clock, weather, notes, pomodoro, search, and custom webpage redirects.",
+  "action": {
+    "title": "Aura · UI Customizer"
+  },
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "icons": {
+    "128": "favicon.svg"
+  }
+}

@@ -1,0 +1,148 @@
+# ==============================================================================
+# Internal Analysis, AI Assistant Artifacts & Agent Instructions
+# ==============================================================================
+BONJOURR_REVERSE_ENGINEERING_ANALYSIS.md
+AGENTS.md
+.agents/
+.gemini/
+.system_generated/
+.system/
+.claude/
+.windsurf/
+.copilot/
+scratch/
+scratchpad_*.md
+*.scratchpad.md
+*scratchpad*
+image_loading_audit.md
+*.audit.md
+*.audit.txt
+
+# ==============================================================================
+# Reference Code (Per AGENTS.md: Never edit, delete, or commit reference folder)
+# ==============================================================================
+reference/
+/reference/
+
+# ==============================================================================
+# Dependencies & Package Managers
+# ==============================================================================
+node_modules/
+.pnp
+.pnp.js
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# ==============================================================================
+# Production Build & Bundler Outputs
+# ==============================================================================
+dist/
+dist-ssr/
+build/
+out/
+.vite/
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+*.rollup.cache/
+*.parcel-cache/
+
+# ==============================================================================
+# Packaged Extensions, Signing Keys & Archives
+# ==============================================================================
+*.crx
+*.xpi
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.pem
+*.key
+*.pub
+key.pem
+secrets.json
+
+# ==============================================================================
+# Environment & Local Secrets (API Keys, Tokens, Passwords)
+# ==============================================================================
+.env
+.env.*
+!.env.example
+*.local
+
+# ==============================================================================
+# Logs & Diagnostic Dumps
+# ==============================================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+vite-debug.log*
+
+# ==============================================================================
+# Testing & Code Coverage
+# ==============================================================================
+coverage/
+*.lcov
+.nyc_output/
+
+# ==============================================================================
+# IDE & Editor Configurations
+# ==============================================================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.cursor/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swo
+*.swp
+*.sublime-project
+*.sublime-workspace
+
+# ==============================================================================
+# Operating System Artifacts
+# ==============================================================================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ==============================================================================
+# Temporary / Scratch Files & Caches
+# ==============================================================================
+.temp/
+temp/
+tmp/
+*.tmp
+*.bak
+.cache/
+.turbo/
+.eslintcache
+.oxlintcache
+.prettiercache
+scripts/test_*.js
+scripts/temp_*.js

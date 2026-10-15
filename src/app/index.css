@@ -1,0 +1,646 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Font Engine: Local Custom Fonts (Variable & Script)
+   ========================================================================== */
+
+/* 1. Inter (Variable Sans) */
+@font-face {
+  font-family: 'Inter';
+  src: url('/font/Inter/Inter-VariableFont_opsz,wght.ttf') format('truetype-variations'),
+       url('/font/Inter/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/font/Inter/Inter-Italic-VariableFont_opsz,wght.ttf') format('truetype-variations'),
+       url('/font/Inter/Inter-Italic-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* 2. Caveat (Handwritten Casual Script) */
+@font-face {
+  font-family: 'Caveat';
+  src: url('/font/Caveat/Caveat-VariableFont_wght.ttf') format('truetype-variations'),
+       url('/font/Caveat/Caveat-VariableFont_wght.ttf') format('truetype');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 3. Playwrite AR (Flowing Modern Cursive) */
+@font-face {
+  font-family: 'Playwrite AR';
+  src: url('/font/Playwrite_AR/PlaywriteAR-VariableFont_wght.ttf') format('truetype-variations'),
+       url('/font/Playwrite_AR/PlaywriteAR-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 4. Stalemate (Classic Calligraphy) */
+@font-face {
+  font-family: 'Stalemate';
+  src: url('/font/Stalemate/Stalemate-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  --font-caveat: 'Caveat', cursive, sans-serif;
+  --font-playwrite: 'Playwrite AR', cursive, sans-serif;
+  --font-stalemate: 'Stalemate', cursive, sans-serif;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --accent-color: #0081a7;
+    --accent-rgb: 0, 129, 167;
+    --accent-glow: rgba(0, 129, 167, 0.35);
+
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Outfit', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    --font-caveat: 'Caveat', cursive, sans-serif;
+    --font-playwrite: 'Playwrite AR', cursive, sans-serif;
+    --font-stalemate: 'Stalemate', cursive, sans-serif;
+
+    /* Bonjourr & Rea Inspired Subtle Contrast System */
+    --text-shadow-interface: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);
+    --text-shadow-strong: 0 1px 3px rgba(0, 0, 0, 0.55), 0 3px 10px rgba(0, 0, 0, 0.28);
+    --text-shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  ::selection {
+    background-color: var(--accent-color, #10b981) !important;
+    color: #ffffff !important;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-shadow: var(--text-shadow-interface);
+  }
+
+  /* Fix for Windows / Chrome native dropdown popup rendering white-on-white */
+  select {
+    color-scheme: dark !important;
+    background-color: #0f1422;
+    color: #f1f5f9;
+  }
+
+  select option,
+  select optgroup {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+  }
+}
+
+/* ==========================================================================
+   Typography Harmonizer: Font-Specific Optical Scaling, Baselines & Gaps
+   Ensures Clock, Weather, and Navigation look stunning in every single font.
+   ========================================================================== */
+
+:root {
+  --clock-size-compact: 2.25rem;
+  --clock-size-hero: 6.5rem;
+  --clock-colon-offset: -0.04em;
+  --clock-period-offset: 0.08em;
+  --clock-period-size: 0.825rem;
+  --clock-font-weight: 600;
+  --clock-letter-spacing: -0.02em;
+
+  --weather-text-temp: 1.05rem;
+  --weather-text-city: 0.875rem;
+  --weather-text-details: 0.8125rem;
+  --weather-icon-scale: 1;
+  --weather-gap: 0.625rem;
+}
+
+/* 1. Mono (JetBrains Mono / Cascadia Code) */
+[data-font="mono"],
+.font-mono {
+  font-family: var(--font-mono) !important;
+  --clock-size-compact: 2.15rem;
+  --clock-size-hero: 6.25rem;
+  --clock-colon-offset: 0em;
+  --clock-period-offset: 0.06em;
+  --clock-period-size: 0.8rem;
+  --clock-font-weight: 600;
+  --clock-letter-spacing: 0em;
+
+  --weather-text-temp: 1.0rem;
+  --weather-text-city: 0.85rem;
+  --weather-text-details: 0.775rem;
+  --weather-icon-scale: 0.95;
+  --weather-gap: 0.575rem;
+}
+
+/* 2. Display (Outfit) */
+[data-font="display"],
+.font-display {
+  font-family: var(--font-display) !important;
+  --clock-size-compact: 2.45rem;
+  --clock-size-hero: 6.75rem;
+  --clock-colon-offset: -0.04em;
+  --clock-period-offset: 0.08em;
+  --clock-period-size: 0.875rem;
+  --clock-font-weight: 600;
+  --clock-letter-spacing: -0.015em;
+
+  --weather-text-temp: 1.075rem;
+  --weather-text-city: 0.9rem;
+  --weather-text-details: 0.825rem;
+  --weather-icon-scale: 1.02;
+  --weather-gap: 0.65rem;
+}
+
+/* 3. Sans (Inter) - Balanced Gold Standard */
+[data-font="sans"],
+.font-sans {
+  font-family: var(--font-sans) !important;
+  --clock-size-compact: 2.35rem;
+  --clock-size-hero: 6.5rem;
+  --clock-colon-offset: -0.05em;
+  --clock-period-offset: 0.08em;
+  --clock-period-size: 0.85rem;
+  --clock-font-weight: 600;
+  --clock-letter-spacing: -0.02em;
+
+  --weather-text-temp: 1.05rem;
+  --weather-text-city: 0.875rem;
+  --weather-text-details: 0.8125rem;
+  --weather-icon-scale: 1;
+  --weather-gap: 0.625rem;
+}
+
+/* 4. Caveat (Casual Handwritten Script) - Optically scaled up for clarity */
+[data-font="caveat"],
+.font-caveat {
+  font-family: var(--font-caveat) !important;
+  --clock-size-compact: 2.9rem;
+  --clock-size-hero: 8.5rem;
+  --clock-colon-offset: -0.03em;
+  --clock-period-offset: 0.12em;
+  --clock-period-size: 1.25rem;
+  --clock-font-weight: 700;
+  --clock-letter-spacing: 0.01em;
+
+  --weather-text-temp: 1.45rem;
+  --weather-text-city: 1.25rem;
+  --weather-text-details: 1.15rem;
+  --weather-icon-scale: 1.15;
+  --weather-gap: 0.75rem;
+}
+
+/* 5. Playwrite AR (Flowing Modern Cursive) */
+[data-font="playwrite"],
+.font-playwrite {
+  font-family: var(--font-playwrite) !important;
+  --clock-size-compact: 2.5rem;
+  --clock-size-hero: 7.25rem;
+  --clock-colon-offset: -0.02em;
+  --clock-period-offset: 0.08em;
+  --clock-period-size: 1.0rem;
+  --clock-font-weight: 500;
+  --clock-letter-spacing: 0.02em;
+
+  --weather-text-temp: 1.25rem;
+  --weather-text-city: 1.1rem;
+  --weather-text-details: 1.0rem;
+  --weather-icon-scale: 1.08;
+  --weather-gap: 0.75rem;
+}
+
+/* 6. Stalemate (Classic Calligraphy) - High optical compensation for luxury script */
+[data-font="stalemate"],
+.font-stalemate {
+  font-family: var(--font-stalemate) !important;
+  --clock-size-compact: 3.4rem;
+  --clock-size-hero: 9.75rem;
+  --clock-colon-offset: 0.03em;
+  --clock-period-offset: 0.15em;
+  --clock-period-size: 1.45rem;
+  --clock-font-weight: 400;
+  --clock-letter-spacing: 0.03em;
+
+  --weather-text-temp: 1.65rem;
+  --weather-text-city: 1.45rem;
+  --weather-text-details: 1.25rem;
+  --weather-icon-scale: 1.2;
+  --weather-gap: 0.85rem;
+}
+
+/* Contrast Utility Classes */
+.text-contrast {
+  text-shadow: var(--text-shadow-interface);
+}
+
+.text-contrast-strong {
+  text-shadow: var(--text-shadow-strong);
+}
+
+.text-contrast-subtle {
+  text-shadow: var(--text-shadow-subtle);
+}
+
+/* Floating Clean Contrast (Subtle, Crisp & Natural - No Heavy Black Halo) */
+.weather-contrast {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.22);
+}
+
+/* Glassmorphism Design Tokens (Ultra-Minimalist Borderless iOS / Bonjourr Glass) */
+.glass-panel {
+  background: rgba(10, 14, 24, 0.88);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: none;
+  outline: none;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+}
+
+.glass-card {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: none;
+  outline: none;
+  box-shadow: 0 8px 24px -2px rgba(0, 0, 0, 0.35);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  outline: none;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  border: none;
+  outline: none;
+  color: #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus,
+.glass-input:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  outline: none !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Universal Zero-Outline / Zero-Border Policy */
+*:focus,
+*:focus-visible {
+  outline: none !important;
+}
+
+/* Custom Minimalist Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ==========================================================================
+   Settings Modal Themes: White (#f2f4f3) & Dark (#212529)
+   ========================================================================== */
+
+:root,
+:root[data-theme="dark"],
+[data-settings-theme="dark"] {
+  --settings-modal-bg: #212529;
+  --settings-sidebar-bg: #1a1e21;
+  --settings-footer-bg: #14171a;
+  --settings-card-bg: rgba(255, 255, 255, 0.045);
+  --settings-card-border: rgba(255, 255, 255, 0.08);
+  --settings-card-hover: rgba(255, 255, 255, 0.075);
+  --settings-row-bg: rgba(0, 0, 0, 0.28);
+  --settings-row-hover: rgba(0, 0, 0, 0.42);
+  --settings-row-border: rgba(255, 255, 255, 0.06);
+  --settings-chip-bg: rgba(0, 0, 0, 0.35);
+  --settings-chip-hover: rgba(255, 255, 255, 0.08);
+  --settings-chip-text: #dee2e6;
+  --settings-chip-border: rgba(255, 255, 255, 0.07);
+  --settings-input-bg: rgba(0, 0, 0, 0.32);
+  --settings-input-border: rgba(255, 255, 255, 0.09);
+  --settings-text-title: #ffffff;
+  --settings-text-body: #f8f9fa;
+  --settings-text-secondary: #adb5bd;
+  --settings-text-muted: #6c757d;
+  --settings-select-bg: #1a1e21;
+  --settings-select-option: #212529;
+  --settings-pill-inactive-bg: rgba(255, 255, 255, 0.04);
+  --settings-pill-inactive-hover: rgba(255, 255, 255, 0.08);
+  --settings-pill-inactive-text: #adb5bd;
+  --settings-btn-ghost-bg: rgba(255, 255, 255, 0.04);
+  --settings-btn-ghost-hover: rgba(255, 255, 255, 0.08);
+  --settings-btn-ghost-text: #dee2e6;
+  --settings-divider: rgba(255, 255, 255, 0.07);
+  --settings-slider-track: rgba(255, 255, 255, 0.16);
+  --settings-shadow: 0 30px 90px rgba(0, 0, 0, 0.85);
+  --settings-scrollbar-thumb: rgba(255, 255, 255, 0.16);
+  --settings-scrollbar-hover: rgba(255, 255, 255, 0.28);
+}
+
+:root[data-theme="light"],
+[data-settings-theme="light"] {
+  --settings-modal-bg: #f2f4f3;
+  --settings-sidebar-bg: #e5e8e6;
+  --settings-footer-bg: #dbe0dd;
+  --settings-card-bg: #ffffff;
+  --settings-card-border: rgba(0, 0, 0, 0.08);
+  --settings-card-hover: #ffffff;
+  --settings-row-bg: #f8f9fa;
+  --settings-row-hover: #e9ecef;
+  --settings-row-border: rgba(0, 0, 0, 0.06);
+  --settings-chip-bg: #f1f3f5;
+  --settings-chip-hover: #e9ecef;
+  --settings-chip-text: #343a40;
+  --settings-chip-border: rgba(0, 0, 0, 0.08);
+  --settings-input-bg: #ffffff;
+  --settings-input-border: rgba(0, 0, 0, 0.14);
+  --settings-text-title: #212529;
+  --settings-text-body: #212529;
+  --settings-text-secondary: #495057;
+  --settings-text-muted: #6c757d;
+  --settings-select-bg: #ffffff;
+  --settings-select-option: #f8f9fa;
+  --settings-pill-inactive-bg: #f1f3f5;
+  --settings-pill-inactive-hover: #e9ecef;
+  --settings-pill-inactive-text: #495057;
+  --settings-btn-ghost-bg: rgba(0, 0, 0, 0.05);
+  --settings-btn-ghost-hover: rgba(0, 0, 0, 0.09);
+  --settings-btn-ghost-text: #343a40;
+  --settings-divider: rgba(0, 0, 0, 0.08);
+  --settings-slider-track: #dee2e6;
+  --settings-shadow: 0 25px 70px rgba(0, 0, 0, 0.18);
+  --settings-scrollbar-thumb: rgba(0, 0, 0, 0.18);
+  --settings-scrollbar-hover: rgba(0, 0, 0, 0.32);
+}
+
+.settings-modal {
+  background-color: var(--settings-modal-bg) !important;
+  color: var(--settings-text-body);
+  box-shadow: var(--settings-shadow) !important;
+}
+
+/* Range Slider Refinement for Both Dark & Light Themes */
+.settings-modal input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--settings-slider-track) !important;
+  outline: none !important;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.settings-modal input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.settings-modal input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.settings-modal input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.settings-modal input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* --------------------------------------------------------------------------
+   LIGHT THEME REFINEMENT RULES (#f2f4f3 modal background)
+   -------------------------------------------------------------------------- */
+
+/* Typography & Headings */
+[data-settings-theme="light"] h1,
+[data-settings-theme="light"] h2,
+[data-settings-theme="light"] h3,
+[data-settings-theme="light"] h4,
+[data-settings-theme="light"] h5,
+[data-settings-theme="light"] strong {
+  color: #212529 !important;
+}
+
+[data-settings-theme="light"] label,
+[data-settings-theme="light"] .text-slate-200,
+[data-settings-theme="light"] .text-slate-300 {
+  color: #343a40 !important;
+}
+
+[data-settings-theme="light"] .text-slate-400 {
+  color: #495057 !important;
+}
+
+[data-settings-theme="light"] .text-slate-500 {
+  color: #6c757d !important;
+}
+
+[data-settings-theme="light"] .text-slate-100 {
+  color: #212529 !important;
+}
+
+[data-settings-theme="light"] .text-white:not([class*="bg-[var(--accent"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-cyan"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):not([class*="bg-red"]):not([class*="bg-blue"]) {
+  color: #212529 !important;
+}
+
+[data-settings-theme="light"] [class*="uppercase"] {
+  color: #495057 !important;
+}
+
+/* Cards & Sections */
+[data-settings-theme="light"] .settings-card,
+[data-settings-theme="light"] [class*="bg-white/[0.02]"],
+[data-settings-theme="light"] [class*="bg-white/[0.03]"],
+[data-settings-theme="light"] [class*="bg-white/[0.04]"],
+[data-settings-theme="light"] [class*="bg-white/5"] {
+  background-color: var(--settings-card-bg) !important;
+  border: 1px solid var(--settings-card-border) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Row Items (Search Engines & Quick Links lists) */
+[data-settings-theme="light"] div[class*="bg-black/35"],
+[data-settings-theme="light"] div[class*="bg-white/[0.03]"] {
+  background-color: var(--settings-row-bg) !important;
+  border: 1px solid var(--settings-row-border) !important;
+}
+
+[data-settings-theme="light"] div[class*="bg-black/35"]:hover,
+[data-settings-theme="light"] div[class*="bg-white/[0.03]"]:hover {
+  background-color: var(--settings-row-hover) !important;
+}
+
+[data-settings-theme="light"] div[class*="bg-black/40"] {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Preset Chips (Popular Search Engines & Quick Links presets) */
+[data-settings-theme="light"] .bg-black\/30,
+[data-settings-theme="light"] button[class*="bg-black/30"] {
+  background-color: var(--settings-chip-bg) !important;
+  border: 1px solid var(--settings-chip-border) !important;
+  color: var(--settings-chip-text) !important;
+}
+
+[data-settings-theme="light"] .bg-black\/30:hover,
+[data-settings-theme="light"] button[class*="bg-black/30"]:hover {
+  background-color: var(--settings-chip-hover) !important;
+  color: #111827 !important;
+}
+
+/* Inactive Toggle Buttons & Percentage Pills */
+[data-settings-theme="light"] button[class*="bg-white/"]:not([class*="bg-[var(--accent"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-white/20"]) {
+  background-color: #f1f3f5 !important;
+  color: #495057 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-settings-theme="light"] button[class*="bg-white/"]:not([class*="bg-[var(--accent"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-white/20"]):hover {
+  background-color: #e9ecef !important;
+  color: #212529 !important;
+}
+
+[data-settings-theme="light"] button.bg-white\/20 {
+  background-color: var(--accent-color) !important;
+  color: var(--accent-contrast, #ffffff) !important;
+}
+
+[data-settings-theme="light"] button.text-slate-400:not([class*="bg-[var(--accent"]):not([class*="hover:text-[var(--accent"]) {
+  color: #495057 !important;
+}
+
+[data-settings-theme="light"] button.text-slate-400:hover:not([class*="bg-[var(--accent"]):not([class*="hover:text-[var(--accent"]) {
+  color: #212529 !important;
+}
+
+[data-settings-theme="light"] .hover\:text-white:hover {
+  color: #212529 !important;
+}
+
+/* Inputs, Textareas, Selects & Native Dropdowns */
+[data-settings-theme="light"] select,
+[data-settings-theme="light"] input[type="text"],
+[data-settings-theme="light"] input[type="number"],
+[data-settings-theme="light"] input[type="url"],
+[data-settings-theme="light"] textarea {
+  background-color: var(--settings-input-bg) !important;
+  color: var(--settings-text-body) !important;
+  border: 1px solid var(--settings-input-border) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  color-scheme: light !important;
+}
+
+[data-settings-theme="light"] select option {
+  background-color: var(--settings-select-bg) !important;
+  color: var(--settings-text-body) !important;
+}
+
+[data-settings-theme="light"] input::placeholder,
+[data-settings-theme="light"] textarea::placeholder {
+  color: #adb5bd !important;
+}
+
+[data-settings-theme="light"] input:focus,
+[data-settings-theme="light"] textarea:focus,
+[data-settings-theme="light"] select:focus {
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+}
+
+/* Monospace Custom CSS Editor */
+[data-settings-theme="light"] textarea[spellcheck="false"] {
+  background-color: #ffffff !important;
+  color: #212529 !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Action Icons (Arrows, Edit, Delete) */
+[data-settings-theme="light"] button[title="Move Up"],
+[data-settings-theme="light"] button[title="Move Down"],
+[data-settings-theme="light"] button[title*="Modify"],
+[data-settings-theme="light"] button[title*="Default"],
+[data-settings-theme="light"] button[title*="Reset to defaults"] {
+  color: #6c757d !important;
+}
+
+[data-settings-theme="light"] button[title="Move Up"]:hover,
+[data-settings-theme="light"] button[title="Move Down"]:hover,
+[data-settings-theme="light"] button[title*="Reset to defaults"]:hover {
+  color: #212529 !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Toggle Switch Track */
+[data-settings-theme="light"] .bg-white\/10 {
+  background-color: #dee2e6 !important;
+}
+
+/* Neutral Border Overrides */
+[data-settings-theme="light"] [class*="border-white/"] {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Scrollbar Customization */
+.settings-modal ::-webkit-scrollbar-thumb {
+  background: var(--settings-scrollbar-thumb) !important;
+}
+.settings-modal ::-webkit-scrollbar-thumb:hover {
+  background: var(--settings-scrollbar-hover) !important;
+}
