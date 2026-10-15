@@ -1,7 +1,7 @@
 # Aura · Next-Gen Startpage & UI Customizer
 
 <p align="center">
-  <img src="public/favicon.svg" alt="Aura Logo" width="80" height="80" />
+  <img src="public/icons/icon-128.png" alt="Aura Logo" width="80" height="80" />
 </p>
 
 <p align="center">
@@ -121,7 +121,8 @@ Ui-Customizer/
 ├── public/                           # Static assets, fonts, icons & extension manifest
 │   ├── backgrounds/                  # Bundled offline fallback wallpapers (<3MB)
 │   ├── font/                         # Self-hosted variable Google Fonts
-│   ├── favicon.svg                   # Browser extension favicon
+│   ├── icons/                        # Browser extension icons (16, 32, 48, 128px)
+│   ├── favicon.png                   # Startpage web favicon
 │   └── manifest.json                 # Manifest V3 configuration
 ├── scripts/                          # Automated verification and feature test suites
 │   ├── download_fallback_wallpapers.js

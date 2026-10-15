@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
-  Sliders,
   Palette,
   Image as ImageIcon,
   Clock,
@@ -185,8 +184,8 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
             {/* Brand Header */}
             <div className="p-4 sm:p-5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[var(--accent-color)]/15 text-[var(--accent-color)] flex items-center justify-center shrink-0 shadow-sm shadow-[var(--accent-glow)]">
-                  <Sliders className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl bg-black/20 flex items-center justify-center shrink-0 shadow-sm shadow-[var(--accent-glow)] overflow-hidden border border-white/[0.08] p-1">
+                  <img src="/icons/icon-48.png" alt="Aura Logo" className="w-full h-full object-contain rounded-xl" />
                 </div>
                 <div>
                   <h2
