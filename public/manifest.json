@@ -3,7 +3,7 @@
   "name": "Aura · UI Customizer & Startpage",
   "short_name": "Aura",
   "version": "1.0.0",
-  "description": "A stunning, minimalist startpage and browser customizer with clock, weather, notes, pomodoro, search, and custom webpage redirects.",
+  "description": "A stunning, minimalist startpage with dynamic wallpapers, clock, weather, custom search, and personal productivity tools.",
   "action": {
     "title": "Aura · UI Customizer",
     "default_icon": {
@@ -17,11 +17,20 @@
     "newtab": "index.html"
   },
   "permissions": [
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
-    "*://*/*"
+    "https://services.bonjourr.fr/*",
+    "https://images.unsplash.com/*",
+    "https://unsplash.com/*",
+    "https://wallhaven.cc/*",
+    "https://www.bing.com/*",
+    "https://bing.biturl.top/*",
+    "https://*.reddit.com/*",
+    "https://*.redd.it/*",
+    "https://api.open-meteo.com/*",
+    "https://geocoding-api.open-meteo.com/*",
+    "https://ipapi.co/*"
   ],
   "icons": {
     "16": "icons/icon-16.png",
