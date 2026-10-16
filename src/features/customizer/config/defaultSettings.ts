@@ -56,6 +56,8 @@ export const DEFAULT_SETTINGS: CustomizerSettings = {
   quickLinksCols: 'auto',
   quickLinksSize: 'md',
   quickLinksShowTitle: true,
+  quickLinksStyle: 'dock',
+  quickLinksBackground: true,
 
   // Weather Widget (Bonjourr Pattern: default to approximate IP location so NO browser permission popup is shown)
   showWeather: true,

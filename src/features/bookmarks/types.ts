@@ -1,3 +1,5 @@
+export type QuickLinksStyle = 'dock' | 'grid' | 'inline' | 'minimal'
+
 export interface BookmarkItem {
   id: string
   title: string
@@ -13,4 +15,7 @@ export interface BookmarksConfig {
   quickLinksCols?: number | 'auto'
   quickLinksSize?: 'sm' | 'md' | 'lg'
   quickLinksShowTitle?: boolean
+  quickLinksStyle?: QuickLinksStyle
+  quickLinksBackground?: boolean
 }
+

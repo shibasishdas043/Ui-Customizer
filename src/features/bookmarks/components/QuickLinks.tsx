@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { BookmarkItem } from '../types'
+import type { BookmarkItem, QuickLinksStyle } from '../types'
 import { BookmarkCard } from './BookmarkCard'
 import { BookmarkEditorModal } from './BookmarkEditorModal'
 import { migrateBookmarksToPermanentCache } from '../utils/faviconCacheHelper'
@@ -13,6 +13,8 @@ interface QuickLinksProps {
   cols?: number | 'auto'
   size?: 'sm' | 'md' | 'lg'
   showTitles?: boolean
+  styleMode?: QuickLinksStyle
+  showBackground?: boolean
 }
 
 export const QuickLinks: React.FC<QuickLinksProps> = ({
@@ -23,11 +25,13 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
   cols = 'auto',
   size = 'md',
   showTitles = true,
+  styleMode = 'dock',
+  showBackground = true,
 }) => {
   const [editingBookmark, setEditingBookmark] = useState<BookmarkItem | null>(null)
+  const [isAltPressed, setIsAltPressed] = useState(false)
 
-  // Background permanent favicon cache migrator:
-  // Converts any uncached remote favicons into permanent Base64 Data URLs on mount.
+  // Background permanent favicon cache migrator
   useEffect(() => {
     if (!links || links.length === 0) return
     let isMounted = true
@@ -43,6 +47,58 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
     }
   }, [links, onUpdateLinks])
 
+  // Bonjourr Alt-key shortcut navigation (Hold Alt to reveal numbers, Alt+1..9 to open)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return
+      }
+
+      if (e.key === 'Alt') {
+        setIsAltPressed(true)
+      }
+
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.code.startsWith('Digit')) {
+        const digit = parseInt(e.code.replace('Digit', ''), 10)
+        if (digit >= 1 && digit <= 9 && links[digit - 1]) {
+          e.preventDefault()
+          const targetLink = links[digit - 1]
+          if (openInNewTab) {
+            window.open(targetLink.url, '_blank', 'noopener,noreferrer')
+          } else {
+            window.location.href = targetLink.url
+          }
+        }
+      }
+    }
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Alt') {
+        setIsAltPressed(false)
+      }
+    }
+
+    const handleBlur = () => {
+      setIsAltPressed(false)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleBlur)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', handleBlur)
+    }
+  }, [links, openInNewTab])
+
   if (!visible || links.length === 0) return null
 
   const handleEdit = (bookmark: BookmarkItem, e: React.MouseEvent) => {
@@ -57,56 +113,56 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
 
   // Calculate layout classes (Bonjourr / Rea architectural pattern)
   const isFixedCols = typeof cols === 'number' && cols > 0
-  const count = links.length
 
   const getLayoutClasses = () => {
     if (isFixedCols) {
       return 'grid justify-items-center justify-center gap-3 sm:gap-4 md:gap-5'
     }
 
-    if (count <= 4) {
-      return 'flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-5'
+    if (styleMode === 'inline') {
+      return 'flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 max-w-4xl'
     }
 
-    if (count <= 6) {
-      return 'grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 justify-items-center justify-center gap-3 sm:gap-4 md:gap-5'
-    }
-
-    return 'grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 justify-items-center justify-center gap-3 sm:gap-4 md:gap-5'
+    // Auto-flow dock: flexible wrap with centered alignment so links naturally stay in 1 row!
+    return 'flex flex-wrap items-start justify-center gap-3 sm:gap-4 md:gap-5'
   }
 
-  const getContainerMaxWidth = () => {
-    if (isFixedCols) {
-      if (cols <= 4) return 'max-w-lg'
-      if (cols <= 6) return 'max-w-2xl'
-      return 'max-w-4xl'
-    }
-
-    if (count <= 4) return 'max-w-md'
-    if (count <= 6) return 'max-w-2xl'
-    return 'max-w-3xl sm:max-w-4xl'
-  }
+  const linkCards = (
+    <motion.div
+      layout
+      className={getLayoutClasses()}
+      style={isFixedCols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : undefined}
+    >
+      <AnimatePresence initial={false}>
+        {links.map((link, index) => (
+          <BookmarkCard
+            key={link.id}
+            bookmark={link}
+            index={index}
+            onEdit={handleEdit}
+            openInNewTab={openInNewTab}
+            size={size}
+            showTitle={showTitles}
+            styleMode={styleMode}
+            showBackground={showBackground}
+            isAltPressed={isAltPressed}
+          />
+        ))}
+      </AnimatePresence>
+    </motion.div>
+  )
 
   return (
-    <div className={`w-full ${getContainerMaxWidth()} mx-auto px-4 relative z-10 transition-all duration-300`}>
-      <motion.div
-        layout
-        className={getLayoutClasses()}
-        style={isFixedCols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : undefined}
-      >
-        <AnimatePresence initial={false}>
-          {links.map((link) => (
-            <BookmarkCard
-              key={link.id}
-              bookmark={link}
-              onEdit={handleEdit}
-              openInNewTab={openInNewTab}
-              size={size}
-              showTitle={showTitles}
-            />
-          ))}
-        </AnimatePresence>
-      </motion.div>
+    <div className="w-full flex justify-center px-4 relative z-10 transition-all duration-300">
+      {styleMode === 'dock' ? (
+        <div className="inline-flex items-center justify-center max-w-full px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-3xl bg-black/25 dark:bg-black/40 backdrop-blur-2xl border border-white/12 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] transition-all duration-300">
+          {linkCards}
+        </div>
+      ) : (
+        <div className="w-full max-w-5xl mx-auto flex justify-center">
+          {linkCards}
+        </div>
+      )}
 
       {/* Editor modal for direct right-click editing */}
       <BookmarkEditorModal

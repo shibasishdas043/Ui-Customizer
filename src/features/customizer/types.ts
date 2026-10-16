@@ -1,4 +1,5 @@
-import type { BookmarkItem } from '../bookmarks/types'
+import type { BookmarkItem, QuickLinksStyle } from '../bookmarks/types'
+export type { QuickLinksStyle }
 import type { SearchEngineItem } from '../search/types'
 import type {
   WallpaperType,
@@ -78,13 +79,15 @@ export interface CustomizerSettings {
   searchInNewTab: boolean
   searchEngines: SearchEngineItem[]
 
-  // Quick Links
+  // Quick Links (Bonjourr / Apple Dock Pattern)
   showQuickLinks: boolean
   bookmarksInNewTab: boolean
   quickLinks: BookmarkItem[]
   quickLinksCols: number | 'auto'
   quickLinksSize: 'sm' | 'md' | 'lg'
   quickLinksShowTitle: boolean
+  quickLinksStyle?: QuickLinksStyle
+  quickLinksBackground?: boolean
 
   // Weather Widget (Bonjourr Pattern)
   showWeather: boolean

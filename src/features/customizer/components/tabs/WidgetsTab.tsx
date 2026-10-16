@@ -14,7 +14,7 @@ import {
   Sparkles,
   ChevronRight,
 } from 'lucide-react'
-import type { CustomizerSettings } from '../../types'
+import type { CustomizerSettings, QuickLinksStyle } from '../../types'
 import { SearchEnginesManager } from '../../../../features/search'
 import {
   searchCities,
@@ -683,13 +683,58 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
           </span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           <label className="flex items-center justify-between cursor-pointer">
             <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Show Quick Links Dock</span>
             <input
               type="checkbox"
               checked={settings.showQuickLinks}
               onChange={(e) => onUpdate({ showQuickLinks: e.target.checked })}
+              className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
+            />
+          </label>
+
+          {/* Style Mode Selector */}
+          <div className="space-y-1.5 pt-1">
+            <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Dock Style</span>
+            <div className="grid grid-cols-4 gap-1.5 p-1 bg-black/5 dark:bg-white/[0.04] rounded-xl">
+              {(
+                [
+                  { id: 'dock', label: 'macOS Dock' },
+                  { id: 'grid', label: 'Grid' },
+                  { id: 'inline', label: 'Inline' },
+                  { id: 'minimal', label: 'Minimal' },
+                ] as { id: QuickLinksStyle; label: string }[]
+              ).map((mode) => {
+                const isActive = (settings.quickLinksStyle ?? 'dock') === mode.id
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => onUpdate({ quickLinksStyle: mode.id })}
+                    className={`py-1.5 px-1 rounded-lg text-[11px] font-semibold text-center cursor-pointer transition-colors border-0 outline-none ${
+                      isActive
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white'
+                    }`}
+                  >
+                    {mode.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Tile Background Toggle */}
+          <label className="flex items-center justify-between cursor-pointer pt-1">
+            <div className="flex flex-col">
+              <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Tile Background</span>
+              <span className="text-[11px] text-[#383531] dark:text-slate-400">Frosted squircle tile vs transparent icon</span>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.quickLinksBackground ?? true}
+              onChange={(e) => onUpdate({ quickLinksBackground: e.target.checked })}
               className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
             />
           </label>
@@ -720,6 +765,13 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                 New Tab
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.03] text-[11px] text-[#383531] dark:text-slate-400">
+            <span>Quick Launch Hotkey:</span>
+            <span className="font-mono font-semibold text-[#141413] dark:text-slate-200">
+              <kbd className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10">Alt</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10">1..9</kbd>
+            </span>
           </div>
 
           {onNavigateToLinks && (

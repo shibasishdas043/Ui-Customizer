@@ -271,6 +271,8 @@ export default function App() {
             cols={settings.quickLinksCols}
             size={settings.quickLinksSize}
             showTitles={settings.quickLinksShowTitle}
+            styleMode={settings.quickLinksStyle ?? 'dock'}
+            showBackground={settings.quickLinksBackground ?? true}
             onUpdateLinks={(newLinks) => updateSettings({ quickLinks: newLinks })}
           />
 

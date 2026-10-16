@@ -13,6 +13,7 @@ interface BookmarkThumbnailProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
   interactive?: boolean
+  showBackground?: boolean
 }
 
 const thumbnailVariants: Variants = {
@@ -48,6 +49,45 @@ const thumbnailVariants: Variants = {
     y: 0,
     scale: 0.94,
     boxShadow: '0 2px 8px -1px rgba(0, 0, 0, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1)',
+    transition: {
+      type: 'spring',
+      stiffness: 600,
+      damping: 30,
+    },
+  },
+}
+
+const transparentVariants: Variants = {
+  rest: {
+    y: 0,
+    scale: 1,
+    boxShadow: 'none',
+    borderColor: 'transparent',
+    backgroundColor: 'transparent',
+    transition: {
+      type: 'spring',
+      stiffness: 380,
+      damping: 28,
+      mass: 0.75,
+    },
+  },
+  hover: {
+    y: -5.5,
+    scale: 1.15,
+    boxShadow: 'none',
+    borderColor: 'transparent',
+    backgroundColor: 'transparent',
+    filter: 'drop-shadow(0 10px 14px rgba(0,0,0,0.5))',
+    transition: {
+      type: 'spring',
+      stiffness: 420,
+      damping: 24,
+      mass: 0.65,
+    },
+  },
+  tap: {
+    y: 0,
+    scale: 0.92,
     transition: {
       type: 'spring',
       stiffness: 600,
@@ -119,6 +159,7 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
   size = 'md',
   className = '',
   interactive = false,
+  showBackground = true,
 }) => {
   const [failedIcon, setFailedIcon] = useState<string | null>(null)
   
@@ -127,16 +168,23 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
   const hasError = !displayIcon || failedIcon === displayIcon
 
   const dimensions = {
-    sm: 'w-8 h-8 rounded-xl text-xs',
-    md: 'w-12 h-12 sm:w-14 sm:h-14 rounded-2xl text-base sm:text-lg',
+    sm: 'w-9 h-9 rounded-xl text-xs',
+    md: 'w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-2xl text-base sm:text-lg',
     lg: 'w-16 h-16 rounded-2xl text-xl',
   }[size]
 
-  const iconDimensions = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6 sm:w-7 sm:h-7',
-    lg: 'w-8 h-8',
-  }[size]
+  // Proportional icon sizing for bold, prominent display (Bonjourr pattern)
+  const iconDimensions = showBackground
+    ? {
+        sm: 'w-5 h-5',
+        md: 'w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9',
+        lg: 'w-10 h-10',
+      }[size]
+    : {
+        sm: 'w-7 h-7',
+        md: 'w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11',
+        lg: 'w-13 h-13',
+      }[size]
 
   const isMonochrome = title.toLowerCase().includes('github') || title.toLowerCase().includes('x /') || title.toLowerCase() === 'x'
 
@@ -144,18 +192,26 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
     if (interactive) {
       return (
         <motion.div
-          variants={thumbnailVariants}
-          className={`${dimensions} backdrop-blur-xl backdrop-saturate-150 flex items-center justify-center overflow-hidden border will-change-transform ${className}`}
-          style={{
-            WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-            backdropFilter: 'blur(20px) saturate(150%)',
-          }}
+          variants={showBackground ? thumbnailVariants : transparentVariants}
+          className={`${dimensions} ${
+            showBackground
+              ? 'backdrop-blur-xl backdrop-saturate-150 border'
+              : 'border-transparent shadow-none'
+          } flex items-center justify-center overflow-hidden will-change-transform ${className}`}
+          style={
+            showBackground
+              ? {
+                  WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+                  backdropFilter: 'blur(20px) saturate(150%)',
+                }
+              : undefined
+          }
         >
           <motion.img
             variants={iconVariants}
             src={displayIcon}
             alt={title || 'Icon'}
-            className={`${iconDimensions} object-contain rounded-sm will-change-transform ${
+            className={`${iconDimensions} object-contain rounded-sm will-change-transform drop-shadow-sm ${
               isMonochrome ? 'invert brightness-200' : ''
             }`}
             onError={() => setFailedIcon(displayIcon)}
@@ -166,16 +222,24 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
 
     return (
       <div
-        className={`${dimensions} bg-black/35 backdrop-blur-xl backdrop-saturate-150 flex items-center justify-center overflow-hidden shadow-lg border border-white/10 ${className}`}
-        style={{
-          WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-          backdropFilter: 'blur(20px) saturate(150%)',
-        }}
+        className={`${dimensions} ${
+          showBackground
+            ? 'bg-black/35 backdrop-blur-xl backdrop-saturate-150 shadow-lg border border-white/10'
+            : 'border-transparent shadow-none'
+        } flex items-center justify-center overflow-hidden ${className}`}
+        style={
+          showBackground
+            ? {
+                WebkitBackdropFilter: 'blur(20px) saturate(150%)',
+                backdropFilter: 'blur(20px) saturate(150%)',
+              }
+            : undefined
+        }
       >
         <img
           src={displayIcon}
           alt={title || 'Icon'}
-          className={`${iconDimensions} object-contain rounded-sm ${
+          className={`${iconDimensions} object-contain rounded-sm drop-shadow-sm ${
             isMonochrome ? 'invert brightness-200' : ''
           }`}
           onError={() => setFailedIcon(displayIcon)}

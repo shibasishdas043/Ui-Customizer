@@ -454,6 +454,10 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
                   onUpdateSize={(size) => onUpdate({ quickLinksSize: size })}
                   showTitles={settings.quickLinksShowTitle}
                   onToggleShowTitles={(show) => onUpdate({ quickLinksShowTitle: show })}
+                  styleMode={settings.quickLinksStyle ?? 'dock'}
+                  onUpdateStyle={(style) => onUpdate({ quickLinksStyle: style })}
+                  showBackground={settings.quickLinksBackground ?? true}
+                  onToggleBackground={(bg) => onUpdate({ quickLinksBackground: bg })}
                 />
               )}
               {activeTab === 'browser' && (

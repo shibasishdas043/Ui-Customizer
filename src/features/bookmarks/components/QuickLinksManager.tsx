@@ -11,7 +11,7 @@ import {
   Sparkles,
   Layers,
 } from 'lucide-react'
-import type { BookmarkItem } from '../types'
+import type { BookmarkItem, QuickLinksStyle } from '../types'
 import { BOOKMARK_PRESETS, presetToBookmark } from '../config/presets'
 import { DEFAULT_BOOKMARKS } from '../config/defaultBookmarks'
 import { BookmarkThumbnail } from './BookmarkThumbnail'
@@ -30,6 +30,10 @@ interface QuickLinksManagerProps {
   onUpdateSize?: (size: 'sm' | 'md' | 'lg') => void
   showTitles?: boolean
   onToggleShowTitles?: (show: boolean) => void
+  styleMode?: QuickLinksStyle
+  onUpdateStyle?: (style: QuickLinksStyle) => void
+  showBackground?: boolean
+  onToggleBackground?: (bg: boolean) => void
 }
 
 export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
@@ -45,6 +49,10 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
   onUpdateSize,
   showTitles = true,
   onToggleShowTitles,
+  styleMode = 'dock',
+  onUpdateStyle,
+  showBackground = true,
+  onToggleBackground,
 }) => {
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [editingBookmark, setEditingBookmark] = useState<BookmarkItem | null>(null)
@@ -162,6 +170,61 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
           </p>
         </div>
 
+        {/* Dock Layout Style (Bonjourr / Apple Dock Pattern) */}
+        {onUpdateStyle && (
+          <div className="pt-2.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Dock Style</span>
+              <div className="p-1 bg-black/5 dark:bg-white/[0.04] rounded-xl flex items-center gap-1">
+                {([
+                  { id: 'dock', label: 'Dock Tray' },
+                  { id: 'grid', label: 'Grid' },
+                  { id: 'inline', label: 'Inline' },
+                  { id: 'minimal', label: 'Minimal' },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => onUpdateStyle(opt.id)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 outline-none ${
+                      styleMode === opt.id
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-[11px] text-[#383531] dark:text-slate-400 font-medium">
+              {styleMode === 'dock' && 'macOS-inspired frosted glass dock tray wrapping links into a unified shelf.'}
+              {styleMode === 'grid' && 'Classic floating cards arranged in clean rows.'}
+              {styleMode === 'inline' && 'Compact horizontal capsule pills with icon and title side-by-side.'}
+              {styleMode === 'minimal' && 'Pure floating brand icons without card backgrounds.'}
+            </p>
+          </div>
+        )}
+
+        {/* Icon Squircle Backgrounds Toggle (Bonjourr linkbackgrounds) */}
+        {onToggleBackground && styleMode !== 'minimal' && (
+          <div className="pt-2.5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Tile Backgrounds</span>
+              <p className="text-[11px] text-[#383531] dark:text-slate-400 font-medium">Show frosted squircle cards behind icons</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showBackground}
+                onChange={(e) => onToggleBackground(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-black/10 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--accent-color)]"></div>
+            </label>
+          </div>
+        )}
+
         {/* Grid Columns (Bonjourr / Rea architectural pattern) */}
         {onUpdateCols && (
           <div className="pt-2.5 space-y-2">
@@ -186,7 +249,7 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
             </div>
             <p className="text-[11px] text-[#383531] dark:text-slate-400 font-medium">
               {cols === 'auto'
-                ? 'Auto-balances rows symmetrically from 4 to 8 columns based on link count.'
+                ? 'Fluid centered auto-flow that keeps links balanced on a single row without awkward breaks.'
                 : `Locks the layout into ${cols} aligned columns per row.`}
             </p>
           </div>
@@ -225,8 +288,8 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
         {onToggleShowTitles && (
           <div className="pt-2.5 flex items-center justify-between">
             <div>
-              <span className="text-xs font-medium text-slate-300">Show Link Titles</span>
-              <p className="text-[11px] text-slate-400">Disable for clean, minimal icon-only dock</p>
+              <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Show Link Titles</span>
+              <p className="text-[11px] text-[#383531] dark:text-slate-400 font-medium">Disable for clean, minimal icon-only dock</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -235,10 +298,18 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
                 onChange={(e) => onToggleShowTitles(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--accent-color)]"></div>
+              <div className="w-9 h-5 bg-black/10 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--accent-color)]"></div>
             </label>
           </div>
         )}
+
+        {/* Bonjourr Keyboard Navigation Tip */}
+        <div className="p-3 rounded-xl bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[11px] text-[#383531] dark:text-slate-300 flex items-center gap-2">
+          <span>⚡</span>
+          <span>
+            Hold <kbd className="px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono font-bold text-[10px]">Alt</kbd> on your startpage to see numeric hotkeys (Alt+1 to Alt+9) to launch any link instantly!
+          </span>
+        </div>
       </div>
 
       {/* 2. Quick Add Bar & Presets */}
