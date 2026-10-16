@@ -38,6 +38,10 @@
     "https://*.redd.it/*",
     "https://api.open-meteo.com/*",
     "https://geocoding-api.open-meteo.com/*",
+    "https://api.bigdatacloud.net/*",
+    "https://ipwho.is/*",
+    "https://freeipapi.com/*",
+    "https://get.geojs.io/*",
     "https://ipapi.co/*"
   ],
   "icons": {
