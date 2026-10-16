@@ -1,8 +1,91 @@
 # ==============================================================================
+# Security, Secrets, API Keys & Private Credentials (Public GitHub Protection)
+# ==============================================================================
+# Environment variable files
+.env
+.env.*
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+!.env.template
+!.env.sample
+!.env.defaults
+
+# Secret, token and credential payloads
+secrets.json
+secret.json
+*.secret
+*.secrets
+secrets/
+secret/
+private/
+credentials.json
+credentials.yaml
+credentials.yml
+credentials/
+service-account*.json
+serviceAccountKey*.json
+client_secret*.json
+client_secrets.json
+google-services.json
+token.json
+tokens.json
+auth.json
+jwt.hex
+oauth.json
+oauth2.json
+
+# Chrome Web Store & packaging publishing credentials
+cws-key.json
+cws-credentials.json
+chrome-store-credentials.json
+webstore-api-keys.json
+webstore-credentials.json
+
+# Cryptographic signing keys, certificates & keystores
+*.pem
+*.key
+*.pub
+*.pk8
+*.pfx
+*.p12
+*.cer
+*.crt
+*.der
+*.keystore
+*.jks
+key.pem
+manifest-key.pem
+extension.pem
+private_key.pe*
+
+# Package manager & developer auth configs
+.npmrc
+!.npmrc.example
+.yarnrc
+!.yarnrc.example
+.netrc
+.aws/
+.azure/
+.gcloud/
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+
+# ==============================================================================
 # Internal Analysis, AI Assistant Artifacts & Agent Instructions
 # ==============================================================================
 BONJOURR_REVERSE_ENGINEERING_ANALYSIS.md
+DESIGN.md
+*.design.md
 AGENTS.md
+CHROME_STORE_PUBLISHING.md
+*PUBLISHING*.md
+*publishing*.md
 .agents/
 .gemini/
 .system_generated/
@@ -10,24 +93,43 @@ AGENTS.md
 .claude/
 .windsurf/
 .copilot/
+.cursor/
+.cursorrules
+.continue/
+.trae/
+.cline/
+.roo/
+.aider*
+.openai/
+*.system_generated*
 scratch/
-scratchpad_*.md
-*.scratchpad.md
+scratchpad*
+*.scratchpad.*
 *scratchpad*
 image_loading_audit.md
-*.audit.md
+*.audit.*
 *.audit.txt
+*.audit.md
+prompt_*.txt
+prompt_*.md
+llm_*.log
+chat_history/
 
 # ==============================================================================
-# Reference Code (Per AGENTS.md: Never edit, delete, or commit reference folder)
+# Reference Code & Reverse-Engineering Source (Per AGENTS.md: Never push to git)
 # ==============================================================================
 reference/
 /reference/
+reference_*/
+decompiled/
+unpacked/
+research/
 
 # ==============================================================================
 # Dependencies & Package Managers
 # ==============================================================================
 node_modules/
+jspm_packages/
 .pnp
 .pnp.js
 .pnpm-store/
@@ -35,6 +137,7 @@ node_modules/
 .yarn/unplugged/
 .yarn/build-state.yml
 .yarn/install-state.gz
+.npm/
 
 # ==============================================================================
 # Production Build & Bundler Outputs
@@ -43,35 +146,48 @@ dist/
 dist-ssr/
 build/
 out/
+release/
 .vite/
-*.tsbuildinfo
-tsconfig.tsbuildinfo
+.vite-temp/
 *.rollup.cache/
 *.parcel-cache/
+.cache/
+.turbo/
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+tsconfig.*.tsbuildinfo
+.eslintcache
+.oxlintcache
+.prettiercache
+.stylelintcache
+.swc/
 
 # ==============================================================================
-# Packaged Extensions, Signing Keys & Archives
+# Packaged Extensions, Signing Keys & Release Archives
 # ==============================================================================
 *.crx
+*.crx3
 *.xpi
 *.zip
+*.tar
 *.tar.gz
 *.tgz
 *.rar
 *.7z
-*.pem
-*.key
-*.pub
-key.pem
-secrets.json
+aura-extension.zip
+web-ext-artifacts/
+packages/
 
 # ==============================================================================
-# Environment & Local Secrets (API Keys, Tokens, Passwords)
+# Browser Profiles & Local Testing Instances
 # ==============================================================================
-.env
-.env.*
-!.env.example
-*.local
+chrome-profile/
+.chrome-profile/
+user-data/
+.user-data/
+chromium-data/
+extension-test-profile/
+firefox-profile/
 
 # ==============================================================================
 # Logs & Diagnostic Dumps
@@ -84,6 +200,13 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 vite-debug.log*
+pids/
+*.pid
+*.seed
+*.pid.lock
+crash-dumps/
+*.core
+core.*
 
 # ==============================================================================
 # Testing & Code Coverage
@@ -91,6 +214,14 @@ vite-debug.log*
 coverage/
 *.lcov
 .nyc_output/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.playwright/
+cypress/videos/
+cypress/screenshots/
+.vitest/
 
 # ==============================================================================
 # IDE & Editor Configurations
@@ -98,8 +229,16 @@ coverage/
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 .idea/
-.cursor/
+*.iml
+*.iws
+*.ipr
+.fleet/
+.zed/
+*.sublime-project
+*.sublime-workspace
 *.suo
 *.ntvs*
 *.njsproj
@@ -107,8 +246,6 @@ coverage/
 *.sw?
 *.swo
 *.swp
-*.sublime-project
-*.sublime-workspace
 
 # ==============================================================================
 # Operating System Artifacts
@@ -119,6 +256,8 @@ coverage/
 ._*
 .Spotlight-V100
 .Trashes
+.AppleDouble
+.LSOverride
 
 # Windows
 Thumbs.db
@@ -126,23 +265,39 @@ Thumbs.db:encryptable
 ehthumbs.db
 ehthumbs_vista.db
 [Dd]esktop.ini
+desktop.ini
+Desktop.ini
 $RECYCLE.BIN/
 
 # Linux
 *~
+.fuse_hidden*
+.directory
+.Trash-*
 
 # ==============================================================================
-# Temporary / Scratch Files & Caches
+# Local Databases, Temp / Scratch Files & Backups
 # ==============================================================================
+*.local
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
 .temp/
 temp/
 tmp/
+.tmp/
 *.tmp
 *.bak
-.cache/
-.turbo/
-.eslintcache
-.oxlintcache
-.prettiercache
+*.old
+*.orig
+*.rej
+*.backup
 scripts/test_*.js
+scripts/test_*.ts
 scripts/temp_*.js
+scripts/temp_*.ts
+scripts/temp_*
+scripts/scratch_*

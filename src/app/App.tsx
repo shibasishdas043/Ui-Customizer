@@ -29,13 +29,6 @@ const ACCENT_COLOR_MAP: Record<AccentColor, { hex: string; rgb: string; textDark
 export default function App() {
   const { settings, updateSettings, resetSettings } = useSettingsStorage()
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false)
-  const [isUiReady, setIsUiReady] = useState(false)
-
-  // Safety fallback: if wallpaper decode takes longer than 600ms, unblock UI
-  useEffect(() => {
-    const timer = setTimeout(() => setIsUiReady(true), 600)
-    return () => clearTimeout(timer)
-  }, [])
 
   // Browser redirect & startup hook
   const { redirectingTo, countdown, cancelRedirect } = useBrowserBehavior({
@@ -72,7 +65,7 @@ export default function App() {
     const config = ACCENT_COLOR_MAP[settings.accentColor] || ACCENT_COLOR_MAP.ocean
     root.style.setProperty('--accent-color', config.hex)
     root.style.setProperty('--accent-rgb', config.rgb)
-    root.style.setProperty('--accent-glow', `rgba(${config.rgb}, 0.35)`)
+    root.style.setProperty('--accent-glow', 'transparent')
     root.style.setProperty('--accent-contrast', config.textDark ? '#0f172a' : '#ffffff')
     root.setAttribute('data-accent', settings.accentColor)
   }, [settings.accentColor])
@@ -113,7 +106,6 @@ export default function App() {
           changeFrequency: settings.changeFrequency,
           currentPhoto: settings.currentPhoto,
           lastWallpaperChange: settings.lastWallpaperChange,
-          onWallpaperReady: () => setIsUiReady(true),
           onUpdatePhoto: (photo, timestamp) => {
             updateSettings({
               currentPhoto: photo,
@@ -133,10 +125,10 @@ export default function App() {
         }}
       />
 
-      {/* Main Interface Layer (Hidden in blackout until wallpaper is decoded) */}
+      {/* Main Interface Layer (Instant presentation without blackout or backdrop-root isolation) */}
       <div
         id="interface"
-        className={`relative z-10 min-h-screen w-full flex flex-col justify-between transition-opacity duration-500 ease-[cubic-bezier(0.215,0.61,0.355,1)] ${
+        className={`relative z-10 min-h-screen w-full flex flex-col justify-between ${
           settings.fontFamily === 'mono'
             ? 'font-mono'
             : settings.fontFamily === 'display'
@@ -148,7 +140,7 @@ export default function App() {
             : settings.fontFamily === 'stalemate'
             ? 'font-stalemate'
             : 'font-sans'
-        } ${isUiReady ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        }`}
       >
         {/* Dynamic Top Navigation Header */}
         <Navbar
@@ -268,6 +260,7 @@ export default function App() {
             engines={settings.searchEngines}
             onEngineChange={(engine) => updateSettings({ searchEngine: engine })}
             onOpenSettings={() => setIsCustomizerOpen(true)}
+            onUpdateEngines={(newEngines) => updateSettings({ searchEngines: newEngines })}
           />
 
           {/* Quick Links / Bookmarks Dock */}
@@ -275,6 +268,9 @@ export default function App() {
             visible={settings.showQuickLinks}
             links={settings.quickLinks}
             openInNewTab={settings.bookmarksInNewTab}
+            cols={settings.quickLinksCols}
+            size={settings.quickLinksSize}
+            showTitles={settings.quickLinksShowTitle}
             onUpdateLinks={(newLinks) => updateSettings({ quickLinks: newLinks })}
           />
 
@@ -285,7 +281,7 @@ export default function App() {
 
       {/* Floating Settings Action Button at bottom-right (Always present in all modes) */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={false}
         animate={{ opacity: 1, scale: 1 }}
         className="fixed bottom-5 sm:bottom-6 right-5 sm:right-6 z-40 pointer-events-auto"
       >

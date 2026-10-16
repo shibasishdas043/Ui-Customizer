@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, ExternalLink, Globe, Sparkles, Link2, Upload, Check } from 'lucide-react'
 import type { BookmarkItem } from '../types'
 import { getFaviconUrl, normalizeUrl } from '../utils/faviconHelper'
+import { resolveAndCacheFavicon } from '../utils/faviconCacheHelper'
 import { BOOKMARK_PRESETS } from '../config/presets'
 import { BookmarkThumbnail } from './BookmarkThumbnail'
 
@@ -90,12 +91,22 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
     if (!url) setUrl(preset.url)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!title.trim() || !url.trim()) return
+  const [isSaving, setIsSaving] = useState(false)
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!title.trim() || !url.trim() || isSaving) return
+
+    setIsSaving(true)
     const formattedUrl = normalizeUrl(url)
-    const finalIcon = effectiveIcon || getFaviconUrl(formattedUrl)
+
+    // Resolve and permanently cache the icon as a Base64 Data URL or vector
+    let finalIcon = effectiveIcon
+    try {
+      finalIcon = await resolveAndCacheFavicon(formattedUrl, effectiveIcon)
+    } catch {
+      finalIcon = effectiveIcon || getFaviconUrl(formattedUrl)
+    }
 
     const bookmark: BookmarkItem = {
       id: initialBookmark?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -106,6 +117,7 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
     }
 
     onSave(bookmark)
+    setIsSaving(false)
     onClose()
   }
 
@@ -119,7 +131,7 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 12 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-lg bg-[#0e131d]/95 backdrop-blur-2xl rounded-3xl p-6 shadow-2xl shadow-black/80 flex flex-col max-h-[90vh] overflow-hidden"
+          className="w-full max-w-lg bg-[#181715]/98 text-[#ece6dc] backdrop-blur-2xl rounded-3xl p-6 shadow-[0_32px_100px_rgba(0,0,0,0.85)] flex flex-col max-h-[90vh] overflow-hidden border-0 outline-none"
         >
           {/* Header */}
           <div className="flex items-center justify-between pb-4">
@@ -128,16 +140,16 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
                 <ExternalLink className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white tracking-tight">
+                <h3 className="settings-serif-title text-base sm:text-lg font-normal text-[#faf9f5] tracking-tight">
                   {isEditing ? 'Modify Quick Link' : 'Add New Quick Link'}
                 </h3>
-                <p className="text-[11px] text-slate-400">Configure URL, title, and dynamic thumbnail</p>
+                <p className="text-[11px] text-[#b5b1a8]">Configure URL, title, and dynamic thumbnail</p>
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-[#b5b1a8] hover:text-[#faf9f5] hover:bg-white/[0.08] transition-colors cursor-pointer border-0 outline-none"
             >
               <X className="w-4 h-4" />
             </button>
@@ -147,7 +159,7 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
             {/* Live Preview Card */}
             <div className="p-4 rounded-2xl bg-white/[0.03] flex items-center justify-between gap-4">
               <div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                <span className="text-[11px] font-medium uppercase tracking-[1.5px] text-[#b5b1a8]">
                   Live Startpage Preview
                 </span>
                 <p className="text-xs text-slate-300 mt-0.5">
@@ -208,7 +220,7 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
 
             {/* Thumbnail / Icon Source Selector */}
             <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3.5">
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              <label className="block text-[11px] font-medium uppercase tracking-[1.5px] text-[#b5b1a8]">
                 Thumbnail / Icon Source
               </label>
 
@@ -226,9 +238,9 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
                     key={mode.id}
                     type="button"
                     onClick={() => setThumbnailMode(mode.id)}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl text-xs font-medium transition-all cursor-pointer border-0 outline-none ${
                       thumbnailMode === mode.id
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
                         : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                     }`}
                   >
@@ -264,9 +276,9 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
                           key={preset.id}
                           type="button"
                           onClick={() => handleSelectPreset(preset)}
-                          className={`flex flex-col items-center justify-center p-2 rounded-2xl transition-all cursor-pointer ${
+                          className={`flex flex-col items-center justify-center p-2 rounded-2xl transition-all cursor-pointer border-0 outline-none ${
                             isSelected
-                              ? 'bg-[var(--accent-color)]/20 shadow-sm'
+                              ? 'bg-[var(--accent-color)]/20'
                               : 'bg-black/30 hover:bg-white/[0.06]'
                           }`}
                         >
@@ -343,13 +355,13 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-2xl text-xs font-medium text-slate-300 hover:bg-white/10 cursor-pointer transition-colors"
+                className="px-4 py-2 rounded-2xl text-xs font-medium text-slate-300 hover:bg-white/10 cursor-pointer transition-colors border-0 outline-none"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 rounded-2xl text-xs font-semibold bg-[var(--accent-color)] hover:opacity-90 text-[var(--accent-contrast,#ffffff)] shadow-lg shadow-[var(--accent-color)]/25 cursor-pointer transition-all"
+                className="px-5 py-2 rounded-2xl text-xs font-semibold bg-[var(--accent-color)] hover:opacity-90 text-[var(--accent-contrast,#ffffff)] cursor-pointer transition-all border-0 outline-none shadow-none"
               >
                 {isEditing ? 'Update Quick Link' : 'Save Quick Link'}
               </button>

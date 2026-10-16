@@ -11,6 +11,33 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    proxy: {
+      '/api/suggest-google': {
+        target: 'https://suggestqueries.google.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/suggest-google/, ''),
+      },
+      '/api/suggest-duckduckgo': {
+        target: 'https://duckduckgo.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/suggest-duckduckgo/, ''),
+      },
+      '/api/suggest-bing': {
+        target: 'https://api.bing.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/suggest-bing/, ''),
+      },
+      '/api/suggest-brave': {
+        target: 'https://search.brave.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/suggest-brave/, ''),
+      },
+      '/api/suggest-ecosia': {
+        target: 'https://ac.ecosia.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/suggest-ecosia/, ''),
+      },
+    },
   },
   build: {
     chunkSizeWarningLimit: 800,

@@ -164,39 +164,44 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
           exit={{ opacity: 0, scale: 0.96, y: 14 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           data-settings-theme={isDark ? 'dark' : 'light'}
-          className="settings-modal w-full max-w-[1040px] xl:max-w-[1140px] h-[92vh] sm:h-[86vh] max-h-[820px] min-h-[520px] rounded-3xl sm:rounded-[32px] flex flex-col md:flex-row overflow-hidden relative transition-colors duration-300"
+          className="settings-modal w-full max-w-[1040px] xl:max-w-[1140px] h-[92vh] sm:h-[86vh] max-h-[820px] min-h-[520px] rounded-3xl sm:rounded-[32px] flex flex-col md:flex-row overflow-hidden relative transition-colors duration-300 border-0 outline-none"
           style={{
-            backgroundColor: isDark ? '#212529' : '#f2f4f3',
-            color: isDark ? '#f8f9fa' : '#212529',
+            backgroundColor: isDark ? '#181715' : '#faf9f5',
+            color: isDark ? '#dcd9d2' : '#3d3d3a',
             boxShadow: isDark
-              ? '0 30px 90px rgba(0, 0, 0, 0.85)'
-              : '0 25px 70px rgba(0, 0, 0, 0.2)',
+              ? '0 32px 100px rgba(0, 0, 0, 0.85)'
+              : '0 25px 70px rgba(20, 20, 19, 0.14)',
           }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Left Sidebar Navigation (Desktop) / Header & Tabs (Mobile) */}
           <aside
-            className="w-full md:w-64 lg:w-72 shrink-0 flex flex-col select-none transition-colors duration-300"
+            className="w-full md:w-64 lg:w-72 shrink-0 flex flex-col select-none transition-colors duration-300 border-0 outline-none"
             style={{
-              backgroundColor: isDark ? '#1a1e21' : '#e5e8e6',
+              backgroundColor: isDark ? '#141311' : '#f5f0e8',
             }}
           >
             {/* Brand Header */}
             <div className="p-4 sm:p-5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-black/20 flex items-center justify-center shrink-0 shadow-sm shadow-[var(--accent-glow)] overflow-hidden border border-white/[0.08] p-1">
+                <div
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden p-1 transition-colors border-0 outline-none"
+                  style={{
+                    backgroundColor: isDark ? '#22201d' : '#efe9de',
+                  }}
+                >
                   <img src="/icons/icon-48.png" alt="Aura Logo" className="w-full h-full object-contain rounded-xl" />
                 </div>
                 <div>
                   <h2
-                    className="text-base font-bold tracking-tight transition-colors"
-                    style={{ color: isDark ? '#ffffff' : '#212529' }}
+                    className="settings-serif-title text-base sm:text-lg font-normal tracking-tight transition-colors"
+                    style={{ color: isDark ? '#faf9f5' : '#141413' }}
                   >
                     UI Customizer
                   </h2>
                   <p
-                    className="text-[11px] mt-0.5 transition-colors"
-                    style={{ color: isDark ? '#94a3b8' : '#6c757d' }}
+                    className="text-[11px] mt-0.5 transition-colors font-medium"
+                    style={{ color: isDark ? '#a8a49c' : '#383531' }}
                   >
                     Startpage & Browser
                   </p>
@@ -206,8 +211,8 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
               <button
                 onClick={onClose}
                 aria-label="Close settings"
-                className={`md:hidden w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
-                  isDark ? 'text-slate-400 hover:text-white hover:bg-white/[0.08]' : 'text-slate-500 hover:text-slate-900 hover:bg-black/[0.06]'
+                className={`md:hidden w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer border-0 outline-none ${
+                  isDark ? 'text-[#b5b1a8] hover:text-[#faf9f5] hover:bg-[#22201d]' : 'text-[#141413] hover:text-[#000000] hover:bg-[#e8e0d2]'
                 }`}
               >
                 <X className="w-4.5 h-4.5" />
@@ -216,9 +221,9 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
 
             {/* Mobile Navigation Bar (Horizontal Scrollable Tabs) */}
             <div
-              className="flex md:hidden overflow-x-auto p-2 gap-1.5 shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden transition-colors"
+              className="flex md:hidden overflow-x-auto p-2 gap-1.5 shrink-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden transition-colors border-0 outline-none"
               style={{
-                backgroundColor: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.04)',
+                backgroundColor: isDark ? '#0f0e0d' : '#e8e0d2',
               }}
             >
               {TABS.map((tab) => {
@@ -227,12 +232,12 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer shrink-0 border-0 outline-none ${
                       isActive
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
                         : isDark
-                        ? 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
+                        ? 'text-[#b5b1a8] hover:text-[#faf9f5] hover:bg-[#22201d]'
+                        : 'text-[#141413] hover:text-[#000000] hover:bg-[#efe9de] font-medium'
                     }`}
                   >
                     <span>{tab.icon}</span>
@@ -243,51 +248,51 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
             </div>
 
             {/* Desktop Navigation Tabs (Spacious Vertical List) */}
-            <nav className="hidden md:flex flex-1 flex-col p-3 gap-1.5 overflow-y-auto">
+            <nav className="hidden md:flex flex-1 flex-col p-3 gap-1.5 overflow-y-auto border-0 outline-none">
               {TABS.map((tab) => {
                 const isActive = activeTab === tab.id
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-left transition-all cursor-pointer relative ${
+                    className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-left transition-all cursor-pointer relative border-0 outline-none ${
                       isActive
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-md shadow-[var(--accent-glow)]'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
                         : isDark
-                        ? 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]'
+                        ? 'text-[#b5b1a8] hover:text-[#faf9f5] hover:bg-[#22201d]'
+                        : 'text-[#141413] hover:text-[#000000] hover:bg-[#e8e0d2]'
                     }`}
                   >
                     <div
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all border-0 outline-none ${
                         isActive
                           ? 'bg-black/15 text-inherit'
                           : isDark
-                          ? 'bg-white/[0.03] text-slate-400 group-hover:text-white group-hover:bg-white/[0.06]'
-                          : 'bg-black/[0.04] text-slate-500 group-hover:text-slate-900 group-hover:bg-black/[0.07]'
+                          ? 'bg-[#181715] text-[#b5b1a8] group-hover:text-[#faf9f5] group-hover:bg-[#252320]'
+                          : 'bg-[#ffffff] text-[#141413] group-hover:text-[#000000] group-hover:bg-[#ffffff] shadow-sm'
                       }`}
                     >
                       {tab.icon}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div
-                        className={`text-xs font-semibold truncate leading-tight ${
+                        className={`text-[13px] truncate leading-tight ${
                           isActive
-                            ? ''
+                            ? 'font-semibold'
                             : isDark
-                            ? 'text-slate-200 group-hover:text-white'
-                            : 'text-slate-800 group-hover:text-slate-950'
+                            ? 'text-[#faf9f5] font-medium'
+                            : 'text-[#141413] font-semibold'
                         }`}
                       >
                         {tab.label}
                       </div>
                       <div
-                        className={`text-[10px] truncate mt-0.5 leading-tight ${
+                        className={`text-[11px] truncate mt-0.5 leading-tight ${
                           isActive
-                            ? 'opacity-85 font-medium'
+                            ? 'opacity-90 font-normal'
                             : isDark
-                            ? 'text-slate-500 group-hover:text-slate-400'
-                            : 'text-slate-500 group-hover:text-slate-700'
+                            ? 'text-[#a8a49c] group-hover:text-[#faf9f5]'
+                            : 'text-[#383531] group-hover:text-[#141413] font-medium'
                         }`}
                       >
                         {tab.sublabel}
@@ -300,20 +305,19 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
 
             {/* Sidebar Footer: Export, Import & Reset */}
             <div
-              className="p-3.5 flex flex-col gap-2 shrink-0 border-t transition-colors duration-300"
+              className="p-3.5 flex flex-col gap-2 shrink-0 transition-colors duration-300 border-0 outline-none"
               style={{
-                backgroundColor: isDark ? '#14171a' : '#dbe0dd',
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)',
+                backgroundColor: isDark ? '#0f0e0d' : '#e8e0d2',
               }}
             >
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={handleExport}
                   title="Export settings to JSON file"
-                  className={`h-8.5 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all border ${
+                  className={`h-8.5 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all border-0 outline-none ${
                     isDark
-                      ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border-white/[0.06]'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 border-black/[0.08] shadow-xs'
+                      ? 'bg-[#22201d] hover:bg-[#292622] text-[#faf9f5]'
+                      : 'bg-[#ffffff] hover:bg-[#ede6d8] text-[#141413] font-semibold shadow-sm'
                   }`}
                 >
                   {copiedStatus ? (
@@ -326,10 +330,10 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
 
                 <label
                   title="Import settings from JSON file"
-                  className={`h-8.5 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all border ${
+                  className={`h-8.5 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all border-0 outline-none ${
                     isDark
-                      ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white border-white/[0.06]'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 border-black/[0.08] shadow-xs'
+                      ? 'bg-[#22201d] hover:bg-[#292622] text-[#faf9f5]'
+                      : 'bg-[#ffffff] hover:bg-[#ede6d8] text-[#141413] font-semibold shadow-sm'
                   }`}
                 >
                   <Upload className="w-3.5 h-3.5" />
@@ -349,10 +353,10 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
                     onReset()
                   }
                 }}
-                className={`h-8 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`h-8 px-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border-0 outline-none ${
                   isDark
                     ? 'text-rose-400 hover:text-rose-300 hover:bg-rose-500/10'
-                    : 'text-rose-600 hover:text-rose-700 hover:bg-rose-500/10'
+                    : 'text-rose-700 hover:text-rose-800 hover:bg-rose-500/15 font-semibold'
                 }`}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -362,28 +366,34 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
           </aside>
 
           {/* Right Main Content Area */}
-          <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-transparent">
+          <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-transparent border-0 outline-none">
             {/* Section Header */}
             <div
-              className="px-6 py-4 flex items-center justify-between shrink-0 border-b transition-colors"
+              className="px-6 py-4 flex items-center justify-between shrink-0 transition-colors border-0 outline-none"
               style={{
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.07)',
+                backgroundColor: 'transparent',
               }}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-[var(--accent-color)]/10 text-[var(--accent-color)] flex items-center justify-center shrink-0">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-0 outline-none shadow-sm"
+                  style={{
+                    backgroundColor: isDark ? '#22201d' : '#ffffff',
+                    color: 'var(--accent-color)',
+                  }}
+                >
                   {currentTab.icon}
                 </div>
                 <div className="min-w-0">
                   <h3
-                    className="text-sm sm:text-base font-bold tracking-tight truncate transition-colors"
-                    style={{ color: isDark ? '#ffffff' : '#212529' }}
+                    className="settings-serif-title text-base sm:text-lg font-normal tracking-tight truncate transition-colors"
+                    style={{ color: isDark ? '#faf9f5' : '#141413' }}
                   >
                     {currentTab.label}
                   </h3>
                   <p
-                    className="text-[11px] truncate mt-0.5 transition-colors"
-                    style={{ color: isDark ? '#94a3b8' : '#6c757d' }}
+                    className="text-[11px] truncate mt-0.5 transition-colors font-medium"
+                    style={{ color: isDark ? '#a8a49c' : '#383531' }}
                   >
                     {currentTab.description}
                   </p>
@@ -392,10 +402,11 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
 
               <div className="flex items-center gap-2.5 shrink-0 ml-3">
                 <span
-                  className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-mono"
+                  className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-mono border-0 outline-none shadow-sm"
                   style={{
-                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.06)',
-                    color: isDark ? '#94a3b8' : '#6c757d',
+                    backgroundColor: isDark ? '#22201d' : '#ffffff',
+                    color: isDark ? '#dcd9d2' : '#141413',
+                    fontWeight: 600,
                   }}
                 >
                   ESC
@@ -403,10 +414,10 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
                 <button
                   onClick={onClose}
                   aria-label="Close modal"
-                  className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+                  className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer border-0 outline-none ${
                     isDark
-                      ? 'text-slate-400 hover:text-white hover:bg-white/[0.08]'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-black/[0.06]'
+                      ? 'text-[#a8a49c] hover:text-[#faf9f5] hover:bg-[#22201d]'
+                      : 'text-[#141413] hover:text-[#000000] hover:bg-[#e8e0d2]'
                   }`}
                 >
                   <X className="w-4.5 h-4.5" />
@@ -437,6 +448,12 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
                   onToggleShow={(show) => onUpdate({ showQuickLinks: show })}
                   openInNewTab={settings.bookmarksInNewTab}
                   onToggleNewTab={(inNewTab) => onUpdate({ bookmarksInNewTab: inNewTab })}
+                  cols={settings.quickLinksCols}
+                  onUpdateCols={(cols) => onUpdate({ quickLinksCols: cols })}
+                  size={settings.quickLinksSize}
+                  onUpdateSize={(size) => onUpdate({ quickLinksSize: size })}
+                  showTitles={settings.quickLinksShowTitle}
+                  onToggleShowTitles={(show) => onUpdate({ quickLinksShowTitle: show })}
                 />
               )}
               {activeTab === 'browser' && (

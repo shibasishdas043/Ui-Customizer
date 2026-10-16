@@ -18,7 +18,7 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ time, showSeconds }) =
 
   return (
     <motion.div
-      initial={{ scale: 0.92, opacity: 0 }}
+      initial={false}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       className="relative flex items-center justify-center mb-8 sm:mb-10 select-none"

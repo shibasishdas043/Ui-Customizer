@@ -15,7 +15,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <motion.header
-      initial={{ opacity: 0, y: -10 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 sm:px-8 py-5 sm:py-6 select-none pointer-events-none"

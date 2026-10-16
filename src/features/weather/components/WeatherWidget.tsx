@@ -47,7 +47,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ config, inline = f
       <div className="flex items-center gap-1.5 leading-none">
         <span
           style={{ transform: 'scale(var(--weather-icon-scale, 1))' }}
-          className="shrink-0 flex items-center justify-center transition-transform hover:scale-105 duration-200"
+          className="shrink-0 flex items-center justify-center"
         >
           {getWeatherIcon(weather.weatherCode)}
         </span>
@@ -80,12 +80,12 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ config, inline = f
         }}
         className="flex items-center text-white/85 font-medium leading-none"
       >
-        <span className="flex items-center gap-1 hover:text-cyan-300 transition-colors leading-none">
-          <Droplets className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] shrink-0" />
+        <span className="flex items-center gap-1 leading-none">
+          <Droplets className="w-3.5 h-3.5 text-[var(--accent-color,#ee9b00)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] shrink-0" />
           <span>{weather.humidity}%</span>
         </span>
-        <span className="flex items-center gap-1 hover:text-white transition-colors leading-none">
-          <Wind className="w-3.5 h-3.5 text-slate-200 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] shrink-0" />
+        <span className="flex items-center gap-1 leading-none">
+          <Wind className="w-3.5 h-3.5 text-[var(--accent-color,#ee9b00)] opacity-85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] shrink-0" />
           <span>{weather.windSpeed} km/h</span>
         </span>
       </div>
@@ -98,7 +98,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ config, inline = f
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -4 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >

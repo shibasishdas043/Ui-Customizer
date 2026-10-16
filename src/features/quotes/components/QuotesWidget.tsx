@@ -86,7 +86,8 @@ export const QuotesWidget: React.FC<QuotesWidgetProps> = ({ config }) => {
   // Keep index within bounds when pool changes
   useEffect(() => {
     if (index >= activePool.length || index < 0) {
-      setIndex(0)
+      const timer = setTimeout(() => setIndex(0), 0)
+      return () => clearTimeout(timer)
     }
   }, [activePool.length, index])
 
@@ -110,7 +111,7 @@ export const QuotesWidget: React.FC<QuotesWidgetProps> = ({ config }) => {
       onClick={nextQuote}
       title="Click to discover another quote"
     >
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={`${current.quote}_${index}`}
           initial={{ opacity: 0, y: 4 }}

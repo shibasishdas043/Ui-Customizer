@@ -3,6 +3,18 @@ import {
   RefreshCw,
   Upload,
   Image as ImageIcon,
+  Sparkles,
+  Layers,
+  Search,
+  Flame,
+  Globe,
+  MessageSquare,
+  Link2,
+  Palette,
+  Clock,
+  Sun,
+  Calendar,
+  Lock,
 } from 'lucide-react'
 import type { CustomizerSettings } from '../../types'
 import {
@@ -19,11 +31,88 @@ import type {
   WallpaperBaseMode,
   WallpaperTexture,
 } from '../../../wallpaper'
+import { GlassDropdown, type GlassDropdownOption } from '../../../../shared'
 
 interface WallpaperTabProps {
   settings: CustomizerSettings
   onUpdate: (updater: Partial<CustomizerSettings>) => void
 }
+
+const PROVIDER_OPTIONS: GlassDropdownOption<BackgroundProvider>[] = [
+  {
+    value: 'default',
+    label: 'Default Curated',
+    icon: <Sparkles className="w-3.5 h-3.5 text-amber-400" />,
+  },
+  {
+    value: 'unsplash_collection',
+    label: 'Unsplash Collection',
+    icon: <Layers className="w-3.5 h-3.5 text-emerald-400" />,
+  },
+  {
+    value: 'unsplash_search',
+    label: 'Unsplash Search',
+    icon: <Search className="w-3.5 h-3.5 text-cyan-400" />,
+  },
+  {
+    value: 'wallhaven',
+    label: 'Wallhaven 4K',
+    icon: <Flame className="w-3.5 h-3.5 text-rose-400" />,
+  },
+  {
+    value: 'bing',
+    label: 'Bing Daily Photo',
+    icon: <Globe className="w-3.5 h-3.5 text-blue-400" />,
+  },
+  {
+    value: 'reddit',
+    label: 'Reddit Wallpapers',
+    icon: <MessageSquare className="w-3.5 h-3.5 text-orange-400" />,
+  },
+  {
+    value: 'custom_url',
+    label: 'Custom Image URL',
+    icon: <Link2 className="w-3.5 h-3.5 text-purple-400" />,
+  },
+  {
+    value: 'local_file',
+    label: 'Local Files (Device)',
+    icon: <Upload className="w-3.5 h-3.5 text-indigo-400" />,
+  },
+  {
+    value: 'solid_color',
+    label: 'Solid Background Color',
+    icon: <Palette className="w-3.5 h-3.5 text-teal-400" />,
+  },
+]
+
+const FREQUENCY_OPTIONS: GlassDropdownOption<WallpaperFrequency>[] = [
+  {
+    value: 'tabs',
+    label: 'Every New Tab',
+    icon: <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />,
+  },
+  {
+    value: 'hour',
+    label: 'Every Hour',
+    icon: <Clock className="w-3.5 h-3.5 text-blue-400" />,
+  },
+  {
+    value: 'period',
+    label: 'Daylight Period',
+    icon: <Sun className="w-3.5 h-3.5 text-amber-400" />,
+  },
+  {
+    value: 'day',
+    label: 'Every Day (Midnight)',
+    icon: <Calendar className="w-3.5 h-3.5 text-emerald-400" />,
+  },
+  {
+    value: 'locked',
+    label: 'Locked (Freeze Wallpaper)',
+    icon: <Lock className="w-3.5 h-3.5 text-slate-400" />,
+  },
+]
 
 const SOLID_PRESETS = [
   { name: 'Obsidian Slate', hex: '#0f172a' },
@@ -101,16 +190,17 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
   return (
     <div className="space-y-4 text-xs">
-      {/* 1. PROVIDER DROPDOWN MENU (Matching Bonjourr) */}
-      <div className="space-y-1.5">
-        <label htmlFor="wallpaper-provider-select" className="block text-xs font-medium text-slate-300">
+      {/* 1. PROVIDER DROPDOWN MENU */}
+      <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
+        <label htmlFor="wallpaper-provider-select" className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
           Background Provider
         </label>
-        <select
+        <GlassDropdown
           id="wallpaper-provider-select"
+          headerTitle="Background Provider"
           value={provider}
-          onChange={(e) => {
-            const nextProvider = e.target.value as BackgroundProvider
+          options={PROVIDER_OPTIONS}
+          onChange={(nextProvider) => {
             onUpdate({
               backgroundProvider: nextProvider,
               backgroundType:
@@ -122,24 +212,13 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               lastWallpaperChange: Date.now(),
             })
           }}
-          className="w-full px-3 py-2 rounded-xl glass-input text-xs cursor-pointer bg-[#0f1422] text-slate-200"
-        >
-          <option value="default" className="bg-[#0f172a] text-slate-100 py-1">Default (Nature, Mountains & Beaches)</option>
-          <option value="unsplash_collection" className="bg-[#0f172a] text-slate-100 py-1">Unsplash Collection (Custom ID / URL)</option>
-          <option value="unsplash_search" className="bg-[#0f172a] text-slate-100 py-1">Unsplash Search (Keywords)</option>
-          <option value="wallhaven" className="bg-[#0f172a] text-slate-100 py-1">Wallhaven (Keywords & 4K Wallpaper)</option>
-          <option value="bing" className="bg-[#0f172a] text-slate-100 py-1">Bing Daily (Image of the Day)</option>
-          <option value="reddit" className="bg-[#0f172a] text-slate-100 py-1">Reddit Wallpapers (r/wallpapers, r/EarthPorn)</option>
-          <option value="custom_url" className="bg-[#0f172a] text-slate-100 py-1">Custom Image URL</option>
-          <option value="local_file" className="bg-[#0f172a] text-slate-100 py-1">Local Files (Upload from Device)</option>
-          <option value="solid_color" className="bg-[#0f172a] text-slate-100 py-1">Solid Background Color</option>
-        </select>
+        />
       </div>
 
       {/* 2. DEFAULT HARDCODED COLLECTIONS SECTION (Nature, Mountains, Beaches) */}
       {provider === 'default' && (
         <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
             Curated Categories
           </label>
           <div className="grid grid-cols-4 gap-2">
@@ -151,17 +230,17 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                   onUpdate({ defaultCategory: cat })
                   handleNextBackground()
                 }}
-                className={`py-2 px-2.5 rounded-xl font-medium text-[11px] transition-all cursor-pointer text-center capitalize ${
+                className={`py-2 px-2.5 rounded-xl font-semibold text-[11px] transition-all cursor-pointer text-center capitalize border-0 outline-none ${
                   (settings.defaultCategory || 'all') === cat
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
-                    : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07]'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
                 {cat}
               </button>
             ))}
           </div>
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
             Automatically cycles high-resolution Nature, Mountain, and Beach photos with 24h local caching.
           </p>
         </div>
@@ -169,12 +248,12 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
       {/* 3. CUSTOM SECTION: Unsplash Collection */}
       {provider === 'unsplash_collection' && (
-        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2">
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-medium text-slate-300">
+            <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
               Custom Collection ID or URL
             </label>
-            <span className="text-[10px] text-indigo-400">Press Enter to apply</span>
+            <span className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-semibold">Press Enter to apply</span>
           </div>
           <input
             type="text"
@@ -196,9 +275,9 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               handleNextBackground()
             }}
             placeholder="e.g. 9968899 or https://unsplash.com/collections/..."
-            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-mono"
+            className="h-10 w-full px-3.5 rounded-xl bg-white dark:bg-white/[0.04] text-xs font-mono text-[#141413] dark:text-[#ece6dc] placeholder:text-[#524f49] dark:placeholder:text-[#a8a49c] outline-none border-0 shadow-xs"
           />
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
             Paste any Unsplash collection ID or link. Multiple IDs can be comma-separated.
           </p>
         </div>
@@ -206,12 +285,12 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
       {/* 4. CUSTOM SECTION: Unsplash Search */}
       {provider === 'unsplash_search' && (
-        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2">
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-medium text-slate-300">
+            <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
               Search Keywords
             </label>
-            <span className="text-[10px] text-indigo-400">Press Enter to apply</span>
+            <span className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-semibold">Press Enter to apply</span>
           </div>
           <input
             type="text"
@@ -225,10 +304,10 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
             onBlur={() => {
               handleNextBackground()
             }}
-            placeholder="e.g. bikini, beach, minimal"
-            className="w-full px-3 py-2 rounded-xl glass-input text-xs"
+            placeholder="e.g. nature, minimal, architecture"
+            className="h-10 w-full px-3.5 rounded-xl bg-white dark:bg-white/[0.04] text-xs text-[#141413] dark:text-[#ece6dc] placeholder:text-[#524f49] dark:placeholder:text-[#a8a49c] outline-none border-0 shadow-xs"
           />
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
             Searches for high-resolution photography matching your custom keywords.
           </p>
         </div>
@@ -236,12 +315,12 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
       {/* 4. WALLHAVEN SECTION (Open API, No key required) */}
       {provider === 'wallhaven' && (
-        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2.5">
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-medium text-slate-300">
+            <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
               Wallhaven Search Keywords
             </label>
-            <span className="text-[10px] text-indigo-400">Press Enter to apply</span>
+            <span className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-semibold">Press Enter to apply</span>
           </div>
           <input
             type="text"
@@ -256,7 +335,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               handleNextBackground()
             }}
             placeholder="e.g. cyberpunk, nature, minimal, anime, space"
-            className="w-full px-3 py-2 rounded-xl glass-input text-xs"
+            className="h-10 w-full px-3.5 rounded-xl bg-white dark:bg-white/[0.04] text-xs text-[#141413] dark:text-[#ece6dc] placeholder:text-[#524f49] dark:placeholder:text-[#a8a49c] outline-none border-0 shadow-xs"
           />
           {/* Quick category tag pills */}
           <div className="flex flex-wrap gap-1.5 pt-0.5">
@@ -268,17 +347,17 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                   onUpdate({ customSearchQuery: tag })
                   handleNextBackground()
                 }}
-                className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-all cursor-pointer capitalize ${
+                className={`px-2.5 py-1 rounded-xl text-[10px] font-semibold transition-all cursor-pointer capitalize border-0 outline-none ${
                   settings.customSearchQuery?.toLowerCase() === tag
                     ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.08]'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
                 {tag}
               </button>
             ))}
           </div>
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
             Searches Wallhaven for 1080p, 2K & 4K wallpapers. Leave empty for random top wallpapers. No API key required.
           </p>
         </div>
@@ -286,19 +365,19 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
       {/* 5. BING DAILY WALLPAPER SECTION (No key required) */}
       {provider === 'bing' && (
-        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2.5">
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-medium text-slate-300">
+            <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
               Microsoft Bing Daily Wallpaper
             </label>
-            <span className="text-[10px] text-emerald-400 font-medium">● Live Feed</span>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">● Live Feed</span>
           </div>
-          <p className="text-[11px] text-slate-300 leading-relaxed">
+          <p className="text-[11px] text-[#383531] dark:text-[#cfc4b2] leading-relaxed font-medium">
             Automatically presents today's official 4K landscape photograph curated by Microsoft Bing. Rotates daily with zero configuration.
           </p>
           {settings.currentPhoto?.author && (
-            <div className="p-2 rounded-lg bg-white/[0.02] border border-white/5 text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
-              <span className="text-slate-200 font-medium shrink-0">Today:</span>
+            <div className="p-2.5 rounded-xl bg-white dark:bg-white/[0.04] text-[10px] text-[#383531] dark:text-[#ece6dc] flex items-center gap-1.5 truncate border-0 outline-none shadow-xs">
+              <span className="text-[#141413] dark:text-[#faf9f5] font-bold shrink-0">Today:</span>
               <span className="truncate">{settings.currentPhoto.author}</span>
             </div>
           )}
@@ -307,12 +386,12 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
       {/* 6. REDDIT WALLPAPERS SECTION (Open JSON, No key required) */}
       {provider === 'reddit' && (
-        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2.5">
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-medium text-slate-300">
+            <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
               Subreddit
             </label>
-            <span className="text-[10px] text-indigo-400">Press Enter to apply</span>
+            <span className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-semibold">Press Enter to apply</span>
           </div>
           {/* Subreddit Preset Chips */}
           <div className="grid grid-cols-3 gap-1.5">
@@ -331,10 +410,10 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                   onUpdate({ redditSubreddit: sub.id })
                   handleNextBackground()
                 }}
-                className={`py-1.5 px-2 rounded-xl text-[10px] font-medium transition-all cursor-pointer text-center truncate ${
+                className={`py-1.5 px-2 rounded-xl text-[10px] font-semibold transition-all cursor-pointer text-center truncate border-0 outline-none ${
                   (settings.redditSubreddit || 'wallpapers') === sub.id
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
-                    : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.08]'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
                 {sub.name}
@@ -343,9 +422,9 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
           </div>
 
           <div className="space-y-1 pt-1">
-            <label className="block text-[11px] text-slate-400">Custom Subreddit</label>
+            <label className="block text-[11px] font-bold text-[#141413] dark:text-[#cfc4b2]">Custom Subreddit</label>
             <div className="flex items-center gap-1">
-              <span className="text-slate-500 font-mono text-xs pl-1">r/</span>
+              <span className="text-[#383531] dark:text-[#cfc4b2] font-mono text-xs pl-1 font-semibold">r/</span>
               <input
                 type="text"
                 value={settings.redditSubreddit || ''}
@@ -355,13 +434,13 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                 }}
                 onBlur={() => handleNextBackground()}
                 placeholder="e.g. wallpapers, EarthPorn, ImaginaryLandscapes"
-                className="w-full px-3 py-1.5 rounded-xl glass-input text-xs font-mono"
+                className="h-10 w-full px-3.5 rounded-xl bg-white dark:bg-white/[0.04] text-xs font-mono text-[#141413] dark:text-[#ece6dc] placeholder:text-[#524f49] dark:placeholder:text-[#a8a49c] outline-none border-0 shadow-xs"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="block text-[11px] text-slate-400">Keywords (Optional Search)</label>
+            <label className="block text-[11px] font-bold text-[#141413] dark:text-[#cfc4b2]">Keywords (Optional Search)</label>
             <input
               type="text"
               value={settings.customSearchQuery || ''}
@@ -371,11 +450,11 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               }}
               onBlur={() => handleNextBackground()}
               placeholder="e.g. sunset, dark, mountain"
-              className="w-full px-3 py-1.5 rounded-xl glass-input text-xs"
+              className="h-10 w-full px-3.5 rounded-xl bg-white dark:bg-white/[0.04] text-xs text-[#141413] dark:text-[#ece6dc] placeholder:text-[#524f49] dark:placeholder:text-[#a8a49c] outline-none border-0 shadow-xs"
             />
           </div>
 
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
             Fetches top direct high-resolution images from any photography subreddit using Reddit's open JSON feed.
           </p>
         </div>
@@ -383,12 +462,12 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
       {/* 7. CUSTOM SECTION: Direct Image URL */}
       {provider === 'custom_url' && (
-        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2">
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
           <div className="flex items-center justify-between">
-            <label className="block text-xs font-medium text-slate-300">
+            <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
               Custom Image URL
             </label>
-            <span className="text-[10px] text-indigo-400">Press Enter to apply</span>
+            <span className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-semibold">Press Enter to apply</span>
           </div>
           <input
             type="text"
@@ -421,29 +500,23 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               })
             }}
             placeholder="e.g. https://images.unsplash.com/... or https://example.com/photo.jpg"
-            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-mono"
+            className="h-10 w-full px-3.5 rounded-xl bg-white dark:bg-white/[0.04] text-xs font-mono text-[#141413] dark:text-[#ece6dc] placeholder:text-[#524f49] dark:placeholder:text-[#a8a49c] outline-none border-0 shadow-xs"
           />
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
             Paste any direct image link (JPG/PNG/WebP) or Unsplash photo link.
           </p>
-          {settings.customBackgroundUrl?.includes('unsplash.com/photos/') && (
-            <div className="p-2.5 rounded-xl bg-indigo-950/40 text-[11px] text-indigo-300 space-y-1">
-              <p>✨ <strong>Auto-resolving Unsplash link:</strong> Fetching matching high-resolution photo from Unsplash CDN.</p>
-              <p className="text-slate-400 text-[10px]">Tip: For an exact photo, you can also right-click the image on Unsplash and choose &ldquo;Copy image address&rdquo;.</p>
-            </div>
-          )}
         </div>
       )}
 
       {/* 6. CUSTOM SECTION: Local File Upload */}
       {provider === 'local_file' && (
-        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2.5">
-          <label className="block text-xs font-medium text-slate-300">
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
+          <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
             Local Image File
           </label>
-          <label className="flex items-center justify-center gap-2 p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] cursor-pointer transition-all">
-            <Upload className="w-4 h-4 text-indigo-400" />
-            <span className="text-xs text-slate-300">Choose image from your computer</span>
+          <label className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-white dark:bg-white/[0.04] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] cursor-pointer transition-all shadow-xs border-0 outline-none">
+            <Upload className="w-4 h-4 text-[var(--accent-color)]" />
+            <span className="text-xs font-semibold text-[#141413] dark:text-[#ece6dc]">Choose image from your computer</span>
             <input
               type="file"
               accept="image/*"
@@ -452,8 +525,8 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
             />
           </label>
           {settings.localImageDataUrl && (
-            <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-400">
-              <ImageIcon className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="flex items-center gap-2 pt-1 text-[11px] text-[#383531] dark:text-[#cfc4b2] font-medium">
+              <ImageIcon className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span className="truncate">Local image active</span>
             </div>
           )}
@@ -462,8 +535,8 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
       {/* 7. SOLID COLOR SECTION */}
       {provider === 'solid_color' && (
-        <div className="p-3 rounded-xl bg-white/[0.03] space-y-2.5">
-          <label className="block text-xs font-medium text-slate-300">
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3.5">
+          <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
             Solid Color
           </label>
           <div className="grid grid-cols-3 gap-2">
@@ -478,14 +551,14 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                     backgroundType: 'color',
                   })
                 }
-                className={`p-2 rounded-xl text-[11px] font-medium flex items-center gap-2 cursor-pointer transition-all ${
+                className={`p-2 rounded-xl text-[11px] font-semibold flex items-center gap-2 cursor-pointer transition-all border-0 outline-none ${
                   settings.solidColor === color.hex
-                    ? 'bg-white/20 text-white font-semibold shadow-sm'
-                    : 'bg-white/5 text-slate-300 hover:bg-white/10'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                    : 'bg-white dark:bg-white/5 text-[#141413] dark:text-slate-300 hover:bg-[#f5f0e8] dark:hover:bg-white/10 shadow-xs'
                 }`}
               >
                 <span
-                  className="w-3 h-3 rounded-full shrink-0 shadow-sm"
+                  className="w-3 h-3 rounded-full shrink-0 border-0 outline-none"
                   style={{ backgroundColor: color.hex }}
                 />
                 <span className="truncate">{color.name}</span>
@@ -497,13 +570,13 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               type="color"
               value={settings.solidColor}
               onChange={(e) => onUpdate({ solidColor: e.target.value })}
-              className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+              className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 outline-none"
             />
             <input
               type="text"
               value={settings.solidColor}
               onChange={(e) => onUpdate({ solidColor: e.target.value })}
-              className="flex-1 px-3 py-1.5 rounded-xl glass-input text-xs font-mono"
+              className="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-white/[0.04] text-xs font-mono text-[#141413] dark:text-slate-100 border-0 outline-none shadow-xs"
             />
           </div>
         </div>
@@ -511,271 +584,269 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
       {/* 8. CHANGE FREQUENCY & NEXT BACKGROUND (Bonjourr Architecture) */}
       {provider !== 'solid_color' && provider !== 'local_file' && (
-        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-2.5">
-          <div className="flex items-center justify-between">
-            <label htmlFor="frequency-select" className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-              Change Frequency
-            </label>
-            <button
-              type="button"
-              onClick={handleNextBackground}
-              disabled={isCycling}
-              title="Next background"
-              className="flex items-center gap-1.5 text-xs text-[var(--accent-color)] hover:opacity-85 font-semibold cursor-pointer disabled:opacity-50 transition-colors"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isCycling ? 'animate-spin' : ''}`} />
-              Next background
-            </button>
-          </div>
-          <select
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3">
+          <label htmlFor="frequency-select" className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
+            Change Frequency
+          </label>
+          <GlassDropdown
             id="frequency-select"
+            headerTitle="Rotation Frequency"
             value={settings.changeFrequency}
-            onChange={(e) => onUpdate({ changeFrequency: e.target.value as WallpaperFrequency })}
-            className="h-10 w-full px-3.5 rounded-xl text-xs cursor-pointer bg-white/[0.04] text-slate-200 outline-none border-0"
+            options={FREQUENCY_OPTIONS}
+            onChange={(nextFrequency) => onUpdate({ changeFrequency: nextFrequency })}
+          />
+          <button
+            type="button"
+            onClick={handleNextBackground}
+            disabled={isCycling}
+            className="w-full h-10 flex items-center justify-center gap-2 rounded-xl text-xs font-semibold bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#faf9f5] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs cursor-pointer transition-all border-0 outline-none disabled:opacity-50 active:scale-[0.99]"
           >
-            <option value="tabs" className="bg-[#0c1017] text-slate-100 py-1">Every tab (Changes on each new tab)</option>
-            <option value="hour" className="bg-[#0c1017] text-slate-100 py-1">Every hour (Rotates every hour)</option>
-            <option value="period" className="bg-[#0c1017] text-slate-100 py-1">Daylight period (Morning, Afternoon, Evening, Night)</option>
-            <option value="day" className="bg-[#0c1017] text-slate-100 py-1">Every day (Midnight)</option>
-            <option value="locked" className="bg-[#0c1017] text-slate-100 py-1">Locked (Freeze current wallpaper)</option>
-          </select>
+            <RefreshCw className={`w-3.5 h-3.5 text-[var(--accent-color)] ${isCycling ? 'animate-spin' : ''}`} />
+            <span>Load Next Background</span>
+          </button>
         </div>
       )}
 
       {/* 9. WALLPAPER SIZING TARGET, DISPLAY MODE, ZOOM & POSITION */}
+      {/* Sizing Target */}
       {provider !== 'solid_color' && (
-        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-4">
-          {/* Sizing Target: Whole Monitor vs Browser Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Sizing Target
-              </label>
-              <span className="text-[10px] text-slate-400">
-                {(settings.wallpaperBase || 'window') === 'screen'
-                  ? 'Whole Monitor'
-                  : 'Full Viewport (Recommended)'}
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
+              Sizing Target
+            </label>
+            <span className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-semibold">
+              {(settings.wallpaperBase || 'window') === 'screen'
+                ? 'Whole Monitor'
+                : 'Full Viewport (Recommended)'}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => onUpdate({ wallpaperBase: 'window' as WallpaperBaseMode })}
+              className={`py-2 px-3 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
+                (settings.wallpaperBase || 'window') === 'window'
+                  ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                  : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+              }`}
+            >
+              Full Viewport
+            </button>
+            <button
+              type="button"
+              onClick={() => onUpdate({ wallpaperBase: 'screen' as WallpaperBaseMode })}
+              className={`py-2 px-3 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
+                settings.wallpaperBase === 'screen'
+                  ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                  : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+              }`}
+            >
+              Whole Monitor
+            </button>
+          </div>
+          <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
+            {(settings.wallpaperBase || 'window') === 'window'
+              ? 'Sizes and centers the wallpaper naturally within your browser window with zero unwanted zoom.'
+              : 'Scales the wallpaper across the full display area.'}
+          </p>
+        </div>
+      )}
+
+      {/* Display Mode */}
+      {provider !== 'solid_color' && (
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
+              Display Mode
+            </label>
+            <span className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-semibold capitalize">
+              {settings.wallpaperFit === 'contain'
+                ? 'Fit (Full Image)'
+                : settings.wallpaperFit === 'stretch'
+                ? 'Stretch'
+                : settings.wallpaperFit === 'center'
+                ? 'Center'
+                : 'Fill Screen'}
+            </span>
+          </div>
+          <div className="grid grid-cols-4 gap-1.5">
+            {[
+              { id: 'cover', label: 'Fill', desc: 'Fills the screen (default)' },
+              { id: 'contain', label: 'Fit', desc: 'Shows full uncropped image' },
+              { id: 'stretch', label: 'Stretch', desc: 'Stretches to fit screen' },
+              { id: 'center', label: 'Center', desc: 'Displays original scale centered' },
+            ].map((mode) => (
               <button
+                key={mode.id}
                 type="button"
-                onClick={() => onUpdate({ wallpaperBase: 'window' as WallpaperBaseMode })}
-                className={`py-2 px-3 rounded-xl text-center font-medium text-[11px] transition-all cursor-pointer ${
-                  (settings.wallpaperBase || 'window') === 'window'
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
-                    : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07]'
+                onClick={() => onUpdate({ wallpaperFit: mode.id as WallpaperFitMode })}
+                className={`py-2 px-1 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
+                  (settings.wallpaperFit || 'cover') === mode.id
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                }`}
+                title={mode.desc}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Zoom / Scale Control */}
+      {provider !== 'solid_color' && (
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
+              Zoom / Scale
+            </label>
+            <span className="text-[11px] font-mono font-bold text-[#141413] dark:text-[#faf9f5]">
+              {settings.wallpaperZoom ?? 100}%
+            </span>
+          </div>
+          <input
+            type="range"
+            min="50"
+            max="150"
+            step="1"
+            value={settings.wallpaperZoom ?? 100}
+            onChange={(e) => onUpdate({ wallpaperZoom: Number(e.target.value) })}
+            className="w-full accent-[var(--accent-color)] cursor-pointer"
+          />
+          <div className="flex items-center justify-between gap-1 pt-0.5">
+            {[75, 85, 100, 115, 130].map((z) => (
+              <button
+                key={z}
+                type="button"
+                onClick={() => onUpdate({ wallpaperZoom: z })}
+                className={`flex-1 py-1 px-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer border-0 outline-none ${
+                  (settings.wallpaperZoom ?? 100) === z
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
-                🪟 Full Viewport
+                {z === 100 ? '100% Reset' : `${z}%`}
               </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
+            Zoom out (80–90%) to effortlessly fit tall portraits and keep heads in view.
+          </p>
+        </div>
+      )}
+
+      {/* Vertical Position (Pan Y) */}
+      {provider !== 'solid_color' && (
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
+              Vertical Position (Pan Y)
+            </label>
+            <span className="text-[11px] font-mono font-bold text-[#141413] dark:text-[#faf9f5]">
+              {settings.wallpaperOffsetY !== undefined
+                ? `${settings.wallpaperOffsetY}%`
+                : settings.wallpaperPosition === 'top'
+                ? '0% (Top)'
+                : settings.wallpaperPosition === 'bottom'
+                ? '100% (Bottom)'
+                : '50% (Center)'}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={
+              settings.wallpaperOffsetY !== undefined
+                ? settings.wallpaperOffsetY
+                : settings.wallpaperPosition === 'top'
+                ? 0
+                : settings.wallpaperPosition === 'bottom'
+                ? 100
+                : 50
+            }
+            onChange={(e) => {
+              const val = Number(e.target.value)
+              onUpdate({
+                wallpaperOffsetY: val,
+                wallpaperPosition: val <= 20 ? 'top' : val >= 80 ? 'bottom' : 'center',
+              })
+            }}
+            className="w-full accent-[var(--accent-color)] cursor-pointer"
+          />
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: 'Top (0%)', val: 0, pos: 'top' as WallpaperPosition },
+              { label: 'Center (50%)', val: 50, pos: 'center' as WallpaperPosition },
+              { label: 'Bottom (100%)', val: 100, pos: 'bottom' as WallpaperPosition },
+            ].map((item) => (
               <button
+                key={item.val}
                 type="button"
-                onClick={() => onUpdate({ wallpaperBase: 'screen' as WallpaperBaseMode })}
-                className={`py-2 px-3 rounded-xl text-center font-medium text-[11px] transition-all cursor-pointer ${
-                  settings.wallpaperBase === 'screen'
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
-                    : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07]'
+                onClick={() =>
+                  onUpdate({
+                    wallpaperOffsetY: item.val,
+                    wallpaperPosition: item.pos,
+                  })
+                }
+                className={`py-1.5 px-2 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
+                  (settings.wallpaperOffsetY !== undefined ? settings.wallpaperOffsetY : 50) === item.val
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
-                🖥️ Whole Monitor
+                {item.label}
               </button>
-            </div>
-            <p className="text-[10px] text-slate-400">
-              {(settings.wallpaperBase || 'window') === 'window'
-                ? 'Sizes and centers the wallpaper naturally within your browser window, showing the entire composition with zero unwanted zoom.'
-                : 'Scales the wallpaper across the full display area.'}
-            </p>
+            ))}
           </div>
+          <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
+            Set to Top (0%) to pin the top of the photo to the top edge and prevent head cutoffs.
+          </p>
+        </div>
+      )}
 
-          {/* Display Mode */}
-          <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Display Mode
-              </label>
-              <span className="text-[10px] text-slate-400 capitalize">
-                {settings.wallpaperFit === 'contain'
-                  ? 'Fit (Full Image)'
-                  : settings.wallpaperFit === 'stretch'
-                  ? 'Stretch'
-                  : settings.wallpaperFit === 'center'
-                  ? 'Center'
-                  : 'Fill Screen'}
-              </span>
-            </div>
-            <div className="grid grid-cols-4 gap-1.5">
-              {[
-                { id: 'cover', label: 'Fill', desc: 'Fills the screen (default)' },
-                { id: 'contain', label: 'Fit', desc: 'Shows full uncropped image' },
-                { id: 'stretch', label: 'Stretch', desc: 'Stretches to fit screen' },
-                { id: 'center', label: 'Center', desc: 'Displays original scale centered' },
-              ].map((mode) => (
-                <button
-                  key={mode.id}
-                  type="button"
-                  onClick={() => onUpdate({ wallpaperFit: mode.id as WallpaperFitMode })}
-                  className={`py-2 px-1 rounded-xl text-center font-medium text-[11px] transition-all cursor-pointer ${
-                    (settings.wallpaperFit || 'cover') === mode.id
-                      ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
-                      : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07]'
-                  }`}
-                  title={mode.desc}
-                >
-                  {mode.label}
-                </button>
-              ))}
-            </div>
+      {/* Horizontal Position (Pan X) */}
+      {provider !== 'solid_color' && (
+        <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
+              Horizontal Position (Pan X)
+            </label>
+            <span className="text-[11px] font-mono font-bold text-[#141413] dark:text-[#faf9f5]">
+              {settings.wallpaperOffsetX ?? 50}%
+            </span>
           </div>
-
-          {/* Zoom / Scale Control */}
-          <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Zoom / Scale
-              </label>
-              <span className="text-[11px] font-mono text-slate-300">
-                {settings.wallpaperZoom ?? 100}%
-              </span>
-            </div>
-            <input
-              type="range"
-              min="50"
-              max="150"
-              step="1"
-              value={settings.wallpaperZoom ?? 100}
-              onChange={(e) => onUpdate({ wallpaperZoom: Number(e.target.value) })}
-              className="w-full accent-[var(--accent-color)] cursor-pointer"
-            />
-            <div className="flex items-center justify-between gap-1 pt-0.5">
-              {[75, 85, 100, 115, 130].map((z) => (
-                <button
-                  key={z}
-                  type="button"
-                  onClick={() => onUpdate({ wallpaperZoom: z })}
-                  className={`flex-1 py-1 px-1 rounded-lg text-[10px] font-medium transition-all cursor-pointer ${
-                    (settings.wallpaperZoom ?? 100) === z
-                      ? 'bg-white/20 text-white font-semibold'
-                      : 'bg-white/[0.03] text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {z === 100 ? '100% Reset' : `${z}%`}
-                </button>
-              ))}
-            </div>
-            <p className="text-[10px] text-slate-400">
-              Zoom out (80–90%) to effortlessly fit tall portraits and keep heads in view.
-            </p>
-          </div>
-
-          {/* Vertical Position (Pan Y) */}
-          <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Vertical Position (Pan Y)
-              </label>
-              <span className="text-[11px] font-mono text-slate-300">
-                {settings.wallpaperOffsetY !== undefined
-                  ? `${settings.wallpaperOffsetY}%`
-                  : settings.wallpaperPosition === 'top'
-                  ? '0% (Top)'
-                  : settings.wallpaperPosition === 'bottom'
-                  ? '100% (Bottom)'
-                  : '50% (Center)'}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value={
-                settings.wallpaperOffsetY !== undefined
-                  ? settings.wallpaperOffsetY
-                  : settings.wallpaperPosition === 'top'
-                  ? 0
-                  : settings.wallpaperPosition === 'bottom'
-                  ? 100
-                  : 50
-              }
-              onChange={(e) => {
-                const val = Number(e.target.value)
-                onUpdate({
-                  wallpaperOffsetY: val,
-                  wallpaperPosition: val <= 20 ? 'top' : val >= 80 ? 'bottom' : 'center',
-                })
-              }}
-              className="w-full accent-[var(--accent-color)] cursor-pointer"
-            />
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: 'Top (0%)', val: 0, pos: 'top' as WallpaperPosition },
-                { label: 'Center (50%)', val: 50, pos: 'center' as WallpaperPosition },
-                { label: 'Bottom (100%)', val: 100, pos: 'bottom' as WallpaperPosition },
-              ].map((item) => (
-                <button
-                  key={item.val}
-                  type="button"
-                  onClick={() =>
-                    onUpdate({
-                      wallpaperOffsetY: item.val,
-                      wallpaperPosition: item.pos,
-                    })
-                  }
-                  className={`py-1.5 px-2 rounded-xl text-center font-medium text-[11px] transition-all cursor-pointer ${
-                    (settings.wallpaperOffsetY !== undefined ? settings.wallpaperOffsetY : 50) === item.val
-                      ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
-                      : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07]'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <p className="text-[10px] text-slate-400">
-              Set to Top (0%) to pin the top of the photo to the top edge and prevent head cutoffs.
-            </p>
-          </div>
-
-          {/* Horizontal Position (Pan X) */}
-          <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Horizontal Position (Pan X)
-              </label>
-              <span className="text-[11px] font-mono text-slate-300">
-                {settings.wallpaperOffsetX ?? 50}%
-              </span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value={settings.wallpaperOffsetX ?? 50}
-              onChange={(e) => onUpdate({ wallpaperOffsetX: Number(e.target.value) })}
-              className="w-full accent-[var(--accent-color)] cursor-pointer"
-            />
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: 'Left (0%)', val: 0 },
-                { label: 'Center (50%)', val: 50 },
-                { label: 'Right (100%)', val: 100 },
-              ].map((item) => (
-                <button
-                  key={item.val}
-                  type="button"
-                  onClick={() => onUpdate({ wallpaperOffsetX: item.val })}
-                  className={`py-1.5 px-2 rounded-xl text-center font-medium text-[11px] transition-all cursor-pointer ${
-                    (settings.wallpaperOffsetX ?? 50) === item.val
-                      ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
-                      : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07]'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+            value={settings.wallpaperOffsetX ?? 50}
+            onChange={(e) => onUpdate({ wallpaperOffsetX: Number(e.target.value) })}
+            className="w-full accent-[var(--accent-color)] cursor-pointer"
+          />
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: 'Left (0%)', val: 0 },
+              { label: 'Center (50%)', val: 50 },
+              { label: 'Right (100%)', val: 100 },
+            ].map((item) => (
+              <button
+                key={item.val}
+                type="button"
+                onClick={() => onUpdate({ wallpaperOffsetX: item.val })}
+                className={`py-1.5 px-2 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
+                  (settings.wallpaperOffsetX ?? 50) === item.val
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
       )}
@@ -784,9 +855,9 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
       {provider !== 'solid_color' && (
         <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3.5">
           <div>
-            <div className="flex items-center justify-between text-xs font-medium text-slate-300 mb-1.5">
-              <span>Background Blur</span>
-              <span className="text-slate-400 font-mono text-[11px]">{settings.backgroundBlur}px</span>
+            <div className="flex items-center justify-between text-xs font-semibold text-[#141413] dark:text-[#ece6dc] mb-1.5">
+              <span className="text-[#141413] dark:text-[#ece6dc] font-semibold">Background Blur</span>
+              <span className="text-[#141413] dark:text-[#faf9f5] font-mono font-bold text-[11px]">{settings.backgroundBlur}px</span>
             </div>
             <input
               type="range"
@@ -799,9 +870,9 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
           </div>
 
           <div>
-            <div className="flex items-center justify-between text-xs font-medium text-slate-300 mb-1.5">
-              <span>Brightness</span>
-              <span className="text-slate-400 font-mono text-[11px]">{settings.backgroundBrightness}%</span>
+            <div className="flex items-center justify-between text-xs font-semibold text-[#141413] dark:text-[#ece6dc] mb-1.5">
+              <span className="text-[#141413] dark:text-[#ece6dc] font-semibold">Brightness</span>
+              <span className="text-[#141413] dark:text-[#faf9f5] font-mono font-bold text-[11px]">{settings.backgroundBrightness}%</span>
             </div>
             <input
               type="range"
@@ -818,10 +889,10 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
       {/* 11. AMBIENT TEXTURE OVERLAY */}
       <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3.5">
         <div className="flex items-center justify-between">
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <label className="block text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2]">
             Texture & Pattern Overlay
           </label>
-          <span className="text-[10px] text-slate-400 capitalize">
+          <span className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-semibold capitalize">
             {settings.wallpaperTexture && settings.wallpaperTexture !== 'none'
               ? settings.wallpaperTexture
               : 'None'}
@@ -841,10 +912,10 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               key={tex.id}
               type="button"
               onClick={() => onUpdate({ wallpaperTexture: tex.id as WallpaperTexture })}
-              className={`py-2 px-2 rounded-xl text-center font-medium text-[11px] transition-all cursor-pointer truncate ${
+              className={`py-2 px-2 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer truncate border-0 outline-none ${
                 (settings.wallpaperTexture || 'none') === tex.id
-                  ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm'
-                  : 'bg-white/[0.04] text-slate-400 hover:text-slate-200 hover:bg-white/[0.07]'
+                  ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                  : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
               }`}
             >
               {tex.label}
@@ -854,9 +925,9 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
 
         {settings.wallpaperTexture && settings.wallpaperTexture !== 'none' && (
           <div className="space-y-1.5 pt-1">
-            <div className="flex items-center justify-between text-xs font-medium text-slate-300">
-              <span className="text-[11px] text-slate-400">Texture Opacity</span>
-              <span className="text-slate-400 font-mono text-[11px]">{settings.wallpaperTextureOpacity ?? 15}%</span>
+            <div className="flex items-center justify-between text-xs font-semibold text-[#141413] dark:text-[#ece6dc]">
+              <span className="text-[11px] text-[#383531] dark:text-[#cfc4b2] font-medium">Texture Opacity</span>
+              <span className="text-[#141413] dark:text-[#faf9f5] font-mono font-bold text-[11px]">{settings.wallpaperTextureOpacity ?? 15}%</span>
             </div>
             <input
               type="range"
@@ -870,7 +941,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
           </div>
         )}
 
-        <p className="text-[10px] text-slate-400">
+        <p className="text-[10px] text-[#383531] dark:text-[#cfc4b2] font-medium">
           Adds a subtle tactile film grain or vector pattern over the background for high-end aesthetic depth.
         </p>
       </div>

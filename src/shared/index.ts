@@ -1,3 +1,5 @@
 export { Navbar } from './components/Navbar'
+export { GlassDropdown } from './components/GlassDropdown'
+export type { GlassDropdownOption, GlassDropdownProps } from './components/GlassDropdown'
 export { useClickOutside } from './hooks/useClickOutside'
 export { useKeyboardShortcut } from './hooks/useKeyboardShortcut'

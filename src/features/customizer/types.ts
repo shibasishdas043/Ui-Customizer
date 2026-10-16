@@ -82,6 +82,9 @@ export interface CustomizerSettings {
   showQuickLinks: boolean
   bookmarksInNewTab: boolean
   quickLinks: BookmarkItem[]
+  quickLinksCols: number | 'auto'
+  quickLinksSize: 'sm' | 'md' | 'lg'
+  quickLinksShowTitle: boolean
 
   // Weather Widget (Bonjourr Pattern)
   showWeather: boolean

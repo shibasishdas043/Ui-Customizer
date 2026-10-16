@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ==========================================================================
    Font Engine: Local Custom Fonts (Variable & Script)
    ========================================================================== */
@@ -66,7 +68,7 @@
     color-scheme: dark;
     --accent-color: #0081a7;
     --accent-rgb: 0, 129, 167;
-    --accent-glow: rgba(0, 129, 167, 0.35);
+    --accent-glow: transparent;
 
     --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-display: 'Outfit', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -285,7 +287,7 @@
   border: none;
   outline: none;
   box-shadow: 0 8px 24px -2px rgba(0, 0, 0, 0.35);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
@@ -299,10 +301,11 @@
 .glass-input {
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: none;
   outline: none;
   color: #f1f5f9;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .glass-input:focus,
@@ -342,80 +345,110 @@
 :root,
 :root[data-theme="dark"],
 [data-settings-theme="dark"] {
-  --settings-modal-bg: #212529;
-  --settings-sidebar-bg: #1a1e21;
-  --settings-footer-bg: #14171a;
-  --settings-card-bg: rgba(255, 255, 255, 0.045);
-  --settings-card-border: rgba(255, 255, 255, 0.08);
-  --settings-card-hover: rgba(255, 255, 255, 0.075);
-  --settings-row-bg: rgba(0, 0, 0, 0.28);
-  --settings-row-hover: rgba(0, 0, 0, 0.42);
-  --settings-row-border: rgba(255, 255, 255, 0.06);
-  --settings-chip-bg: rgba(0, 0, 0, 0.35);
-  --settings-chip-hover: rgba(255, 255, 255, 0.08);
-  --settings-chip-text: #dee2e6;
-  --settings-chip-border: rgba(255, 255, 255, 0.07);
-  --settings-input-bg: rgba(0, 0, 0, 0.32);
-  --settings-input-border: rgba(255, 255, 255, 0.09);
-  --settings-text-title: #ffffff;
-  --settings-text-body: #f8f9fa;
-  --settings-text-secondary: #adb5bd;
-  --settings-text-muted: #6c757d;
-  --settings-select-bg: #1a1e21;
-  --settings-select-option: #212529;
-  --settings-pill-inactive-bg: rgba(255, 255, 255, 0.04);
-  --settings-pill-inactive-hover: rgba(255, 255, 255, 0.08);
-  --settings-pill-inactive-text: #adb5bd;
-  --settings-btn-ghost-bg: rgba(255, 255, 255, 0.04);
-  --settings-btn-ghost-hover: rgba(255, 255, 255, 0.08);
-  --settings-btn-ghost-text: #dee2e6;
-  --settings-divider: rgba(255, 255, 255, 0.07);
-  --settings-slider-track: rgba(255, 255, 255, 0.16);
-  --settings-shadow: 0 30px 90px rgba(0, 0, 0, 0.85);
+  --settings-modal-bg: #181715;
+  --settings-sidebar-bg: #141311;
+  --settings-footer-bg: #0f0e0d;
+  --settings-card-bg: #22201d;
+  --settings-card-border: transparent;
+  --settings-card-hover: #292622;
+  --settings-row-bg: #1a1917;
+  --settings-row-hover: #24221e;
+  --settings-row-border: transparent;
+  --settings-chip-bg: #22201d;
+  --settings-chip-hover: #292622;
+  --settings-chip-text: #faf9f5;
+  --settings-chip-border: transparent;
+  --settings-input-bg: #121110;
+  --settings-input-border: transparent;
+  --settings-text-title: #faf9f5;
+  --settings-text-body: #ece6dc;
+  --settings-text-secondary: #b5b1a8;
+  --settings-text-muted: #8e8b82;
+  --settings-select-bg: #181715;
+  --settings-select-option: #22201d;
+  --settings-pill-inactive-bg: rgba(255, 255, 255, 0.06);
+  --settings-pill-inactive-hover: rgba(255, 255, 255, 0.1);
+  --settings-pill-inactive-text: #ece6dc;
+  --settings-btn-ghost-bg: rgba(255, 255, 255, 0.05);
+  --settings-btn-ghost-hover: rgba(255, 255, 255, 0.09);
+  --settings-btn-ghost-text: #faf9f5;
+  --settings-divider: transparent;
+  --settings-slider-track: rgba(255, 255, 255, 0.22);
+  --settings-shadow: 0 32px 100px rgba(0, 0, 0, 0.85);
   --settings-scrollbar-thumb: rgba(255, 255, 255, 0.16);
   --settings-scrollbar-hover: rgba(255, 255, 255, 0.28);
 }
 
 :root[data-theme="light"],
 [data-settings-theme="light"] {
-  --settings-modal-bg: #f2f4f3;
-  --settings-sidebar-bg: #e5e8e6;
-  --settings-footer-bg: #dbe0dd;
-  --settings-card-bg: #ffffff;
-  --settings-card-border: rgba(0, 0, 0, 0.08);
-  --settings-card-hover: #ffffff;
-  --settings-row-bg: #f8f9fa;
-  --settings-row-hover: #e9ecef;
-  --settings-row-border: rgba(0, 0, 0, 0.06);
-  --settings-chip-bg: #f1f3f5;
-  --settings-chip-hover: #e9ecef;
-  --settings-chip-text: #343a40;
-  --settings-chip-border: rgba(0, 0, 0, 0.08);
+  --settings-modal-bg: #faf9f5;
+  --settings-sidebar-bg: #f5f0e8;
+  --settings-footer-bg: #e8e0d2;
+  --settings-card-bg: #efe9de;
+  --settings-card-border: transparent;
+  --settings-card-hover: #ebe4d7;
+  --settings-row-bg: #ffffff;
+  --settings-row-hover: #fcfbf9;
+  --settings-row-border: transparent;
+  --settings-chip-bg: #ffffff;
+  --settings-chip-hover: #f5f0e8;
+  --settings-chip-text: #141413;
+  --settings-chip-border: transparent;
   --settings-input-bg: #ffffff;
-  --settings-input-border: rgba(0, 0, 0, 0.14);
-  --settings-text-title: #212529;
-  --settings-text-body: #212529;
-  --settings-text-secondary: #495057;
-  --settings-text-muted: #6c757d;
+  --settings-input-border: transparent;
+  --settings-text-title: #141413;
+  --settings-text-body: #1c1b18;
+  --settings-text-secondary: #383531;
+  --settings-text-muted: #524f49;
   --settings-select-bg: #ffffff;
-  --settings-select-option: #f8f9fa;
-  --settings-pill-inactive-bg: #f1f3f5;
-  --settings-pill-inactive-hover: #e9ecef;
-  --settings-pill-inactive-text: #495057;
-  --settings-btn-ghost-bg: rgba(0, 0, 0, 0.05);
-  --settings-btn-ghost-hover: rgba(0, 0, 0, 0.09);
-  --settings-btn-ghost-text: #343a40;
-  --settings-divider: rgba(0, 0, 0, 0.08);
-  --settings-slider-track: #dee2e6;
-  --settings-shadow: 0 25px 70px rgba(0, 0, 0, 0.18);
-  --settings-scrollbar-thumb: rgba(0, 0, 0, 0.18);
-  --settings-scrollbar-hover: rgba(0, 0, 0, 0.32);
+  --settings-select-option: #f5f0e8;
+  --settings-pill-inactive-bg: #ffffff;
+  --settings-pill-inactive-hover: #f5f0e8;
+  --settings-pill-inactive-text: #141413;
+  --settings-btn-ghost-bg: #ffffff;
+  --settings-btn-ghost-hover: #f5f0e8;
+  --settings-btn-ghost-text: #141413;
+  --settings-divider: transparent;
+  --settings-slider-track: #bdae99;
+  --settings-shadow: 0 25px 70px rgba(20, 20, 19, 0.14);
+  --settings-scrollbar-thumb: rgba(20, 20, 19, 0.22);
+  --settings-scrollbar-hover: rgba(20, 20, 19, 0.38);
 }
 
 .settings-modal {
   background-color: var(--settings-modal-bg) !important;
   color: var(--settings-text-body);
   box-shadow: var(--settings-shadow) !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Strict Zero Glow, Zero Border & Zero Outline Policy for Settings Modal (Claude DESIGN.md) */
+.settings-modal,
+.settings-modal *,
+.settings-modal *::before,
+.settings-modal *::after {
+  outline: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  border: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+}
+
+/* Modal Shell Backdrop Elevation (Neutral, Non-Colored Shadow) */
+.settings-modal {
+  box-shadow: var(--settings-shadow) !important;
+}
+
+/* Editorial Serif Headlines (Copernicus / Tiempos Headline / Cormorant Garamond) */
+.settings-serif-title,
+.settings-modal h2,
+.settings-modal h3 {
+  font-family: Copernicus, "Tiempos Headline", "Cormorant Garamond", Newsreader, Garamond, Georgia, serif !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.025em !important;
 }
 
 /* Range Slider Refinement for Both Dark & Light Themes */
@@ -427,6 +460,7 @@
   border-radius: 9999px;
   background: var(--settings-slider-track) !important;
   outline: none !important;
+  border: none !important;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -437,9 +471,9 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--accent-color);
-  border: 2.5px solid #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  background: var(--accent-color) !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
   cursor: pointer;
   transition: transform 0.12s ease;
 }
@@ -452,9 +486,9 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: var(--accent-color);
-  border: 2.5px solid #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  background: var(--accent-color) !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
   cursor: pointer;
   transition: transform 0.12s ease;
 }
@@ -464,97 +498,157 @@
 }
 
 /* --------------------------------------------------------------------------
-   LIGHT THEME REFINEMENT RULES (#f2f4f3 modal background)
+   LIGHT THEME REFINEMENT (Claude Warm Cream Canvas: #faf9f5 / WCAG AAA Contrast)
    -------------------------------------------------------------------------- */
 
-/* Typography & Headings */
+/* 1. Section Titles, Labels & Uppercase Headers */
+[data-settings-theme="light"] [class*="text-[#8c827a]"],
+[data-settings-theme="light"] [class*="uppercase"]:not([class*="bg-"]):not([class*="text-cyan"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-rose"]):not([class*="text-sky"]) {
+  color: #141413 !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+}
+
+/* 2. Primary Headings & Serif Titles */
 [data-settings-theme="light"] h1,
 [data-settings-theme="light"] h2,
 [data-settings-theme="light"] h3,
 [data-settings-theme="light"] h4,
 [data-settings-theme="light"] h5,
 [data-settings-theme="light"] strong {
-  color: #212529 !important;
+  color: #141413 !important;
+  font-weight: 600 !important;
 }
 
+/* 3. Primary Body Text, Option Labels & Toggles */
 [data-settings-theme="light"] label,
-[data-settings-theme="light"] .text-slate-200,
-[data-settings-theme="light"] .text-slate-300 {
-  color: #343a40 !important;
+[data-settings-theme="light"] [class*="text-slate-100"],
+[data-settings-theme="light"] [class*="text-slate-200"],
+[data-settings-theme="light"] [class*="text-slate-300"],
+[data-settings-theme="light"] [class*="dark:text-slate-100"],
+[data-settings-theme="light"] [class*="dark:text-slate-200"],
+[data-settings-theme="light"] [class*="dark:text-slate-300"],
+[data-settings-theme="light"] [class*="dark:text-[#ece6dc]"],
+[data-settings-theme="light"] [class*="dark:text-[#faf9f5]"],
+[data-settings-theme="light"] span.text-xs:not([class*="text-slate-400"]):not([class*="text-slate-500"]):not([class*="text-cyan"]):not([class*="text-amber"]):not([class*="text-emerald"]):not([class*="text-rose"]) {
+  color: #141413 !important;
+  font-weight: 500 !important;
 }
 
-[data-settings-theme="light"] .text-slate-400 {
-  color: #495057 !important;
+[data-settings-theme="light"] .text-white:not([class*="bg-[var(--accent"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-cyan"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):not([class*="bg-red"]):not([class*="bg-blue"]):not([class*="text-white/"]) {
+  color: #141413 !important;
 }
 
-[data-settings-theme="light"] .text-slate-500 {
-  color: #6c757d !important;
+/* 4. Secondary Descriptions, Subtitles & Helper Text (High Contrast 9.2:1) */
+[data-settings-theme="light"] [class*="text-slate-400"],
+[data-settings-theme="light"] [class*="text-slate-500"],
+[data-settings-theme="light"] [class*="dark:text-slate-400"],
+[data-settings-theme="light"] [class*="dark:text-slate-500"],
+[data-settings-theme="light"] [class*="dark:text-[#cfc4b2]"],
+[data-settings-theme="light"] p[class*="text-"] {
+  color: #383531 !important;
+  font-weight: 450 !important;
 }
 
-[data-settings-theme="light"] .text-slate-100 {
-  color: #212529 !important;
+/* 5. Metrics, Percentages & Monospace Values */
+[data-settings-theme="light"] .font-mono {
+  color: #141413 !important;
+  font-weight: 600 !important;
 }
 
-[data-settings-theme="light"] .text-white:not([class*="bg-[var(--accent"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-cyan"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):not([class*="bg-red"]):not([class*="bg-blue"]) {
-  color: #212529 !important;
+[data-settings-theme="light"] span[class*="font-mono"] {
+  color: #141413 !important;
+  font-weight: 600 !important;
 }
 
-[data-settings-theme="light"] [class*="uppercase"] {
-  color: #495057 !important;
+[data-settings-theme="light"] span.font-mono.truncate {
+  color: #383531 !important;
+  font-weight: 500 !important;
 }
 
-/* Cards & Sections */
+/* 6. Cards & Containers (Surface Card: #efe9de) */
 [data-settings-theme="light"] .settings-card,
 [data-settings-theme="light"] [class*="bg-white/[0.02]"],
 [data-settings-theme="light"] [class*="bg-white/[0.03]"],
 [data-settings-theme="light"] [class*="bg-white/[0.04]"],
 [data-settings-theme="light"] [class*="bg-white/5"] {
-  background-color: var(--settings-card-bg) !important;
-  border: 1px solid var(--settings-card-border) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  background-color: var(--settings-card-bg, #efe9de) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-/* Row Items (Search Engines & Quick Links lists) */
+/* 7. Row Items (Search Engines & Quick Links lists) */
 [data-settings-theme="light"] div[class*="bg-black/35"],
-[data-settings-theme="light"] div[class*="bg-white/[0.03]"] {
-  background-color: var(--settings-row-bg) !important;
-  border: 1px solid var(--settings-row-border) !important;
-}
-
-[data-settings-theme="light"] div[class*="bg-black/35"]:hover,
-[data-settings-theme="light"] div[class*="bg-white/[0.03]"]:hover {
-  background-color: var(--settings-row-hover) !important;
-}
-
-[data-settings-theme="light"] div[class*="bg-black/40"] {
+[data-settings-theme="light"] div[class*="bg-white/[0.03]"]:not([class*="p-4"]):not([class*="p-3.5"]):not([class*="p-3"]):not([class*="p-2.5"]):not([class*="space-y"]) {
   background-color: #ffffff !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.07) !important;
 }
 
-/* Preset Chips (Popular Search Engines & Quick Links presets) */
+[data-settings-theme="light"] div[class*="bg-black/35"]:hover {
+  background-color: #fcfbf9 !important;
+}
+
+/* Default Search Engine Row Wash */
+[data-settings-theme="light"] div[class*="bg-[var(--accent-color)]/15"] {
+  background-color: #fee2e2 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.07) !important;
+}
+
+[data-settings-theme="light"] div[class*="bg-[var(--accent-color)]/15"] .font-mono {
+  color: #383531 !important;
+}
+
+/* Favicon Container in Rows */
+[data-settings-theme="light"] div[class*="bg-black/40"] {
+  background-color: #efe9de !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* 8. Preset Chips (Popular Search Engines & Quick Links presets) */
 [data-settings-theme="light"] .bg-black\/30,
 [data-settings-theme="light"] button[class*="bg-black/30"] {
-  background-color: var(--settings-chip-bg) !important;
-  border: 1px solid var(--settings-chip-border) !important;
-  color: var(--settings-chip-text) !important;
+  background-color: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+  color: #141413 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.08) !important;
 }
 
 [data-settings-theme="light"] .bg-black\/30:hover,
 [data-settings-theme="light"] button[class*="bg-black/30"]:hover {
-  background-color: var(--settings-chip-hover) !important;
-  color: #111827 !important;
+  background-color: #f5f0e8 !important;
+  color: #000000 !important;
 }
 
-/* Inactive Toggle Buttons & Percentage Pills */
-[data-settings-theme="light"] button[class*="bg-white/"]:not([class*="bg-[var(--accent"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-white/20"]) {
-  background-color: #f1f3f5 !important;
-  color: #495057 !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+/* AI Badge Inside Chips & Rows */
+[data-settings-theme="light"] span[class*="text-cyan"] {
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
+  font-weight: 700 !important;
+  padding: 1.5px 6px !important;
+  border-radius: 6px !important;
 }
 
-[data-settings-theme="light"] button[class*="bg-white/"]:not([class*="bg-[var(--accent"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-white/20"]):hover {
-  background-color: #e9ecef !important;
-  color: #212529 !important;
+/* 9. Inactive Segment Buttons, Pills & Toggles */
+[data-settings-theme="light"] button[class*="bg-white/"]:not([class*="bg-[var(--accent"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-cyan"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):not([class*="bg-white/20"]) {
+  background-color: #ffffff !important;
+  color: #141413 !important;
+  font-weight: 600 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 1px 2px rgba(20, 20, 19, 0.06) !important;
+}
+
+[data-settings-theme="light"] button[class*="bg-white/"]:not([class*="bg-[var(--accent"]):not([class*="bg-rose"]):not([class*="bg-emerald"]):not([class*="bg-cyan"]):not([class*="bg-indigo"]):not([class*="bg-amber"]):not([class*="bg-white/20"]):hover {
+  background-color: #f5f0e8 !important;
+  color: #000000 !important;
 }
 
 [data-settings-theme="light"] button.bg-white\/20 {
@@ -562,79 +656,201 @@
   color: var(--accent-contrast, #ffffff) !important;
 }
 
-[data-settings-theme="light"] button.text-slate-400:not([class*="bg-[var(--accent"]):not([class*="hover:text-[var(--accent"]) {
-  color: #495057 !important;
+/* "Manage & Customize Links" Button */
+[data-settings-theme="light"] button[class*="py-2.5"][class*="text-[var(--accent-color)]"] {
+  background-color: #ffffff !important;
+  color: var(--accent-color) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.08) !important;
 }
 
-[data-settings-theme="light"] button.text-slate-400:hover:not([class*="bg-[var(--accent"]):not([class*="hover:text-[var(--accent"]) {
-  color: #212529 !important;
+[data-settings-theme="light"] button[class*="py-2.5"][class*="text-[var(--accent-color)]"]:hover {
+  background-color: #f5f0e8 !important;
 }
 
+/* Set Default Button in Search Engines List */
+[data-settings-theme="light"] button[title="Set as Default Search Engine"] {
+  background-color: #efe9de !important;
+  color: #141413 !important;
+  font-weight: 600 !important;
+}
+
+[data-settings-theme="light"] button[title="Set as Default Search Engine"]:hover {
+  background-color: #dfd7c9 !important;
+  color: #000000 !important;
+}
+
+/* Action Icons & Hover Invisibility Protection */
 [data-settings-theme="light"] .hover\:text-white:hover {
-  color: #212529 !important;
+  color: #000000 !important;
 }
 
-/* Inputs, Textareas, Selects & Native Dropdowns */
+[data-settings-theme="light"] button[title="Move Up"],
+[data-settings-theme="light"] button[title="Move Down"],
+[data-settings-theme="light"] button[title*="Modify"],
+[data-settings-theme="light"] button[title*="Reset to default"] {
+  color: #141413 !important;
+}
+
+[data-settings-theme="light"] button[title="Move Up"]:hover,
+[data-settings-theme="light"] button[title="Move Down"]:hover,
+[data-settings-theme="light"] button[title*="Reset to default"]:hover {
+  color: #000000 !important;
+  background-color: #efe9de !important;
+}
+
+[data-settings-theme="light"] button[title*="Delete Search Engine"],
+[data-settings-theme="light"] button[title*="Delete quick link"] {
+  color: #be123c !important;
+}
+
+[data-settings-theme="light"] button[title*="Delete Search Engine"]:hover,
+[data-settings-theme="light"] button[title*="Delete quick link"]:hover {
+  color: #9f1239 !important;
+  background-color: #ffe4e6 !important;
+}
+
+/* 10. Inputs, Textareas, Selects & Native Dropdowns */
 [data-settings-theme="light"] select,
 [data-settings-theme="light"] input[type="text"],
 [data-settings-theme="light"] input[type="number"],
 [data-settings-theme="light"] input[type="url"],
 [data-settings-theme="light"] textarea {
-  background-color: var(--settings-input-bg) !important;
-  color: var(--settings-text-body) !important;
-  border: 1px solid var(--settings-input-border) !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  background-color: #ffffff !important;
+  color: #141413 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   color-scheme: light !important;
-}
-
-[data-settings-theme="light"] select option {
-  background-color: var(--settings-select-bg) !important;
-  color: var(--settings-text-body) !important;
 }
 
 [data-settings-theme="light"] input::placeholder,
 [data-settings-theme="light"] textarea::placeholder {
-  color: #adb5bd !important;
+  color: #524f49 !important;
 }
 
-[data-settings-theme="light"] input:focus,
-[data-settings-theme="light"] textarea:focus,
-[data-settings-theme="light"] select:focus {
-  border-color: var(--accent-color) !important;
-  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+/* Range Slider Track High-Contrast Visibility */
+[data-settings-theme="light"] input[type="range"] {
+  background: #bdae99 !important;
+  height: 6px !important;
+  border-radius: 9999px !important;
 }
 
-/* Monospace Custom CSS Editor */
+/* Custom Glass Dropdown Component */
+[data-settings-theme="light"] .glass-dropdown-trigger {
+  background-color: #ffffff !important;
+  color: #141413 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.08), 0 1px 2px rgba(20, 20, 19, 0.04) !important;
+  font-weight: 600 !important;
+}
+
+[data-settings-theme="light"] .glass-dropdown-trigger:hover {
+  background-color: #faf9f5 !important;
+  box-shadow: 0 2px 6px rgba(20, 20, 19, 0.12) !important;
+}
+
+[data-settings-theme="light"] .glass-dropdown-menu {
+  background-color: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 16px 40px rgba(20, 20, 19, 0.14), 0 2px 8px rgba(20, 20, 19, 0.06) !important;
+  color: #141413 !important;
+}
+
+[data-settings-theme="light"] .glass-dropdown-menu button {
+  color: #141413 !important;
+  font-weight: 500 !important;
+}
+
+[data-settings-theme="light"] .glass-dropdown-menu button:hover {
+  background-color: #f5f0e8 !important;
+  color: #000000 !important;
+}
+
+[data-settings-theme="light"] .glass-dropdown-menu button[aria-selected="true"] {
+  background-color: var(--accent-color) !important;
+  color: var(--accent-contrast, #ffffff) !important;
+  font-weight: 700 !important;
+}
+
+/* 11. Monospace Custom CSS Editor */
 [data-settings-theme="light"] textarea[spellcheck="false"] {
   background-color: #ffffff !important;
-  color: #212529 !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-}
-
-/* Action Icons (Arrows, Edit, Delete) */
-[data-settings-theme="light"] button[title="Move Up"],
-[data-settings-theme="light"] button[title="Move Down"],
-[data-settings-theme="light"] button[title*="Modify"],
-[data-settings-theme="light"] button[title*="Default"],
-[data-settings-theme="light"] button[title*="Reset to defaults"] {
-  color: #6c757d !important;
-}
-
-[data-settings-theme="light"] button[title="Move Up"]:hover,
-[data-settings-theme="light"] button[title="Move Down"]:hover,
-[data-settings-theme="light"] button[title*="Reset to defaults"]:hover {
-  color: #212529 !important;
-  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #141413 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Toggle Switch Track */
 [data-settings-theme="light"] .bg-white\/10 {
-  background-color: #dee2e6 !important;
+  background-color: #bdae99 !important;
 }
 
-/* Neutral Border Overrides */
-[data-settings-theme="light"] [class*="border-white/"] {
-  border-color: rgba(0, 0, 0, 0.08) !important;
+/* --------------------------------------------------------------------------
+   DARK THEME REFINEMENT (Claude Dark Canvas: #181715 / High Contrast)
+   -------------------------------------------------------------------------- */
+
+[data-settings-theme="dark"] [class*="text-[#8c827a]"],
+[data-settings-theme="dark"] [class*="uppercase"]:not([class*="bg-"]):not([class*="text-cyan"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-rose"]) {
+  color: #cfc4b2 !important;
+  font-weight: 600 !important;
+  letter-spacing: 1.5px !important;
+}
+
+[data-settings-theme="dark"] .text-slate-400,
+[data-settings-theme="dark"] .text-slate-500 {
+  color: #b5b1a8 !important;
+}
+
+[data-settings-theme="dark"] .text-slate-300,
+[data-settings-theme="dark"] .text-slate-200 {
+  color: #ece6dc !important;
+}
+
+[data-settings-theme="dark"] input[type="range"] {
+  background: rgba(255, 255, 255, 0.22) !important;
+  height: 6px !important;
+  border-radius: 9999px !important;
+}
+
+[data-settings-theme="dark"] .glass-dropdown-trigger {
+  background-color: #2b2824 !important;
+  color: #faf9f5 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+  font-weight: 600 !important;
+}
+
+[data-settings-theme="dark"] .glass-dropdown-trigger:hover {
+  background-color: #35312b !important;
+}
+
+[data-settings-theme="dark"] .glass-dropdown-menu {
+  background-color: #252320 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  color: #ece6dc !important;
+}
+
+[data-settings-theme="dark"] .glass-dropdown-menu button {
+  color: #ece6dc !important;
+  font-weight: 500 !important;
+}
+
+[data-settings-theme="dark"] .glass-dropdown-menu button:hover {
+  background-color: #302d28 !important;
+  color: #ffffff !important;
+}
+
+[data-settings-theme="dark"] .glass-dropdown-menu button[aria-selected="true"] {
+  background-color: var(--accent-color) !important;
+  color: var(--accent-contrast, #ffffff) !important;
+  font-weight: 700 !important;
 }
 
 /* Scrollbar Customization */
@@ -644,3 +860,4 @@
 .settings-modal ::-webkit-scrollbar-thumb:hover {
   background: var(--settings-scrollbar-hover) !important;
 }
+

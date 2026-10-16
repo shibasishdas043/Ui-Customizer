@@ -27,8 +27,8 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
           <label
-            className="block text-[11px] font-semibold uppercase tracking-wider mb-2.5 transition-colors"
-            style={{ color: isDark ? '#94a3b8' : '#495057' }}
+            className="block text-[11px] font-bold uppercase tracking-[1.5px] mb-2.5 transition-colors"
+            style={{ color: isDark ? '#cfc4b2' : '#141413' }}
           >
             Color Theme
           </label>
@@ -44,12 +44,12 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
                   key={t.id}
                   type="button"
                   onClick={() => onUpdate({ themeMode: t.id })}
-                  className={`h-11 rounded-2xl flex items-center justify-center gap-2 text-xs font-medium transition-all cursor-pointer border ${
+                  className={`h-11 rounded-2xl flex items-center justify-center gap-2 text-xs font-semibold transition-all cursor-pointer border-0 outline-none ${
                     isSelected
-                      ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-sm border-transparent'
+                      ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
                       : isDark
-                      ? 'bg-white/[0.04] text-slate-400 hover:bg-white/[0.07] hover:text-slate-200 border-white/[0.06]'
-                      : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border-black/[0.08] shadow-xs'
+                      ? 'bg-[#22201d] text-[#ece6dc] hover:bg-[#292622] hover:text-[#faf9f5]'
+                      : 'bg-white text-[#141413] hover:bg-[#f5f0e8] hover:text-[#000000] shadow-xs'
                   }`}
                 >
                   {t.icon}
@@ -62,8 +62,8 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
 
         <div>
           <label
-            className="block text-[11px] font-semibold uppercase tracking-wider mb-2.5 transition-colors"
-            style={{ color: isDark ? '#94a3b8' : '#495057' }}
+            className="block text-[11px] font-bold uppercase tracking-[1.5px] mb-2.5 transition-colors"
+            style={{ color: isDark ? '#cfc4b2' : '#141413' }}
           >
             Greeting Name
           </label>
@@ -72,10 +72,10 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
             value={settings.userName}
             onChange={(e) => onUpdate({ userName: e.target.value })}
             placeholder="e.g. Alex"
-            className={`h-11 w-full px-4 rounded-2xl text-sm transition-all outline-none border ${
+            className={`h-11 w-full px-4 rounded-2xl text-sm font-medium transition-all outline-none border-0 shadow-xs ${
               isDark
-                ? 'bg-black/25 focus:bg-black/35 text-slate-100 placeholder:text-slate-500 border-white/[0.08] focus:border-[var(--accent-color)]'
-                : 'bg-white focus:bg-white text-slate-900 placeholder:text-slate-400 border-black/[0.1] focus:border-[var(--accent-color)] shadow-xs'
+                ? 'bg-[#141311] focus:bg-[#1c1a17] text-[#faf9f5] placeholder:text-[#8e8b82]'
+                : 'bg-[#ffffff] focus:bg-[#ffffff] text-[#141413] placeholder:text-[#524f49]'
             }`}
           />
         </div>
@@ -84,17 +84,15 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
       {/* 3. Accent Color Palette */}
       <div>
         <label
-          className="block text-[11px] font-semibold uppercase tracking-wider mb-2.5 transition-colors"
-          style={{ color: isDark ? '#94a3b8' : '#495057' }}
+          className="block text-[11px] font-bold uppercase tracking-[1.5px] mb-2.5 transition-colors"
+          style={{ color: isDark ? '#cfc4b2' : '#141413' }}
         >
           Accent Color
         </label>
         <div
-          className="flex items-center justify-between p-3.5 rounded-2xl border transition-colors"
+          className="flex items-center justify-between p-3.5 rounded-2xl transition-colors border-0 outline-none shadow-xs"
           style={{
-            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : '#ffffff',
-            borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.08)',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.03)',
+            backgroundColor: isDark ? '#22201d' : '#ffffff',
           }}
         >
           {ACCENT_COLORS.map((color) => {
@@ -111,10 +109,10 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
                 key={color.id}
                 onClick={() => onUpdate({ accentColor: color.id })}
                 style={{ backgroundColor: color.hex }}
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer border-0 outline-none ${
                   isSelected
-                    ? 'scale-110 shadow-lg shadow-black/60'
-                    : 'opacity-70 hover:opacity-100 hover:scale-105'
+                    ? 'scale-110 ring-2 ring-black/30 dark:ring-white/40'
+                    : 'opacity-85 hover:opacity-100 hover:scale-105'
                 }`}
                 title={`${color.name} (${color.hex})`}
               >
@@ -134,8 +132,8 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
       {/* 4. Typography Selector */}
       <div>
         <label
-          className="block text-[11px] font-semibold uppercase tracking-wider mb-2.5 transition-colors"
-          style={{ color: isDark ? '#94a3b8' : '#495057' }}
+          className="block text-[11px] font-bold uppercase tracking-[1.5px] mb-2.5 transition-colors"
+          style={{ color: isDark ? '#cfc4b2' : '#141413' }}
         >
           Typography Style
         </label>
@@ -154,12 +152,12 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
                 key={f.id}
                 type="button"
                 onClick={() => onUpdate({ fontFamily: f.id as FontFamily })}
-                className={`h-[74px] rounded-2xl flex flex-col items-center justify-center p-2.5 transition-all cursor-pointer text-center border ${
+                className={`h-[74px] rounded-2xl flex flex-col items-center justify-center p-2.5 transition-all cursor-pointer text-center border-0 outline-none ${
                   isSelected
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-md scale-[1.02] border-transparent'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold scale-[1.02]'
                     : isDark
-                    ? 'bg-white/[0.03] text-slate-300 hover:bg-white/[0.06] hover:text-white border-white/[0.06]'
-                    : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border-black/[0.08] shadow-xs'
+                    ? 'bg-[#22201d] text-[#ece6dc] hover:bg-[#292622] hover:text-[#faf9f5]'
+                    : 'bg-white text-[#141413] hover:bg-[#f5f0e8] hover:text-[#000000] shadow-xs'
                 }`}
               >
                 <div
@@ -177,8 +175,8 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
                     isSelected
                       ? 'text-[var(--accent-contrast,#ffffff)] font-bold'
                       : isDark
-                      ? 'text-white'
-                      : 'text-slate-900'
+                      ? 'text-[#faf9f5]'
+                      : 'text-[#141413]'
                   }`}
                 >
                   {f.name}
@@ -186,10 +184,10 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({ settings, onUpdate }) => {
                 <div
                   className={`text-[10px] mt-0.5 tracking-tight ${
                     isSelected
-                      ? 'opacity-85 font-medium'
+                      ? 'opacity-90 font-medium'
                       : isDark
-                      ? 'text-slate-400'
-                      : 'text-slate-500'
+                      ? 'text-[#b5b1a8] font-medium'
+                      : 'text-[#383531] font-semibold'
                   }`}
                 >
                   {f.subname}

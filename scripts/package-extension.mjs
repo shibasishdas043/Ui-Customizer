@@ -93,7 +93,7 @@ function buildZipArchive() {
     throw new Error('dist/ directory does not exist. Please run "npm run build" before packaging.')
   }
 
-  const manifest = validateManifest(DIST_DIR)
+  const _manifest = validateManifest(DIST_DIR)
   const files = getAllFiles(DIST_DIR)
   console.log(`📁 Bundling ${files.length} production files into ${path.basename(OUTPUT_ZIP)}...`)
 

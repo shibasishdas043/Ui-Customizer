@@ -44,7 +44,7 @@ export const Greeting: React.FC<GreetingProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className={`flex flex-col items-center justify-center text-center ${fontClass} drop-shadow-2xl select-none`}

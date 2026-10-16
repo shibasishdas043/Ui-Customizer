@@ -25,6 +25,23 @@ interface WallpaperBackgroundProps {
   config: WallpaperConfig
 }
 
+/**
+ * Shortens long image credits if they exceed a certain word limit,
+ * keeping the text clean, readable, and free of trailing punctuation or open brackets.
+ */
+function truncateCreditWords(text: string, maxWords: number = 7): string {
+  if (!text) return ''
+  const trimmed = text.trim()
+  const words = trimmed.split(/\s+/)
+  if (words.length <= maxWords) {
+    return trimmed
+  }
+  const truncated = words.slice(0, maxWords).join(' ')
+  // Clean up any trailing punctuation, dashes, or unclosed open parentheses/brackets
+  const cleaned = truncated.replace(/[,;:\s\-–—([/{]+$/, '')
+  return `${cleaned}…`
+}
+
 export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config }) => {
   const provider =
     config.backgroundProvider ||
@@ -462,6 +479,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
     config.lastWallpaperChange,
     config.currentPhoto?.url,
     config.currentUnsplashPhoto?.url,
+    config.redditSubreddit,
   ])
 
   const blur = config.backgroundBlur ?? 0
@@ -511,7 +529,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
     <>
       {/* Background Image Container at z-0 (behind widgets at z-10+) */}
       <div className="fixed inset-0 z-0 overflow-hidden select-none pointer-events-none">
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="popLayout" initial={false}>
           {activeImageSrc && (
             <motion.div
               key={canonicalPhotoKey}
@@ -614,20 +632,21 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
             }
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white opacity-40 hover:opacity-100 transition-all duration-300 cursor-pointer select-none group drop-shadow-sm hover:drop-shadow-md py-1"
+            title={displayPhoto.author}
+            className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white opacity-40 hover:opacity-100 transition-all duration-300 cursor-pointer select-none group drop-shadow-sm hover:drop-shadow-md py-1 max-w-[85vw] sm:max-w-md md:max-w-lg"
           >
-            <span>
+            <span className="truncate">
               {provider === 'wallhaven' ? (
                 <>Wallpaper on <strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">Wallhaven</strong></>
               ) : provider === 'bing' ? (
-                <><strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">{displayPhoto.author}</strong> · Bing Daily</>
+                <><strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">{truncateCreditWords(displayPhoto.author, 7)}</strong> · Bing Daily</>
               ) : provider === 'reddit' ? (
                 <>Photo on <strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">r/{config.redditSubreddit || 'wallpapers'}</strong></>
               ) : (
-                <>Photo by <strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">{displayPhoto.author}</strong> on Unsplash</>
+                <>Photo by <strong className="font-medium text-white/50 group-hover:text-white group-hover:underline underline-offset-2 transition-colors">{truncateCreditWords(displayPhoto.author, 7)}</strong> on Unsplash</>
               )}
             </span>
-            <ExternalLink className="w-3 h-3 text-white/30 group-hover:text-white transition-colors" />
+            <ExternalLink className="w-3 h-3 text-white/30 group-hover:text-white transition-colors shrink-0" />
           </a>
         </div>
       )}

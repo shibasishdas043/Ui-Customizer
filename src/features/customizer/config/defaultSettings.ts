@@ -53,6 +53,9 @@ export const DEFAULT_SETTINGS: CustomizerSettings = {
   showQuickLinks: true,
   bookmarksInNewTab: false,
   quickLinks: DEFAULT_BOOKMARKS,
+  quickLinksCols: 'auto',
+  quickLinksSize: 'md',
+  quickLinksShowTitle: true,
 
   // Weather Widget (Bonjourr Pattern: default to approximate IP location so NO browser permission popup is shown)
   showWeather: true,
