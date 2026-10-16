@@ -255,7 +255,7 @@ export async function searchCities(
   try {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
       trimmed
-    )}&count=6&language=en&format=json`
+    )}&count=8&language=en&format=json`
     const res = await fetch(url, { signal: signal || AbortSignal.timeout(4000) })
     if (!res.ok) return []
     const data = await res.json()
@@ -269,6 +269,7 @@ export async function searchCities(
         country: item.country ? String(item.country) : undefined,
         countryCode: item.country_code ? String(item.country_code) : undefined,
         admin1: item.admin1 ? String(item.admin1) : undefined,
+        admin2: item.admin2 ? String(item.admin2) : undefined,
       }))
     }
   } catch {
@@ -309,6 +310,26 @@ export async function resolveLocation(
   forceRefresh = false
 ): Promise<ResolvedLocation> {
   if (mode === 'off' && manualCity && manualCity.trim()) {
+    // Check if an exact manual location envelope already exists in cache
+    if (!forceRefresh) {
+      try {
+        const raw = localStorage.getItem(LOCATION_CACHE_KEY)
+        if (raw) {
+          const envelope = JSON.parse(raw) as CachedLocationEnvelope
+          if (
+            envelope &&
+            envelope.location &&
+            envelope.location.source === 'manual' &&
+            envelope.location.city.toLowerCase() === manualCity.trim().toLowerCase()
+          ) {
+            return envelope.location
+          }
+        }
+      } catch {
+        // Cache read fallback
+      }
+    }
+
     const manual = await geocodeCity(manualCity.trim())
     if (manual) return manual
   }
@@ -329,6 +350,13 @@ export function clearLocationCache(): void {
   } catch {
     // Ignore storage errors
   }
+}
+
+/**
+ * Explicitly caches a user-selected manual location.
+ */
+export function saveManualLocation(location: ResolvedLocation): void {
+  saveLocationToCache(location)
 }
 
 function saveLocationToCache(location: ResolvedLocation): void {

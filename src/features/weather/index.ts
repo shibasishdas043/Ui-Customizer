@@ -8,6 +8,7 @@ export {
   geocodeCity,
   reverseGeocode,
   clearLocationCache,
+  saveManualLocation,
 } from './utils/locationService'
 export type {
   WeatherConfig,

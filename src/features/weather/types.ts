@@ -38,4 +38,6 @@ export interface CitySearchResult {
   country?: string
   countryCode?: string
   admin1?: string
+  admin2?: string
 }
+
