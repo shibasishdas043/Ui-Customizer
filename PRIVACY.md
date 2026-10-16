@@ -44,6 +44,8 @@ Aura makes direct, client-side HTTP requests exclusively to fetch user-requested
 | `https://wallhaven.cc/*` | Searches and retrieves high-resolution wallpapers from Wallhaven when the Wallhaven provider is selected. |
 | `https://www.bing.com/*`<br/>`https://bing.biturl.top/*` | Downloads Microsoft's daily curated wallpaper when the Bing Daily provider is selected. |
 | `https://*.reddit.com/*`<br/>`https://*.redd.it/*` | Retrieves community photography from photography subreddits (e.g. `r/wallpapers`, `r/EarthPorn`) when Reddit mode is chosen. |
+| `https://suggestqueries.google.com/*`<br/>`https://*.duckduckgo.com/*`<br/>`https://api.bing.com/*`<br/>`https://search.brave.com/*`<br/>`https://ac.ecosia.org/*` | Fetches real-time search autocomplete suggestions on user input for the currently selected search engine. Queries are never stored or tracked. |
+| `https://icons.duckduckgo.com/*`<br/>`https://*.gstatic.com/*`<br/>`https://*.google.com/*` | Fetches official website favicons and domain icons for user bookmarks and search engine tiles. |
 | `https://api.open-meteo.com/*`<br/>`https://geocoding-api.open-meteo.com/*` | Fetches non-commercial, open-source weather and temperature forecasts. |
 | `https://ipapi.co/*` | Provides optional approximate city/region geolocation when automatic weather location is enabled (coordinates are never logged or stored externally). |
 
