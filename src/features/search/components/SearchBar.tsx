@@ -65,7 +65,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
     const focusSearchInput = () => {
       // Don't hijack focus if a modal or the customizer drawer is open
-      const isModalOrDrawerOpen = !!document.querySelector('.fixed.inset-0.z-50')
+      const isModalOrDrawerOpen = !!(document.querySelector('[data-modal-backdrop]') || document.querySelector('.fixed.inset-0'))
       const activeEl = document.activeElement
       const isOtherInputActive =
         activeEl &&
@@ -124,7 +124,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       if (e.ctrlKey || e.metaKey || e.altKey) return
 
       // Don't intercept if a modal or customizer drawer is open
-      if (document.querySelector('.fixed.inset-0.z-50')) return
+      if (document.querySelector('[data-modal-backdrop]') || document.querySelector('.fixed.inset-0')) return
 
       if (e.key === '/') {
         e.preventDefault()

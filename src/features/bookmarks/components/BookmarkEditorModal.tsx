@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import type React from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ExternalLink, Globe, Sparkles, Link2, Upload, Check, Loader2 } from 'lucide-react'
 import type { BookmarkItem } from '../types'
@@ -129,7 +130,8 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
   return (
     <AnimatePresence>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-md transition-colors duration-300"
+        data-modal-backdrop="true"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 backdrop-blur-md transition-colors duration-300"
         style={{
           backgroundColor: isDark ? 'rgba(0, 0, 0, 0.72)' : 'rgba(20, 20, 19, 0.45)',
         }}
@@ -418,7 +420,7 @@ export const BookmarkEditorModal: React.FC<BookmarkEditorModalProps> = ({
 }) => {
   if (!isOpen) return null
 
-  return (
+  const modalContent = (
     <BookmarkEditorDialog
       key={initialBookmark?.id || 'new_bookmark'}
       initialBookmark={initialBookmark}
@@ -426,4 +428,10 @@ export const BookmarkEditorModal: React.FC<BookmarkEditorModalProps> = ({
       onSave={onSave}
     />
   )
+
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body)
+  }
+
+  return modalContent
 }

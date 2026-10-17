@@ -148,6 +148,7 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
   return (
     <AnimatePresence>
       <div
+        data-modal-backdrop="true"
         className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 lg:p-8 backdrop-blur-md transition-colors duration-300"
         style={{
           backgroundColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.45)',
