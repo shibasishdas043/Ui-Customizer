@@ -7,7 +7,6 @@ import { BookmarkThumbnail } from './BookmarkThumbnail'
 interface BookmarkCardProps {
   bookmark: BookmarkItem
   index?: number
-  onEdit?: (bookmark: BookmarkItem, e: React.MouseEvent) => void
   openInNewTab?: boolean
   size?: 'sm' | 'md' | 'lg'
   showTitle?: boolean
@@ -39,7 +38,6 @@ const titleVariants: Variants = {
 export const BookmarkCard: React.FC<BookmarkCardProps> = ({
   bookmark,
   index = 0,
-  onEdit,
   openInNewTab = false,
   size = 'md',
   showTitle = true,
@@ -47,13 +45,6 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({
   showBackground = true,
   isAltPressed = false,
 }) => {
-  const handleContextMenu = (e: React.MouseEvent) => {
-    if (onEdit) {
-      e.preventDefault()
-      onEdit(bookmark, e)
-    }
-  }
-
   const isEffectiveBackground = styleMode === 'minimal' ? false : showBackground
 
   // 1. Inline Capsule Mode (Bonjourr inline style)
@@ -63,13 +54,12 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({
         href={bookmark.url}
         target={openInNewTab ? '_blank' : '_self'}
         rel={openInNewTab ? 'noopener noreferrer' : undefined}
-        onContextMenu={handleContextMenu}
         layout
         whileHover={{ scale: 1.05, y: -2 }}
         whileTap={{ scale: 0.96 }}
         exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
         className="group relative flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-black/35 hover:bg-black/55 backdrop-blur-xl border border-white/10 hover:border-white/30 transition-all cursor-pointer select-none shadow-md"
-        title={`${bookmark.title}\n(${bookmark.url})${onEdit ? '\nRight-click to edit' : ''}`}
+        title={`${bookmark.title}\n(${bookmark.url})`}
       >
         <BookmarkThumbnail
           title={bookmark.title}
@@ -111,7 +101,6 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({
       href={bookmark.url}
       target={openInNewTab ? '_blank' : '_self'}
       rel={openInNewTab ? 'noopener noreferrer' : undefined}
-      onContextMenu={handleContextMenu}
       layout
       initial="rest"
       animate="rest"
@@ -119,7 +108,7 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({
       whileTap="tap"
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       className={`group relative flex flex-col items-center justify-start ${widthClass} cursor-pointer select-none`}
-      title={`${bookmark.title}\n(${bookmark.url})${onEdit ? '\nRight-click to edit' : ''}${
+      title={`${bookmark.title}\n(${bookmark.url})${
         index < 9 ? `\nAlt+${index + 1} to open` : ''
       }`}
     >

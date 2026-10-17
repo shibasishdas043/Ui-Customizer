@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { BookmarkItem, QuickLinksStyle } from '../types'
 import { BookmarkCard } from './BookmarkCard'
-import { BookmarkEditorModal } from './BookmarkEditorModal'
 import { migrateBookmarksToPermanentCache } from '../utils/faviconCacheHelper'
 
 interface QuickLinksProps {
@@ -28,7 +27,6 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
   styleMode = 'dock',
   showBackground = true,
 }) => {
-  const [editingBookmark, setEditingBookmark] = useState<BookmarkItem | null>(null)
   const [isAltPressed, setIsAltPressed] = useState(false)
 
   // Background permanent favicon cache migrator
@@ -101,16 +99,6 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
 
   if (!visible || links.length === 0) return null
 
-  const handleEdit = (bookmark: BookmarkItem, e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setEditingBookmark(bookmark)
-  }
-
-  const handleSave = (item: BookmarkItem) => {
-    onUpdateLinks(links.map((l) => (l.id === item.id ? item : l)))
-  }
-
   // Calculate layout classes (Bonjourr / Rea architectural pattern)
   const isFixedCols = typeof cols === 'number' && cols > 0
 
@@ -139,7 +127,6 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
             key={link.id}
             bookmark={link}
             index={index}
-            onEdit={handleEdit}
             openInNewTab={openInNewTab}
             size={size}
             showTitle={showTitles}
@@ -163,14 +150,6 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
           {linkCards}
         </div>
       )}
-
-      {/* Editor modal for direct right-click editing */}
-      <BookmarkEditorModal
-        isOpen={!!editingBookmark}
-        onClose={() => setEditingBookmark(null)}
-        onSave={handleSave}
-        initialBookmark={editingBookmark}
-      />
     </div>
   )
 }
