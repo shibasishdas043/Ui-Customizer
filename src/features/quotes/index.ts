@@ -1,3 +1,5 @@
 export { QuotesWidget } from './components/QuotesWidget'
-export { DEFAULT_QUOTES } from './config/quotesList'
-export type { QuotesConfig, QuoteItem, QuoteFrequency, QuoteCategory } from './types'
+export { DEFAULT_QUOTES, getFallbackQuotes } from './config/quotesList'
+export { useQuotes } from './hooks/useQuotes'
+export { parseCustomQuotes, needsQuoteChange, fetchQuotesFromApi } from './utils/quoteParsers'
+export type { QuotesConfig, QuoteItem, QuoteFrequency, QuoteCategory, QuoteType } from './types'

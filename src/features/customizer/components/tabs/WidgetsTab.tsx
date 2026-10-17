@@ -15,6 +15,9 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import type { CustomizerSettings, QuickLinksStyle } from '../../types'
+import { GlassDropdown, type GlassDropdownOption } from '../../../../shared'
+import type { QuoteType, QuoteFrequency } from '../../../quotes'
+import { parseCustomQuotes } from '../../../quotes'
 import { SearchEnginesManager } from '../../../../features/search'
 import {
   searchCities,
@@ -24,6 +27,32 @@ import {
   saveManualLocation,
 } from '../../../../features/weather'
 import type { CitySearchResult } from '../../../../features/weather'
+
+const QUOTE_TYPE_OPTIONS: GlassDropdownOption<QuoteType>[] = [
+  { value: 'classic', label: 'Classic Literature & Wisdom', description: 'Timeless quotes by great authors & thinkers' },
+  { value: 'stoic', label: 'Stoic Philosophy', description: 'Marcus Aurelius, Seneca, Epictetus' },
+  { value: 'wisdom', label: 'Design & Mindfulness', description: 'Dieter Rams, Steve Jobs, John Maeda' },
+  { value: 'office', label: 'The Office Quotes', description: 'Comedy, Michael Scott, Dwight Schrute' },
+  { value: 'inspirobot', label: 'Inspirobot AI', description: 'AI-generated mindfulness & philosophy' },
+  { value: 'hitokoto', label: 'Hitokoto / Poetic', description: 'Quiet reflection & poetry' },
+  { value: 'user', label: 'Custom Quotes (Your List)', description: 'Write or paste your own favorite quotes' },
+  { value: 'url', label: 'Custom Remote URL', description: 'Load quotes live from CSV or JSON endpoint' },
+]
+
+const QUOTE_FREQUENCY_OPTIONS: GlassDropdownOption<QuoteFrequency>[] = [
+  { value: 'tabs', label: 'Every New Tab', description: 'Discover a fresh quote with each tab' },
+  { value: 'hour', label: 'Every Hour', description: 'Keep the same quote for an hour' },
+  { value: 'day', label: 'Every Day', description: 'One daily quote per calendar day' },
+  { value: 'locked', label: 'Locked / Pause', description: 'Keep current quote until manually clicked' },
+]
+
+const QUOTE_LANGUAGE_OPTIONS = [
+  { code: 'en', label: 'English' },
+  { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'it', label: 'Italiano' },
+]
 
 interface WidgetsTabProps {
   settings: CustomizerSettings
@@ -74,6 +103,7 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [isDetecting, setIsDetecting] = useState(false)
   const [detectFeedback, setDetectFeedback] = useState<string | null>(null)
+  const [isUserTyping, setIsUserTyping] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Adjust state during render when prop changes (React recommended pattern)
@@ -87,15 +117,17 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowDropdown(false)
+        setIsUserTyping(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Debounced live city search using Open-Meteo Geocoding
+  // Debounced live city search using Open-Meteo Geocoding (only when user actively types)
   useEffect(() => {
-    if (settings.weatherGeolocation !== 'off') return
+    if (settings.weatherGeolocation !== 'off' || !isUserTyping) return
+
     const query = citySearchQuery.trim()
     if (query.length < 2) return
 
@@ -119,9 +151,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
       clearTimeout(timeout)
       abortCtrl.abort()
     }
-  }, [citySearchQuery, settings.weatherGeolocation])
+  }, [citySearchQuery, settings.weatherGeolocation, isUserTyping])
 
   const handleCityInputChange = (value: string) => {
+    setIsUserTyping(true)
     setCitySearchQuery(value)
     onUpdate({ weatherCity: value })
     if (value.trim().length < 2) {
@@ -134,6 +167,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
 
   const handleSelectCity = (city: CitySearchResult) => {
     const formattedCity = city.name
+    setIsUserTyping(false)
+    setShowDropdown(false)
+    setSearchResults([])
+    setHighlightedIndex(-1)
     // Save exact coordinates to cache for instant 0ms weather loading
     saveManualLocation({
       city: city.name,
@@ -144,9 +181,6 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
       source: 'manual',
     })
     setCitySearchQuery(formattedCity)
-    setShowDropdown(false)
-    setSearchResults([])
-    setHighlightedIndex(-1)
     onUpdate({ weatherCity: formattedCity })
     clearLocationCache()
     saveManualLocation({
@@ -176,6 +210,7 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
       }
     } else if (e.key === 'Escape') {
       setShowDropdown(false)
+      setIsUserTyping(false)
     }
   }
 
@@ -201,11 +236,18 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
     try {
       const loc = await getApproximateLocation(true)
       if (loc && loc.city) {
-        setCitySearchQuery(loc.city)
-        onUpdate({ weatherCity: loc.city })
+        setIsUserTyping(false)
+        setShowDropdown(false)
+        setSearchResults([])
+        setCitySearchQuery('')
+        onUpdate({
+          weatherGeolocation: 'approximate',
+          weatherAutoLocation: true,
+          weatherCity: '',
+        })
         clearLocationCache()
         window.dispatchEvent(new CustomEvent('aura:weather-refresh'))
-        setDetectFeedback(`Auto-detected: ${loc.city}`)
+        setDetectFeedback(`Switched to Auto-Detect: ${loc.city}`)
         setTimeout(() => setDetectFeedback(null), 3500)
       }
     } catch {
@@ -339,12 +381,18 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                 <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-black/5 dark:bg-white/[0.04]">
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      setIsUserTyping(false)
+                      setShowDropdown(false)
+                      setCitySearchQuery('')
                       onUpdate({
                         weatherGeolocation: 'approximate',
                         weatherAutoLocation: true,
+                        weatherCity: '',
                       })
-                    }
+                      clearLocationCache()
+                      window.dispatchEvent(new CustomEvent('aura:weather-refresh'))
+                    }}
                     className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-all border-0 outline-none ${
                       (settings.weatherGeolocation ?? 'approximate') === 'approximate'
                         ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
@@ -355,12 +403,14 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      setIsUserTyping(false)
+                      setShowDropdown(false)
                       onUpdate({
                         weatherGeolocation: 'off',
                         weatherAutoLocation: false,
                       })
-                    }
+                    }}
                     className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-all border-0 outline-none ${
                       settings.weatherGeolocation === 'off'
                         ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
@@ -371,12 +421,14 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      setIsUserTyping(false)
+                      setShowDropdown(false)
                       onUpdate({
                         weatherGeolocation: 'precise',
                         weatherAutoLocation: true,
                       })
-                    }
+                    }}
                     className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-all border-0 outline-none ${
                       settings.weatherGeolocation === 'precise'
                         ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
@@ -475,7 +527,7 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                         onChange={(e) => handleCityInputChange(e.target.value)}
                         onKeyDown={handleKeyDown}
                         onFocus={() => {
-                          if (searchResults.length > 0) setShowDropdown(true)
+                          if (isUserTyping && searchResults.length > 0) setShowDropdown(true)
                         }}
                         spellCheck={false}
                         autoComplete="off"
@@ -490,14 +542,21 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                         <button
                           type="button"
                           onClick={() => {
+                            setIsUserTyping(false)
                             setCitySearchQuery('')
                             setSearchResults([])
                             setShowDropdown(false)
                             setHighlightedIndex(-1)
-                            onUpdate({ weatherCity: '' })
+                            onUpdate({
+                              weatherCity: '',
+                              weatherGeolocation: 'approximate',
+                              weatherAutoLocation: true,
+                            })
+                            clearLocationCache()
+                            window.dispatchEvent(new CustomEvent('aura:weather-refresh'))
                           }}
                           className="absolute right-2.5 p-1 rounded-md text-[#524f49] dark:text-slate-400 hover:text-[#141413] dark:hover:text-white border-0 bg-transparent cursor-pointer transition-colors"
-                          title="Clear search"
+                          title="Clear manual search & return to automatic detection"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -505,7 +564,7 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                     </div>
 
                     {/* Autocomplete Results Dropdown */}
-                    {showDropdown && searchResults.length > 0 && (
+                    {showDropdown && isUserTyping && searchResults.length > 0 && settings.weatherGeolocation === 'off' && (
                       <div className="absolute z-50 left-0 right-0 mt-1.5 max-h-64 overflow-y-auto rounded-2xl bg-white/95 dark:bg-[#181715]/95 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-2xl p-1.5 space-y-1 transition-all">
                         <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#736e65] dark:text-slate-400 flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-1 mb-1">
                           <span>Suggestions ({searchResults.length})</span>
@@ -611,12 +670,12 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
       </div>
 
       {/* 3. Productivity Tools (Daily Inspiring Quotes) */}
-      <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3.5">
+      <div className="p-4 rounded-2xl bg-white/[0.03] space-y-4">
         <h4 className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2] flex items-center gap-2">
           <Quote className="w-3.5 h-3.5 text-[var(--accent-color)]" />
           Productivity Tools
         </h4>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <label className="flex items-center justify-between cursor-pointer">
             <span className="text-xs font-semibold text-[#141413] dark:text-slate-200 flex items-center gap-1.5">
               <Quote className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
@@ -629,6 +688,117 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
               className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
             />
           </label>
+
+          {settings.showQuotes && (
+            <div className="pt-2 border-t border-black/5 dark:border-white/5 space-y-4">
+              {/* Quote Collection Dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#141413] dark:text-slate-300">
+                  Quote Collection
+                </label>
+                <GlassDropdown
+                  value={settings.quoteType || 'classic'}
+                  options={QUOTE_TYPE_OPTIONS}
+                  onChange={(val) => onUpdate({ quoteType: val })}
+                />
+              </div>
+
+              {/* Language Selection for Classic Quotes */}
+              {(settings.quoteType === 'classic' || !settings.quoteType) && (
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs font-medium text-[#141413] dark:text-slate-300">
+                    Quote Language
+                  </span>
+                  <div className="flex p-0.5 rounded-xl bg-black/5 dark:bg-white/[0.04] text-xs font-medium gap-0.5">
+                    {QUOTE_LANGUAGE_OPTIONS.map((lang) => (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => onUpdate({ quoteLanguage: lang.code })}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border-0 outline-none cursor-pointer ${
+                          (settings.quoteLanguage || 'en') === lang.code
+                            ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
+                            : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                        }`}
+                      >
+                        {lang.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rotation Frequency Dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#141413] dark:text-slate-300">
+                  Rotation Frequency
+                </label>
+                <GlassDropdown
+                  value={settings.quoteFrequency || 'tabs'}
+                  options={QUOTE_FREQUENCY_OPTIONS}
+                  onChange={(val) => onUpdate({ quoteFrequency: val })}
+                />
+              </div>
+
+              {/* Always Show Author Toggle */}
+              <label className="flex items-center justify-between cursor-pointer pt-1">
+                <span className="text-xs font-medium text-[#141413] dark:text-slate-300">
+                  Always Show Author
+                </span>
+                <input
+                  type="checkbox"
+                  checked={settings.alwaysShowAuthor ?? true}
+                  onChange={(e) => onUpdate({ alwaysShowAuthor: e.target.checked })}
+                  className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
+                />
+              </label>
+
+              {/* Custom Quotes Textarea */}
+              {settings.quoteType === 'user' && (
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-[#141413] dark:text-slate-300">
+                      Your Custom Quotes
+                    </label>
+                    {settings.customQuotesText && parseCustomQuotes(settings.customQuotesText).length > 0 && (
+                      <span className="text-[10px] font-mono font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                        {parseCustomQuotes(settings.customQuotesText).length} quote{parseCustomQuotes(settings.customQuotesText).length > 1 ? 's' : ''} ready
+                      </span>
+                    )}
+                  </div>
+                  <textarea
+                    rows={4}
+                    value={settings.customQuotesText || ''}
+                    onChange={(e) => onUpdate({ customQuotesText: e.target.value })}
+                    placeholder="Author, Your quote text.&#10;Marcus Aurelius, You have power over your mind.&#10;Or: Quote text - Author"
+                    className="w-full px-3 py-2 text-xs rounded-xl bg-black/5 dark:bg-white/[0.04] border border-black/10 dark:border-white/10 text-[#141413] dark:text-slate-200 placeholder-[#736e65] dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] resize-y font-mono"
+                  />
+                  <p className="text-[11px] text-[#736e65] dark:text-slate-400">
+                    Supports <code className="text-xs font-semibold">Author, Quote</code> or <code className="text-xs font-semibold">Quote - Author</code> on each line.
+                  </p>
+                </div>
+              )}
+
+              {/* Custom Remote URL Input */}
+              {settings.quoteType === 'url' && (
+                <div className="space-y-2 pt-1">
+                  <label className="text-xs font-medium text-[#141413] dark:text-slate-300">
+                    Remote Quotes URL (CSV or JSON)
+                  </label>
+                  <input
+                    type="url"
+                    value={settings.customQuotesUrl || ''}
+                    onChange={(e) => onUpdate({ customQuotesUrl: e.target.value })}
+                    placeholder="https://example.com/quotes.csv or .json"
+                    className="w-full px-3 py-2 text-xs rounded-xl bg-black/5 dark:bg-white/[0.04] border border-black/10 dark:border-white/10 text-[#141413] dark:text-slate-200 placeholder-[#736e65] dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)]"
+                  />
+                  <p className="text-[11px] text-[#736e65] dark:text-slate-400">
+                    Provide a direct raw URL returning a JSON array or CSV list of quotes.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

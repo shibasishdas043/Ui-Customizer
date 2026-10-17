@@ -36,6 +36,11 @@ function migrateSettings(raw: CustomizerSettings): CustomizerSettings {
     next.searchEngine = next.searchEngines[0]?.id || 'google'
   }
 
+  // 4. Ensure weatherGeolocation is valid (default to 'approximate' if invalid or missing)
+  if (!next.weatherGeolocation) {
+    next.weatherGeolocation = 'approximate'
+  }
+
   return next
 }
 

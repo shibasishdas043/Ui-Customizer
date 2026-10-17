@@ -277,7 +277,17 @@ export default function App() {
           />
 
           {/* Daily Inspirational Quotes */}
-          <QuotesWidget config={{ showQuotes: settings.showQuotes }} />
+          <QuotesWidget
+            config={{
+              showQuotes: settings.showQuotes,
+              quoteType: settings.quoteType,
+              quoteFrequency: settings.quoteFrequency,
+              alwaysShowAuthor: settings.alwaysShowAuthor,
+              quoteLanguage: settings.quoteLanguage,
+              customQuotesText: settings.customQuotesText,
+              customQuotesUrl: settings.customQuotesUrl,
+            }}
+          />
         </div>
       </div>
 

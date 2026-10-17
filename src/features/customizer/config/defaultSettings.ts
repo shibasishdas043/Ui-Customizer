@@ -78,6 +78,12 @@ export const DEFAULT_SETTINGS: CustomizerSettings = {
 
   // Quotes
   showQuotes: true,
+  quoteType: 'classic',
+  quoteFrequency: 'tabs',
+  alwaysShowAuthor: true,
+  quoteLanguage: 'en',
+  customQuotesText: '',
+  customQuotesUrl: '',
 
   // Browser Control & URL Redirections
   newTabMode: 'aura',

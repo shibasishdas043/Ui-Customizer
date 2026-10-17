@@ -13,6 +13,7 @@ import type {
   WallpaperTexture,
 } from '../wallpaper/types'
 import type { NewTabMode, StartupMode } from '../browser-settings/types'
+import type { QuoteType, QuoteFrequency } from '../quotes/types'
 
 export type AccentColor =
   | 'ocean'
@@ -108,6 +109,12 @@ export interface CustomizerSettings {
 
   // Daily Quotes
   showQuotes: boolean
+  quoteType: QuoteType
+  quoteFrequency: QuoteFrequency
+  alwaysShowAuthor: boolean
+  quoteLanguage: string
+  customQuotesText: string
+  customQuotesUrl: string
 
   // Browser Control & URL Redirections
   newTabMode: NewTabMode

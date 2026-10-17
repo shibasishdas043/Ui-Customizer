@@ -301,3 +301,14 @@ scripts/temp_*.js
 scripts/temp_*.ts
 scripts/temp_*
 scripts/scratch_*
+*.ps1
+scripts/*.ps1
+
+# ==============================================================================
+# Local Screenshots, Store Submission Media & Raw Captures
+# ==============================================================================
+screenshots/
+/screenshots/
+store-assets/
+/store-assets/
+

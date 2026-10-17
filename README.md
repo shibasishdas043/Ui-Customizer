@@ -151,64 +151,72 @@ Ui-Customizer/
 
 ---
 
-## 🛠️ Getting Started
+## 📦 Installation & Getting Started
 
-### Prerequisites
-- **Node.js:** v18.0.0 or higher
-- **npm:** v9.0.0 or higher
-
-### Installation
-```bash
-git clone https://github.com/shibasishdas043/Ui-Customizer.git
-cd Ui-Customizer
-npm install
-```
-
-### Running Locally (Live Browser Mode)
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-## 📦 Building & Installing the Extension
-
-### 1. Build the Production Bundle
-```bash
-npm run build
-```
-This compiles the application using `tsc -b && vite build` into the `dist/` directory.
-
-### 2. Load into Your Browser
-1. Open your browser's extension management page:
+### Method 1: Install from GitHub Release (No Coding Required)
+1. Download **`aura-extension.zip`** from the [Latest GitHub Release](https://github.com/shibasishdas043/Ui-Customizer/releases/latest).
+2. Extract the downloaded zip file into a folder on your computer.
+3. Open your browser's extension manager:
    - **Chrome:** `chrome://extensions`
    - **Edge:** `edge://extensions`
    - **Brave:** `brave://extensions`
-2. Enable **Developer mode** (toggle in the top-right corner).
-3. Click **Load unpacked** (top-left).
-4. Select the `dist/` folder inside the project root:
-   ```text
-   d:\Code\Ui-Customizer\dist
-   ```
-5. Open a new tab to enjoy Aura!
+4. Toggle on **Developer mode** (top-right corner).
+5. Click **Load unpacked** (top-left) and select the extracted folder.
+6. Open a new tab to experience Aura!
+
+---
+
+### Method 2: Build From Source
+
+#### Prerequisites
+- **Node.js:** v18.0.0 or higher
+- **npm:** v9.0.0 or higher
+
+```bash
+# Clone the repository
+git clone https://github.com/shibasishdas043/Ui-Customizer.git
+cd Ui-Customizer
+
+# Install dependencies
+npm install
+
+# Run locally in development mode (live browser preview at http://localhost:3000)
+npm run dev
+
+# Build production bundle
+npm run build
+
+# Or package production zip for Chrome Web Store distribution
+npm run package
+```
+
+After running `npm run build`, load the generated `dist/` directory as an unpacked extension using **Load unpacked** in your browser's extension manager.
 
 ---
 
 ## 🧪 Testing & Code Quality
 
-The project includes strict linting and an automated 85-point feature verification suite:
+Aura adheres to strict engineering and security standards with an automated 96-point feature verification suite:
 
 ```bash
 # Run oxlint (0 warnings, 0 errors policy)
 npm run lint
 
-# Run end-to-end feature verification suite (85/85 tests)
+# Run end-to-end feature verification suite (96/96 tests)
 npx tsx scripts/verify_features.ts
 
 # Production TypeScript type check & build
 npm run build
 ```
+
+---
+
+## 🛡️ Chrome Web Store Ready
+
+- **Manifest V3 Compliant:** Strict permissions (`storage` only) and zero external remote scripts.
+- **Privacy First:** All customizer settings, cached wallpapers, and bookmarks reside on your device. Zero telemetry, zero analytics, zero external user data tracking.
+- **Zip Packaging:** `npm run package` compiles, validates Manifest V3 rules, and generates `aura-extension.zip` ready for instant Chrome Web Store Developer Dashboard upload.
+
 
 ---
 

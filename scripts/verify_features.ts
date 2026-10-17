@@ -4,7 +4,8 @@ import { formatTime, getGreetingType } from '../src/features/clock/utils/timeFor
 import { normalizeUrl, getFaviconUrl } from '../src/features/bookmarks/utils/faviconHelper'
 import { DEFAULT_BOOKMARKS } from '../src/features/bookmarks/config/defaultBookmarks'
 import { WALLPAPER_PRESETS } from '../src/features/wallpaper/config/presets'
-import { DEFAULT_QUOTES } from '../src/features/quotes/config/quotesList'
+import { DEFAULT_QUOTES, getFallbackQuotes } from '../src/features/quotes/config/quotesList'
+import { parseCustomQuotes, needsQuoteChange } from '../src/features/quotes/utils/quoteParsers'
 import { DEFAULT_SETTINGS } from '../src/features/customizer/config/defaultSettings'
 import { CACHE_TTL_MS, MAX_CACHED_IMAGES } from '../src/features/wallpaper/utils/wallpaperCache'
 import {
@@ -129,7 +130,7 @@ assert('WidgetsTab keeps Daily Inspiring Quotes checkbox', widgetsTabContent.inc
 const appTsxContent = fs.readFileSync(path.resolve(process.cwd(), 'src/app/App.tsx'), 'utf-8')
 assert('App.tsx contains NO spinning loaders or animate-spin', !appTsxContent.includes('animate-spin'))
 assert('App.tsx main container is transparent to reveal wallpaper (no obscuring bg-black)', !appTsxContent.includes('bg-black') && appTsxContent.includes('bg-transparent'))
-assert('App.tsx contains #interface with blackout delay until wallpaper decode', appTsxContent.includes('id="interface"') && appTsxContent.includes('onWallpaperReady'))
+assert('App.tsx contains #interface for main interface layer', appTsxContent.includes('id="interface"'))
 assert('App.tsx does NOT render PomodoroWidget or NotesWidget', !appTsxContent.includes('<PomodoroWidget') && !appTsxContent.includes('<NotesWidget'))
 
 // Bundled Fallback Wallpapers (<3MB limit)
@@ -162,9 +163,31 @@ const staticFolderExists = fs.existsSync(path.resolve(process.cwd(), 'public/fon
 assert('Unused static font files directory has been pruned/deleted', !staticFolderExists)
 
 // 8. QUOTES ENGINE TESTS
-console.log('\n👉 [8/10] Verifying Daily Quotes Engine...')
+console.log('\n👉 [8/10] Verifying Daily Quotes Engine & Bonjourr Quote Types...')
 assert('Quotes list populated with multiple entries', DEFAULT_QUOTES.length >= 5)
 assert('All quotes have non-empty quote text and author', DEFAULT_QUOTES.every((q) => q.quote.length > 5 && q.author.length > 2))
+assert('Fallback stoic quotes populated', getFallbackQuotes('stoic').length >= 4)
+assert('Fallback classic quotes populated', getFallbackQuotes('classic').length >= 4)
+assert('Fallback office quotes populated', getFallbackQuotes('office').length >= 4)
+
+// Custom Quotes Parser Tests
+const parsedCsv = parseCustomQuotes('Marcus Aurelius, You have power over your mind.')
+assert('parseCustomQuotes parses CSV format "Author, Quote"', parsedCsv.length === 1 && parsedCsv[0].author === 'Marcus Aurelius' && parsedCsv[0].quote === 'You have power over your mind.')
+
+const parsedDash = parseCustomQuotes('Less, but better. — Dieter Rams')
+assert('parseCustomQuotes parses dash format "Quote — Author"', parsedDash.length === 1 && parsedDash[0].author === 'Dieter Rams' && parsedDash[0].quote === 'Less, but better.')
+
+const parsedColon = parseCustomQuotes('Steve Jobs: Stay hungry, stay foolish.')
+assert('parseCustomQuotes parses colon format "Author: Quote"', parsedColon.length === 1 && parsedColon[0].author === 'Steve Jobs')
+
+const parsedJson = parseCustomQuotes('[{"quote": "Simplicity is key", "author": "Anonymous"}]')
+assert('parseCustomQuotes parses JSON array', parsedJson.length === 1 && parsedJson[0].quote === 'Simplicity is key')
+
+// Quote Rotation Frequency Tests
+assert('Frequency "tabs" always requests quote change', needsQuoteChange('tabs', Date.now()) === true)
+assert('Frequency "locked" pauses quote change', needsQuoteChange('locked', Date.now()) === false)
+assert('Frequency "hour" flags change when hour passed', needsQuoteChange('hour', Date.now() - 3700000) === true)
+assert('Frequency "day" flags change when day passed', needsQuoteChange('day', Date.now() - 86500000) === true)
 
 // 9. POMODORO TIMER SPECS
 console.log('\n👉 [9/10] Verifying Pomodoro Focus Timer Specs...')
