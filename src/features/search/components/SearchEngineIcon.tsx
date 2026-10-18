@@ -11,8 +11,8 @@ interface SearchEngineIconProps {
 }
 
 /**
- * Renders the search engine's live/cached thumbnail.
- * Completely free of hardcoded brand SVGs - fetches and displays authentic live site favicons.
+ * Renders the search engine's authentic live or cached thumbnail from the internet.
+ * Completely free of hardcoded brand SVGs - displays authentic cached or live site thumbnails.
  */
 export const SearchEngineIcon: React.FC<SearchEngineIconProps> = ({
   engine,
@@ -22,14 +22,24 @@ export const SearchEngineIcon: React.FC<SearchEngineIconProps> = ({
   const [imgError, setImgError] = useState(false)
 
   const sizeClass = {
-    sm: 'w-3.5 h-3.5',
-    md: 'w-4 h-4',
-    lg: 'w-5 h-5',
+    sm: 'w-4 h-4',
+    md: 'w-4.5 h-4.5',
+    lg: 'w-5.5 h-5.5',
   }[size]
 
-  // Prefer permanently cached Base64 icon; if missing or legacy preset string, query live favicon endpoint
+  // Prefer permanently cached Base64 icon; if missing, legacy, or bad S2 fallback, query authentic live favicon endpoint
+  const isBadOldS2 = Boolean(
+    engine.icon &&
+    engine.icon.startsWith('data:image/') &&
+    engine.icon.length < 1500 &&
+    (engine.id === 'google' ||
+      engine.id === 'bing' ||
+      (engine.url && (engine.url.includes('google.com') || engine.url.includes('bing.com'))))
+  )
+
   const isDirectImage =
     engine.icon &&
+    !isBadOldS2 &&
     (engine.icon.startsWith('data:image/') || engine.icon.startsWith('http'))
 
   const displaySrc = isDirectImage
@@ -67,3 +77,5 @@ export const SearchEngineIcon: React.FC<SearchEngineIconProps> = ({
 
   return <Globe className={`${sizeClass} text-slate-400 shrink-0 ${className}`} />
 }
+
+

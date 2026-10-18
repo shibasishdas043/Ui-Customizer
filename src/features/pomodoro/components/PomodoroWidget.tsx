@@ -20,10 +20,10 @@ export const PomodoroWidget: React.FC<PomodoroWidgetProps> = ({ config }) => {
       <AnimatePresence>
         {isOpen ? (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            initial={{ opacity: 0, y: 16, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
+            exit={{ opacity: 0, y: 16, scale: 0.92 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 280 }}
             className="w-72 glass-panel rounded-2xl p-5 shadow-2xl flex flex-col items-center"
           >
             {/* Header with Close */}

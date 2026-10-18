@@ -10,6 +10,7 @@ import { CustomizerDrawer, useSettingsStorage } from '../features/customizer'
 import { WeatherWidget } from '../features/weather'
 import { QuotesWidget } from '../features/quotes'
 import { useBrowserBehavior } from '../features/browser-settings'
+import { MediaPill, useNowPlayingTab } from '../features/media-pill'
 import type { AccentColor } from '../features/customizer'
 
 const ACCENT_COLOR_MAP: Record<AccentColor, { hex: string; rgb: string; textDark?: boolean }> = {
@@ -29,6 +30,13 @@ const ACCENT_COLOR_MAP: Record<AccentColor, { hex: string; rgb: string; textDark
 export default function App() {
   const { settings, updateSettings, resetSettings } = useSettingsStorage()
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false)
+  const [isMediaPillHovered, setIsMediaPillHovered] = useState(false)
+  const [isSearchTyping, setIsSearchTyping] = useState(false)
+
+  // Real-time tab audio and media tracker
+  const { activeMedia, togglePlayPause, toggleMute, jumpToTab } = useNowPlayingTab(
+    settings.showMediaPill ?? true,
+  )
 
   // Browser redirect & startup hook
   const { redirectingTo, countdown, cancelRedirect } = useBrowserBehavior({
@@ -204,7 +212,7 @@ export default function App() {
       {/* Hero Center Section */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-16 z-10">
         <div
-          className={`w-full max-w-4xl flex flex-col items-center space-y-6 sm:space-y-8 transition-all duration-300 ${
+          className={`w-full max-w-4xl flex flex-col items-center space-y-6 sm:space-y-8 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             !settings.clockAnalog || !settings.showClock ? 'pt-16 sm:pt-24 md:pt-28' : ''
           }`}
         >
@@ -252,16 +260,70 @@ export default function App() {
             />
           )}
 
-          {/* Search Bar Feature */}
-          <SearchBar
-            visible={settings.showSearch}
-            currentEngine={settings.searchEngine}
-            searchInNewTab={settings.searchInNewTab}
-            engines={settings.searchEngines}
-            onEngineChange={(engine) => updateSettings({ searchEngine: engine })}
-            onOpenSettings={() => setIsCustomizerOpen(true)}
-            onUpdateEngines={(newEngines) => updateSettings({ searchEngines: newEngines })}
-          />
+          {/* Search Bar & Now Playing Media Pill Row */}
+          {(settings.showSearch || (settings.showMediaPill && activeMedia)) && (
+            <div
+              className={`w-full mx-auto flex items-center justify-center gap-3 px-4 z-20 ${
+                settings.showSearch && settings.showMediaPill && activeMedia
+                  ? 'max-w-3xl'
+                  : 'max-w-2xl'
+              }`}
+            >
+              {settings.showSearch && (
+                <motion.div
+                  animate={{
+                    width:
+                      activeMedia && settings.showMediaPill
+                        ? isMediaPillHovered
+                          ? isSearchTyping
+                            ? 220
+                            : 50
+                          : isSearchTyping
+                          ? 560
+                          : 480
+                        : '100%',
+                  }}
+                  transition={{
+                    duration: 0.52,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className={`flex items-center justify-center shrink-0 ${
+                    !(activeMedia && settings.showMediaPill) ? 'w-full max-w-2xl' : ''
+                  }`}
+                >
+                  <SearchBar
+                    visible={settings.showSearch}
+                    currentEngine={settings.searchEngine}
+                    searchInNewTab={settings.searchInNewTab}
+                    engines={settings.searchEngines}
+                    onEngineChange={(engine) => updateSettings({ searchEngine: engine })}
+                    onOpenSettings={() => setIsCustomizerOpen(true)}
+                    onUpdateEngines={(newEngines) => updateSettings({ searchEngines: newEngines })}
+                    className="px-0 w-full"
+                    isCollapsed={!!(activeMedia && settings.showMediaPill && isMediaPillHovered)}
+                    onTypingChange={setIsSearchTyping}
+                  />
+                </motion.div>
+              )}
+
+              {/* Now Playing Media Pill */}
+              {settings.showMediaPill && activeMedia && (
+                <div className="shrink-0 relative z-30 flex items-center justify-center">
+                  <MediaPill
+                    media={activeMedia}
+                    hasSearchAdjacent={settings.showSearch}
+                    autoExpandOnHover={settings.mediaPillHoverExpand}
+                    showControls={settings.mediaPillShowControls}
+                    onHoverChange={setIsMediaPillHovered}
+                    onTogglePlayPause={togglePlayPause}
+                    onToggleMute={toggleMute}
+                    onJumpToTab={jumpToTab}
+                    isSearchTyping={isSearchTyping}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Quick Links / Bookmarks Dock */}
           <QuickLinks

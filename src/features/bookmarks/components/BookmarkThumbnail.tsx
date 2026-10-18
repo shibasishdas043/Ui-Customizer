@@ -5,6 +5,7 @@ import type { Variants } from 'framer-motion'
 import { Globe } from 'lucide-react'
 import { getInitial, getFallbackGradient, getFaviconUrl } from '../utils/faviconHelper'
 import { isHardcodedLegacySvg } from '../utils/faviconCacheHelper'
+import { GlassSurface } from '../../../shared/components/GlassSurface'
 
 interface BookmarkThumbnailProps {
   title: string
@@ -16,43 +17,34 @@ interface BookmarkThumbnailProps {
   showBackground?: boolean
 }
 
-const thumbnailVariants: Variants = {
+const cardMotionVariants: Variants = {
   rest: {
     y: 0,
     scale: 1,
-    boxShadow:
-      '0 4px 16px -2px rgba(0, 0, 0, 0.35), 0 2px 6px -1px rgba(0, 0, 0, 0.2), inset 0 1px 1px 0 rgba(255, 255, 255, 0.16)',
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    backgroundColor: 'rgba(0, 0, 0, 0.38)',
     transition: {
       type: 'spring',
-      stiffness: 380,
-      damping: 28,
+      stiffness: 280,
+      damping: 26,
       mass: 0.75,
     },
   },
   hover: {
     y: -5.5,
-    scale: 1.075,
-    boxShadow:
-      '0 18px 36px -4px rgba(0, 0, 0, 0.55), 0 8px 18px -2px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.38)',
-    borderColor: 'rgba(255, 255, 255, 0.38)',
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    scale: 1.08,
     transition: {
       type: 'spring',
-      stiffness: 420,
+      stiffness: 280,
       damping: 24,
-      mass: 0.65,
+      mass: 0.7,
     },
   },
   tap: {
     y: 0,
     scale: 0.94,
-    boxShadow: '0 2px 8px -1px rgba(0, 0, 0, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1)',
     transition: {
       type: 'spring',
-      stiffness: 600,
-      damping: 30,
+      stiffness: 380,
+      damping: 28,
     },
   },
 }
@@ -66,23 +58,23 @@ const transparentVariants: Variants = {
     backgroundColor: 'transparent',
     transition: {
       type: 'spring',
-      stiffness: 380,
-      damping: 28,
+      stiffness: 280,
+      damping: 26,
       mass: 0.75,
     },
   },
   hover: {
     y: -5.5,
-    scale: 1.15,
+    scale: 1.14,
     boxShadow: 'none',
     borderColor: 'transparent',
     backgroundColor: 'transparent',
     filter: 'drop-shadow(0 10px 14px rgba(0,0,0,0.5))',
     transition: {
       type: 'spring',
-      stiffness: 420,
+      stiffness: 280,
       damping: 24,
-      mass: 0.65,
+      mass: 0.7,
     },
   },
   tap: {
@@ -90,8 +82,8 @@ const transparentVariants: Variants = {
     scale: 0.92,
     transition: {
       type: 'spring',
-      stiffness: 600,
-      damping: 30,
+      stiffness: 380,
+      damping: 28,
     },
   },
 }
@@ -101,15 +93,15 @@ const iconVariants: Variants = {
     scale: 1,
     transition: {
       type: 'spring',
-      stiffness: 380,
-      damping: 28,
+      stiffness: 280,
+      damping: 26,
     },
   },
   hover: {
     scale: 1.06,
     transition: {
       type: 'spring',
-      stiffness: 420,
+      stiffness: 280,
       damping: 24,
     },
   },
@@ -125,8 +117,8 @@ const fallbackVariants: Variants = {
     boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.35), 0 2px 6px -1px rgba(0, 0, 0, 0.2)',
     transition: {
       type: 'spring',
-      stiffness: 380,
-      damping: 28,
+      stiffness: 280,
+      damping: 26,
       mass: 0.75,
     },
   },
@@ -136,9 +128,9 @@ const fallbackVariants: Variants = {
     boxShadow: '0 18px 36px -4px rgba(0, 0, 0, 0.55), 0 8px 18px -2px rgba(0, 0, 0, 0.35)',
     transition: {
       type: 'spring',
-      stiffness: 420,
+      stiffness: 280,
       damping: 24,
-      mass: 0.65,
+      mass: 0.7,
     },
   },
   tap: {
@@ -146,8 +138,8 @@ const fallbackVariants: Variants = {
     scale: 0.94,
     transition: {
       type: 'spring',
-      stiffness: 600,
-      damping: 30,
+      stiffness: 380,
+      damping: 28,
     },
   },
 }
@@ -188,31 +180,104 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
 
   const isMonochrome = title.toLowerCase().includes('github') || title.toLowerCase().includes('x /') || title.toLowerCase() === 'x'
 
+  const sizePixels = {
+    sm: 38,
+    md: 52,
+    lg: 64,
+  }[size]
+
+  const radiusPixels = {
+    sm: 12,
+    md: 18,
+    lg: 22,
+  }[size]
+
   if (displayIcon && !hasError) {
+    if (showBackground) {
+      if (interactive) {
+        return (
+          <motion.div
+            variants={cardMotionVariants}
+            className={`flex items-center justify-center will-change-transform ${className}`}
+          >
+            <GlassSurface
+              width={sizePixels}
+              height={sizePixels}
+              borderRadius={radiusPixels}
+              borderWidth={0.07}
+              blur={11}
+              brightness={50}
+              opacity={0.93}
+              distortionScale={-180}
+              displace={3}
+              redOffset={0}
+              greenOffset={10}
+              blueOffset={20}
+              backgroundOpacity={0.28}
+              saturation={1}
+              className="overflow-hidden flex items-center justify-center shadow-lg"
+              contentClassName="flex items-center justify-center p-0 w-full h-full"
+            >
+              <motion.img
+                variants={iconVariants}
+                src={displayIcon}
+                alt={title || 'Icon'}
+                className={`${iconDimensions} object-contain rounded-xs will-change-transform drop-shadow-sm ${
+                  isMonochrome ? 'dark:invert dark:brightness-200' : ''
+                }`}
+                onError={() => setFailedIcon(displayIcon)}
+              />
+            </GlassSurface>
+          </motion.div>
+        )
+      }
+
+      return (
+        <div className={`flex items-center justify-center ${className}`}>
+          <GlassSurface
+            width={sizePixels}
+            height={sizePixels}
+            borderRadius={radiusPixels}
+            borderWidth={0.07}
+            blur={11}
+            brightness={50}
+            opacity={0.93}
+            distortionScale={-180}
+            displace={3}
+            redOffset={0}
+            greenOffset={10}
+            blueOffset={20}
+            backgroundOpacity={0.28}
+            saturation={1}
+            className="overflow-hidden flex items-center justify-center shadow-lg"
+            contentClassName="flex items-center justify-center p-0 w-full h-full"
+          >
+            <img
+              src={displayIcon}
+              alt={title || 'Icon'}
+              className={`${iconDimensions} object-contain rounded-xs drop-shadow-sm ${
+                isMonochrome ? 'dark:invert dark:brightness-200' : ''
+              }`}
+              onError={() => setFailedIcon(displayIcon)}
+            />
+          </GlassSurface>
+        </div>
+      )
+    }
+
+    // showBackground === false (e.g. inside full dock shelf or minimal mode)
     if (interactive) {
       return (
         <motion.div
-          variants={showBackground ? thumbnailVariants : transparentVariants}
-          className={`${dimensions} ${
-            showBackground
-              ? 'backdrop-blur-xl backdrop-saturate-150 border'
-              : 'border-transparent shadow-none'
-          } flex items-center justify-center overflow-hidden will-change-transform ${className}`}
-          style={
-            showBackground
-              ? {
-                  WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-                  backdropFilter: 'blur(20px) saturate(150%)',
-                }
-              : undefined
-          }
+          variants={transparentVariants}
+          className={`${dimensions} border-transparent shadow-none flex items-center justify-center overflow-hidden will-change-transform ${className}`}
         >
           <motion.img
             variants={iconVariants}
             src={displayIcon}
             alt={title || 'Icon'}
-            className={`${iconDimensions} object-contain rounded-sm will-change-transform drop-shadow-sm ${
-              isMonochrome ? 'invert brightness-200' : ''
+            className={`${iconDimensions} object-contain rounded-xs will-change-transform drop-shadow-sm ${
+              isMonochrome ? 'dark:invert dark:brightness-200' : ''
             }`}
             onError={() => setFailedIcon(displayIcon)}
           />
@@ -222,25 +287,13 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
 
     return (
       <div
-        className={`${dimensions} ${
-          showBackground
-            ? 'bg-black/35 backdrop-blur-xl backdrop-saturate-150 shadow-lg border border-white/10'
-            : 'border-transparent shadow-none'
-        } flex items-center justify-center overflow-hidden ${className}`}
-        style={
-          showBackground
-            ? {
-                WebkitBackdropFilter: 'blur(20px) saturate(150%)',
-                backdropFilter: 'blur(20px) saturate(150%)',
-              }
-            : undefined
-        }
+        className={`${dimensions} border-transparent shadow-none flex items-center justify-center overflow-hidden ${className}`}
       >
         <img
           src={displayIcon}
           alt={title || 'Icon'}
-          className={`${iconDimensions} object-contain rounded-sm drop-shadow-sm ${
-            isMonochrome ? 'invert brightness-200' : ''
+          className={`${iconDimensions} object-contain rounded-xs drop-shadow-sm ${
+            isMonochrome ? 'dark:invert dark:brightness-200' : ''
           }`}
           onError={() => setFailedIcon(displayIcon)}
         />
@@ -248,9 +301,74 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
     )
   }
 
-  // Graceful Fallback: Letter Avatar with dynamic gradient
+  // Graceful Fallback: Letter Avatar
   const initial = getInitial(title, url)
   const gradient = getFallbackGradient(title || url || 'A')
+
+  if (showBackground) {
+    if (interactive) {
+      return (
+        <motion.div
+          variants={cardMotionVariants}
+          className={`flex items-center justify-center will-change-transform ${className}`}
+        >
+          <GlassSurface
+            width={sizePixels}
+            height={sizePixels}
+            borderRadius={radiusPixels}
+            borderWidth={0.07}
+            blur={11}
+            brightness={50}
+            opacity={0.93}
+            distortionScale={-180}
+            displace={3}
+            redOffset={0}
+            greenOffset={10}
+            blueOffset={20}
+            backgroundOpacity={0.28}
+            saturation={1}
+            className="overflow-hidden flex items-center justify-center shadow-lg"
+            contentClassName="flex items-center justify-center p-0 w-full h-full font-bold text-neutral-900 dark:text-white"
+          >
+            {initial && initial !== '?' ? (
+              <span className="tracking-tight text-base sm:text-lg">{initial}</span>
+            ) : (
+              <Globe className={`${iconDimensions} text-neutral-700 dark:text-white/80`} />
+            )}
+          </GlassSurface>
+        </motion.div>
+      )
+    }
+
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <GlassSurface
+          width={sizePixels}
+          height={sizePixels}
+          borderRadius={radiusPixels}
+          borderWidth={0.07}
+          blur={11}
+          brightness={50}
+          opacity={0.93}
+          distortionScale={-180}
+          displace={3}
+          redOffset={0}
+          greenOffset={10}
+          blueOffset={20}
+          backgroundOpacity={0.28}
+          saturation={1}
+          className="overflow-hidden flex items-center justify-center shadow-lg"
+          contentClassName="flex items-center justify-center p-0 w-full h-full font-bold text-neutral-900 dark:text-white"
+        >
+          {initial && initial !== '?' ? (
+            <span className="tracking-tight text-base sm:text-lg">{initial}</span>
+          ) : (
+            <Globe className={`${iconDimensions} text-neutral-700 dark:text-white/80`} />
+          )}
+        </GlassSurface>
+      </div>
+    )
+  }
 
   if (interactive) {
     return (

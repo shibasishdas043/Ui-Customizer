@@ -207,7 +207,7 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
         )}
 
         {/* Icon Squircle Backgrounds Toggle (Bonjourr linkbackgrounds) */}
-        {onToggleBackground && styleMode !== 'minimal' && (
+        {onToggleBackground && styleMode !== 'minimal' && styleMode !== 'dock' && (
           <div className="pt-2.5 flex items-center justify-between">
             <div>
               <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Tile Backgrounds</span>
@@ -398,7 +398,7 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                   className="flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-white/[0.03] hover:bg-[#fcfbf9] dark:hover:bg-white/[0.06] shadow-xs transition-colors group"
                 >
                   {/* Left: Thumbnail & Link Info */}

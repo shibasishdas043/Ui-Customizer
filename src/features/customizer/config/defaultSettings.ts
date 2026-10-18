@@ -50,6 +50,10 @@ export const DEFAULT_SETTINGS: CustomizerSettings = {
   searchInNewTab: false,
   searchEngines: DEFAULT_SEARCH_ENGINES,
 
+  showMediaPill: true,
+  mediaPillHoverExpand: true,
+  mediaPillShowControls: true,
+
   showQuickLinks: true,
   bookmarksInNewTab: false,
   quickLinks: DEFAULT_BOOKMARKS,

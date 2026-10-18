@@ -106,8 +106,6 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
-
   const handleExport = () => {
     const dataStr =
       'data:text/json;charset=utf-8,' +
@@ -147,24 +145,30 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
 
   return (
     <AnimatePresence>
-      <div
-        data-modal-backdrop="true"
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 lg:p-8 backdrop-blur-md transition-colors duration-300"
-        style={{
-          backgroundColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.45)',
-        }}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            onClose()
-          }
-        }}
-      >
+      {isOpen && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 14 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 14 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          data-settings-theme={isDark ? 'dark' : 'light'}
+          key="customizer-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          data-modal-backdrop="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 lg:p-8 backdrop-blur-md"
+          style={{
+            backgroundColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.45)',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              onClose()
+            }
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            data-settings-theme={isDark ? 'dark' : 'light'}
           className="settings-modal w-full max-w-[1040px] xl:max-w-[1140px] h-[92vh] sm:h-[86vh] max-h-[820px] min-h-[520px] rounded-3xl sm:rounded-[32px] flex flex-col md:flex-row overflow-hidden relative transition-colors duration-300 border-0 outline-none"
           style={{
             backgroundColor: isDark ? '#181715' : '#faf9f5',
@@ -258,14 +262,21 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
                     onClick={() => setActiveTab(tab.id)}
                     className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-left transition-all cursor-pointer relative border-0 outline-none ${
                       isActive
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
+                        ? 'text-[var(--accent-contrast,#ffffff)] font-semibold'
                         : isDark
                         ? 'text-[#b5b1a8] hover:text-[#faf9f5] hover:bg-[#22201d]'
                         : 'text-[#141413] hover:text-[#000000] hover:bg-[#e8e0d2]'
                     }`}
                   >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTabPill"
+                        className="absolute inset-0 rounded-2xl bg-[var(--accent-color)] shadow-sm"
+                        transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                      />
+                    )}
                     <div
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all border-0 outline-none ${
+                      className={`relative z-10 w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all border-0 outline-none ${
                         isActive
                           ? 'bg-black/15 text-inherit'
                           : isDark
@@ -275,7 +286,7 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
                     >
                       {tab.icon}
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="relative z-10 min-w-0 flex-1">
                       <div
                         className={`text-[13px] truncate leading-tight ${
                           isActive
@@ -428,60 +439,71 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
 
             {/* Scrollable Tab Body */}
             <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6">
-              {activeTab === 'appearance' && (
-                <ThemeTab settings={settings} onUpdate={onUpdate} />
-              )}
-              {activeTab === 'background' && (
-                <WallpaperTab settings={settings} onUpdate={onUpdate} />
-              )}
-              {activeTab === 'widgets' && (
-                <WidgetsTab
-                  settings={settings}
-                  onUpdate={onUpdate}
-                  onNavigateToLinks={() => setActiveTab('links')}
-                />
-              )}
-              {activeTab === 'links' && (
-                <QuickLinksManager
-                  links={settings.quickLinks}
-                  onUpdateLinks={(newLinks) => onUpdate({ quickLinks: newLinks })}
-                  showQuickLinks={settings.showQuickLinks}
-                  onToggleShow={(show) => onUpdate({ showQuickLinks: show })}
-                  openInNewTab={settings.bookmarksInNewTab}
-                  onToggleNewTab={(inNewTab) => onUpdate({ bookmarksInNewTab: inNewTab })}
-                  cols={settings.quickLinksCols}
-                  onUpdateCols={(cols) => onUpdate({ quickLinksCols: cols })}
-                  size={settings.quickLinksSize}
-                  onUpdateSize={(size) => onUpdate({ quickLinksSize: size })}
-                  showTitles={settings.quickLinksShowTitle}
-                  onToggleShowTitles={(show) => onUpdate({ quickLinksShowTitle: show })}
-                  styleMode={settings.quickLinksStyle ?? 'dock'}
-                  onUpdateStyle={(style) => onUpdate({ quickLinksStyle: style })}
-                  showBackground={settings.quickLinksBackground ?? true}
-                  onToggleBackground={(bg) => onUpdate({ quickLinksBackground: bg })}
-                />
-              )}
-              {activeTab === 'browser' && (
-                <BrowserSettingsTab
-                  config={{
-                    newTabMode: settings.newTabMode,
-                    newTabRedirectUrl: settings.newTabRedirectUrl,
-                    startupMode: settings.startupMode,
-                    startupUrl: settings.startupUrl,
-                    homepageUrl: settings.homepageUrl,
-                    redirectCountdown: settings.redirectCountdown,
-                  }}
-                  onUpdate={onUpdate}
-                />
-              )}
-              {activeTab === 'css' && (
-                <CustomCssTab settings={settings} onUpdate={onUpdate} />
-              )}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {activeTab === 'appearance' && (
+                    <ThemeTab settings={settings} onUpdate={onUpdate} />
+                  )}
+                  {activeTab === 'background' && (
+                    <WallpaperTab settings={settings} onUpdate={onUpdate} />
+                  )}
+                  {activeTab === 'widgets' && (
+                    <WidgetsTab
+                      settings={settings}
+                      onUpdate={onUpdate}
+                      onNavigateToLinks={() => setActiveTab('links')}
+                    />
+                  )}
+                  {activeTab === 'links' && (
+                    <QuickLinksManager
+                      links={settings.quickLinks}
+                      onUpdateLinks={(newLinks) => onUpdate({ quickLinks: newLinks })}
+                      showQuickLinks={settings.showQuickLinks}
+                      onToggleShow={(show) => onUpdate({ showQuickLinks: show })}
+                      openInNewTab={settings.bookmarksInNewTab}
+                      onToggleNewTab={(inNewTab) => onUpdate({ bookmarksInNewTab: inNewTab })}
+                      cols={settings.quickLinksCols}
+                      onUpdateCols={(cols) => onUpdate({ quickLinksCols: cols })}
+                      size={settings.quickLinksSize}
+                      onUpdateSize={(size) => onUpdate({ quickLinksSize: size })}
+                      showTitles={settings.quickLinksShowTitle}
+                      onToggleShowTitles={(show) => onUpdate({ quickLinksShowTitle: show })}
+                      styleMode={settings.quickLinksStyle ?? 'dock'}
+                      onUpdateStyle={(style) => onUpdate({ quickLinksStyle: style })}
+                      showBackground={settings.quickLinksBackground ?? true}
+                      onToggleBackground={(bg) => onUpdate({ quickLinksBackground: bg })}
+                    />
+                  )}
+                  {activeTab === 'browser' && (
+                    <BrowserSettingsTab
+                      config={{
+                        newTabMode: settings.newTabMode,
+                        newTabRedirectUrl: settings.newTabRedirectUrl,
+                        startupMode: settings.startupMode,
+                        startupUrl: settings.startupUrl,
+                        homepageUrl: settings.homepageUrl,
+                        redirectCountdown: settings.redirectCountdown,
+                      }}
+                      onUpdate={onUpdate}
+                    />
+                  )}
+                  {activeTab === 'css' && (
+                    <CustomCssTab settings={settings} onUpdate={onUpdate} />
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </main>
         </motion.div>
-      </div>
-    </AnimatePresence>
-  )
+      </motion.div>
+    )}
+  </AnimatePresence>
+)
 }
 

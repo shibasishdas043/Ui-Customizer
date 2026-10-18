@@ -128,22 +128,26 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
   const isDark = useThemeIsDark()
 
   return (
-    <AnimatePresence>
-      <div
-        data-modal-backdrop="true"
-        className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 backdrop-blur-md transition-colors duration-300"
-        style={{
-          backgroundColor: isDark ? 'rgba(0, 0, 0, 0.72)' : 'rgba(20, 20, 19, 0.45)',
-        }}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose()
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 12 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 12 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+    <motion.div
+      key="bookmark-modal-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      data-modal-backdrop="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 backdrop-blur-md"
+      style={{
+        backgroundColor: isDark ? 'rgba(0, 0, 0, 0.72)' : 'rgba(20, 20, 19, 0.45)',
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 14 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 14 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           data-settings-theme={isDark ? 'dark' : 'light'}
           className="settings-modal w-full max-w-lg rounded-3xl flex flex-col max-h-[88vh] overflow-hidden border-0 outline-none transition-colors duration-300"
           style={{
@@ -407,8 +411,7 @@ const BookmarkEditorDialog: React.FC<BookmarkEditorDialogProps> = ({
             </div>
           </form>
         </motion.div>
-      </div>
-    </AnimatePresence>
+      </motion.div>
   )
 }
 
@@ -418,15 +421,17 @@ export const BookmarkEditorModal: React.FC<BookmarkEditorModalProps> = ({
   onSave,
   initialBookmark,
 }) => {
-  if (!isOpen) return null
-
   const modalContent = (
-    <BookmarkEditorDialog
-      key={initialBookmark?.id || 'new_bookmark'}
-      initialBookmark={initialBookmark}
-      onClose={onClose}
-      onSave={onSave}
-    />
+    <AnimatePresence>
+      {isOpen && (
+        <BookmarkEditorDialog
+          key={initialBookmark?.id || 'new_bookmark'}
+          initialBookmark={initialBookmark}
+          onClose={onClose}
+          onSave={onSave}
+        />
+      )}
+    </AnimatePresence>
   )
 
   if (typeof document !== 'undefined') {

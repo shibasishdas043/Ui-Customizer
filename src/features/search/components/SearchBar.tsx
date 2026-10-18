@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type React from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Search } from 'lucide-react'
 import type { SearchEngineItem } from '../types'
 import { DEFAULT_SEARCH_ENGINES } from '../config/defaultEngines'
@@ -10,6 +10,7 @@ import { SearchSuggestionsDropdown } from './SearchSuggestionsDropdown'
 import { buildSearchUrl } from '../utils/searchUrlHelper'
 import { migrateSearchEnginesToPermanentCache } from '../utils/searchFaviconHelper'
 import { fetchSearchSuggestions } from '../utils/searchSuggestionsHelper'
+import { GlassSurface } from '../../../shared/components/GlassSurface'
 
 interface SearchBarProps {
   currentEngine: string
@@ -19,6 +20,9 @@ interface SearchBarProps {
   engines?: SearchEngineItem[]
   onOpenSettings?: () => void
   onUpdateEngines?: (engines: SearchEngineItem[]) => void
+  className?: string
+  isCollapsed?: boolean
+  onTypingChange?: (isTyping: boolean) => void
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
@@ -29,6 +33,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   engines = DEFAULT_SEARCH_ENGINES,
   onOpenSettings,
   onUpdateEngines,
+  className,
+  isCollapsed = false,
+  onTypingChange,
 }) => {
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
@@ -41,6 +48,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const containerRef = useRef<HTMLDivElement>(null)
 
   const isTyping = query.trim().length > 0
+
+  // Real-time synchronization of typing state with parent hero row coordinator
+  useEffect(() => {
+    onTypingChange?.(isTyping)
+  }, [isTyping, onTypingChange])
 
   // Background permanent search engine icon migrator:
   // Converts any uncached search engine icons into permanent Base64 Data URLs on mount.
@@ -59,13 +71,19 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     }
   }, [engines, onUpdateEngines])
 
-  // Automatic search bar focus & text selection on browser launch, new tab open, and window focus
+  // Automatic search bar focus & text selection on browser launch, new tab open, window focus, and after hitting Home button
   useEffect(() => {
     if (!visible) return
 
     const focusSearchInput = () => {
+      if (!inputRef.current) return
+
       // Don't hijack focus if a modal or the customizer drawer is open
-      const isModalOrDrawerOpen = !!(document.querySelector('[data-modal-backdrop]') || document.querySelector('.fixed.inset-0'))
+      const isModalOrDrawerOpen = !!(
+        document.querySelector('[data-modal-backdrop]') ||
+        document.querySelector('[role="dialog"]') ||
+        document.querySelector('.settings-modal')
+      )
       const activeEl = document.activeElement
       const isOtherInputActive =
         activeEl &&
@@ -74,41 +92,91 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
       if (isModalOrDrawerOpen || isOtherInputActive) return
 
-      inputRef.current?.focus({ preventScroll: true })
-      inputRef.current?.select()
+      inputRef.current.focus({ preventScroll: true })
+      try {
+        inputRef.current.select()
+      } catch {
+        // Safe fallback in non-standard environments
+      }
     }
 
-    // 1. Initial focus on mount
+    // 1. Initial focus routine on mount (New Tab open and Browser Launch)
+    // In Chromium/Firefox new tabs, browser omnibox holds focus initially; staggered attempts capture focus seamlessly.
     focusSearchInput()
-
-    // 2. In browser new tabs (Chromium/Firefox), the browser omnibox initially holds focus.
     const rafId = requestAnimationFrame(focusSearchInput)
     const t1 = setTimeout(focusSearchInput, 50)
     const t2 = setTimeout(focusSearchInput, 150)
     const t3 = setTimeout(focusSearchInput, 300)
+    const t4 = setTimeout(focusSearchInput, 500)
 
+    // 2. Window focus listener (when switching from other desktop apps or windows)
     const handleWindowFocus = () => {
+      focusSearchInput()
+      setTimeout(focusSearchInput, 50)
+    }
+
+    // 3. Tab visibility listener (when restoring background tabs or switching between tabs)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        focusSearchInput()
+        setTimeout(focusSearchInput, 50)
+      }
+    }
+
+    // 4. Page show listener (fired after hitting Home button, back/forward navigation, or BFCache restore)
+    const handlePageShow = () => {
+      focusSearchInput()
+      setTimeout(focusSearchInput, 50)
+      setTimeout(focusSearchInput, 150)
+    }
+
+    // 5. Popstate listener (history navigation / home button)
+    const handlePopState = () => {
       focusSearchInput()
     }
 
     window.addEventListener('focus', handleWindowFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pageshow', handlePageShow)
+    window.addEventListener('popstate', handlePopState)
 
     return () => {
       cancelAnimationFrame(rafId)
       clearTimeout(t1)
       clearTimeout(t2)
       clearTimeout(t3)
+      clearTimeout(t4)
       window.removeEventListener('focus', handleWindowFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pageshow', handlePageShow)
+      window.removeEventListener('popstate', handlePopState)
     }
   }, [visible])
 
-  // Global keydown shortcuts: '/' to focus, any typing when idle routes to search, and Escape to blur
+  // Global keydown shortcuts: 'Alt+L' or '/' to focus & select, any typing when idle routes to search, and Escape to blur
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         inputRef.current?.blur()
         setDropdownOpen(false)
         setShowSuggestions(false)
+        return
+      }
+
+      // Alt + L shortcut: focus and select search bar from anywhere on the page
+      if (e.altKey && !e.ctrlKey && !e.metaKey && (e.code === 'KeyL' || e.key === 'l' || e.key === 'L')) {
+        // Don't intercept if a modal or customizer drawer is open
+        if (
+          document.querySelector('[data-modal-backdrop]') ||
+          document.querySelector('[role="dialog"]') ||
+          document.querySelector('.settings-modal')
+        ) {
+          return
+        }
+
+        e.preventDefault()
+        inputRef.current?.focus({ preventScroll: true })
+        inputRef.current?.select()
         return
       }
 
@@ -124,11 +192,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       if (e.ctrlKey || e.metaKey || e.altKey) return
 
       // Don't intercept if a modal or customizer drawer is open
-      if (document.querySelector('[data-modal-backdrop]') || document.querySelector('.fixed.inset-0')) return
+      if (
+        document.querySelector('[data-modal-backdrop]') ||
+        document.querySelector('[role="dialog"]') ||
+        document.querySelector('.settings-modal')
+      ) {
+        return
+      }
 
       if (e.key === '/') {
         e.preventDefault()
-        inputRef.current?.focus()
+        inputRef.current?.focus({ preventScroll: true })
         inputRef.current?.select()
       } else if (e.key.length === 1 && !e.repeat && document.activeElement !== inputRef.current) {
         inputRef.current?.focus()
@@ -266,124 +340,165 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     }
   }
 
-  // Smoothly auto-expand the search bar width if there are many search engines to contain
-  const containerMaxWidthClass = isTyping
-    ? activeEnginesList.length >= 8
-      ? 'max-w-4xl'
-      : activeEnginesList.length >= 6
-      ? 'max-w-3xl'
-      : activeEnginesList.length >= 5
-      ? 'max-w-[720px]'
-      : 'max-w-2xl'
-    : 'max-w-2xl'
-
   return (
     <div
       ref={containerRef}
-      className={`w-full ${containerMaxWidthClass} mx-auto relative px-4 transition-[max-width] duration-300 ease-out ${
+      className={`w-full mx-auto relative ${
         dropdownOpen || (isTyping && showSuggestions) ? 'z-50' : 'z-20'
-      }`}
+      } ${className !== undefined ? className : 'px-4'}`}
     >
-      <form
-        onSubmit={handleFormSubmit}
-        className={`rounded-full min-h-[50px] flex items-center px-4.5 py-2 transition-[background-color,box-shadow] duration-200 shadow-xl backdrop-blur-xl backdrop-saturate-150 ${
-          isFocused
-            ? 'bg-black/55 shadow-[0_16px_40px_rgba(0,0,0,0.5)]'
-            : 'bg-black/35 hover:bg-black/45'
-        }`}
-        style={{
-          WebkitBackdropFilter: 'blur(24px) saturate(150%)',
-          backdropFilter: 'blur(24px) saturate(150%)',
-        }}
-      >
-        {/* Left Side: Search Engine Selector (Hidden when typing) OR Subtle Magnifying Glass (When typing) */}
-        {!isTyping ? (
-          <EngineSelector
-            currentEngineId={currentEngine}
-            engines={activeEnginesList}
-            isOpen={dropdownOpen}
-            onToggle={() => {
-              setDropdownOpen(!dropdownOpen)
-              setShowSuggestions(false)
+      <div className="relative w-full">
+        <GlassSurface
+          width="100%"
+          height={50}
+          borderRadius={25}
+          borderWidth={0.07}
+          blur={11}
+          brightness={50}
+          opacity={0.93}
+          distortionScale={-180}
+          displace={3}
+          redOffset={0}
+          greenOffset={10}
+          blueOffset={20}
+          backgroundOpacity={0.28}
+          saturation={1}
+          className={`w-full transition-shadow duration-300 ${
+            isFocused ? 'ring-2 ring-[var(--accent-color)]/45 shadow-[0_16px_48px_rgba(0,0,0,0.5)]' : 'shadow-lg'
+          }`}
+          contentClassName={`!p-0 w-full h-full flex items-center ${
+            isCollapsed && !isTyping ? 'justify-center' : 'justify-start'
+          }`}
+        >
+        <form
+          onSubmit={handleFormSubmit}
+          onScroll={(e) => {
+            e.currentTarget.scrollLeft = 0
+          }}
+          className={`w-full h-full flex items-center bg-transparent min-w-0 ${
+            isCollapsed && !isTyping ? 'justify-center p-0' : 'px-3.5 sm:px-4'
+          }`}
+        >
+          {/* Left Side: Search Engine Selector (Always present, maintaining clear engine identity) */}
+          <div className="shrink-0 flex items-center justify-center">
+            <EngineSelector
+              currentEngineId={currentEngine}
+              engines={activeEnginesList}
+              isOpen={dropdownOpen}
+              compact={isCollapsed}
+              onToggle={() => {
+                if (isCollapsed && !isTyping) {
+                  inputRef.current?.focus()
+                  return
+                }
+                setDropdownOpen(!dropdownOpen)
+                setShowSuggestions(false)
+              }}
+            />
+          </div>
+
+          {/* Search Input Field */}
+          <input
+            ref={inputRef}
+            id="aura-search-input"
+            autoFocus={visible}
+            type="text"
+            value={query}
+            onChange={(e) => {
+              const val = e.target.value
+              setQuery(val)
+              if (dropdownOpen) setDropdownOpen(false)
+              if (val.trim().length > 0) {
+                setShowSuggestions(true)
+              } else {
+                setShowSuggestions(false)
+                setSelectedIndex(-1)
+              }
             }}
+            onKeyDown={handleInputKeyDown}
+            onFocus={() => {
+              setIsFocused(true)
+              if (query.trim().length > 0) {
+                setShowSuggestions(true)
+              }
+            }}
+            onBlur={() => {
+              // Keep focused true slightly for click events
+              setTimeout(() => {
+                setIsFocused(false)
+                setShowSuggestions(false)
+              }, 250)
+            }}
+            placeholder={
+              isCollapsed
+                ? 'Search...'
+                : `Search with ${activeEngine.name} or type a URL...`
+            }
+            title={`Search with ${activeEngine.name} (Alt+L or / to focus)`}
+            className={`flex-1 min-w-0 bg-transparent py-1 text-sm sm:text-base text-black dark:text-white placeholder-neutral-600 dark:placeholder-white/45 font-medium focus:outline-none transition-opacity duration-200 ${
+              isCollapsed && !isTyping ? 'sr-only' : 'px-2.5 opacity-100'
+            }`}
           />
-        ) : (
-          <Search className="w-4.5 h-4.5 text-white/60 shrink-0 ml-0.5 mr-2 select-none pointer-events-none" />
-        )}
 
-        {/* Search Input Field */}
-        <input
-          ref={inputRef}
-          id="aura-search-input"
-          autoFocus={visible}
-          type="text"
-          value={query}
-          onChange={(e) => {
-            const val = e.target.value
-            setQuery(val)
-            if (dropdownOpen) setDropdownOpen(false)
-            if (val.trim().length > 0) {
-              setShowSuggestions(true)
-            } else {
-              setShowSuggestions(false)
-              setSelectedIndex(-1)
-            }
-          }}
-          onKeyDown={handleInputKeyDown}
-          onFocus={() => {
-            setIsFocused(true)
-            if (query.trim().length > 0) {
-              setShowSuggestions(true)
-            }
-          }}
-          onBlur={() => {
-            // Keep focused true slightly for click events
-            setTimeout(() => {
-              setIsFocused(false)
-              setShowSuggestions(false)
-            }, 250)
-          }}
-          placeholder={`Search with ${activeEngine.name} or type a URL...`}
-          className="flex-1 bg-transparent px-2.5 py-1 text-sm sm:text-base text-white placeholder-white/45 focus:outline-none"
-        />
-
-        {/* Right Side: Normal submit button (when empty) OR row of round engine icons (when typing) */}
-        {!isTyping ? (
-          <div className="flex items-center pr-1">
-            <button
-              type="submit"
-              className="p-2 rounded-full text-slate-300 hover:text-[var(--accent-color)] hover:bg-white/10 transition-colors cursor-pointer border-0 outline-none"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1.5 shrink-0 py-1 pl-2 pr-0.5 select-none overflow-x-auto scrollbar-none max-w-[55vw]">
-            {activeEnginesList.map((engine) => {
-              const isActive = engine.id === currentEngine
-              return (
-                <button
-                  key={engine.id}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    executeSearchWithEngine(engine.id)
-                  }}
-                  title={`Search "${query.trim()}" on ${engine.name} (Press Tab to cycle)`}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center p-1.5 cursor-pointer transition-all duration-200 border-0 outline-none ${
-                    isActive
-                      ? 'bg-white/30 ring-2 ring-white shadow-[0_2px_10px_rgba(0,0,0,0.35)]'
-                      : 'bg-white/10 hover:bg-white/20 opacity-75 hover:opacity-100'
-                  }`}
+          {/* Right Side: Normal submit button (when empty) OR row of round engine icons (when typing) */}
+          {(!isCollapsed || isTyping) && (
+            <AnimatePresence mode="wait" initial={false}>
+              {!isTyping ? (
+                <motion.div
+                  key="submit-button"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-center shrink-0"
                 >
-                  <SearchEngineIcon engine={engine} size="sm" />
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </form>
+                  <button
+                    type="submit"
+                    className="p-2 rounded-full text-neutral-800 dark:text-slate-300 hover:text-[var(--accent-color)] hover:bg-black/8 dark:hover:bg-white/10 transition-colors cursor-pointer border-0 outline-none"
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="engine-thumbnails"
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  className="h-full flex items-center gap-1.5 shrink-0 pl-1.5 pr-1 select-none overflow-x-auto scrollbar-none max-w-[280px] sm:max-w-[340px]"
+                >
+                  {/* Subtle glass separator between input and engine thumbnails */}
+                  <div className="w-px h-5 bg-neutral-900/10 dark:bg-white/15 mr-0.5 shrink-0" aria-hidden="true" />
+
+                  {activeEnginesList.map((engine) => {
+                    const isActive = engine.id === currentEngine
+                    return (
+                      <button
+                        key={engine.id}
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          executeSearchWithEngine(engine.id)
+                        }}
+                        title={`Search "${query.trim()}" on ${engine.name} (Press Tab to cycle)`}
+                        className={`relative w-[30px] h-[30px] rounded-full flex items-center justify-center shrink-0 cursor-pointer transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] border-0 outline-none select-none ${
+                          isActive
+                            ? 'bg-neutral-900/15 dark:bg-white/25 ring-2 ring-[var(--accent-color)] shadow-[0_0_10px_var(--accent-color)]/30 scale-105 z-10'
+                            : 'bg-black/6 dark:bg-white/10 ring-1 ring-black/10 dark:ring-white/15 hover:bg-black/12 dark:hover:bg-white/20 hover:scale-105 active:scale-95 opacity-80 hover:opacity-100'
+                        }`}
+                      >
+                        <SearchEngineIcon engine={engine} size="sm" />
+                      </button>
+                    )
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+        </form>
+      </GlassSurface>
 
       {/* Frosted Glass Dropdown rendered outside form to sample direct page backdrop */}
       <AnimatePresence>
@@ -417,6 +532,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           />
         )}
       </AnimatePresence>
+      </div>
     </div>
   )
 }

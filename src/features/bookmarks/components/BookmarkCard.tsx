@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 import type { BookmarkItem } from '../types'
 import { BookmarkThumbnail } from './BookmarkThumbnail'
+import { GlassSurface } from '../../../shared/components/GlassSurface'
 
 interface BookmarkCardProps {
   bookmark: BookmarkItem
@@ -19,13 +20,11 @@ const titleVariants: Variants = {
   rest: {
     opacity: 0.9,
     y: 0,
-    textShadow: '0 1px 3px rgba(0, 0, 0, 0.75)',
     transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] },
   },
   hover: {
     opacity: 1,
     y: -1.5,
-    textShadow: '0 2px 8px rgba(0, 0, 0, 0.95), 0 0 12px rgba(255, 255, 255, 0.3)',
     transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] },
   },
   tap: {
@@ -45,9 +44,9 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({
   showBackground = true,
   isAltPressed = false,
 }) => {
-  const isEffectiveBackground = styleMode === 'minimal' ? false : showBackground
+  const isEffectiveBackground = styleMode === 'minimal' || styleMode === 'dock' ? false : showBackground
 
-  // 1. Inline Capsule Mode (Bonjourr inline style)
+  // 1. Inline Capsule Mode (Bonjourr inline style with authentic liquid glass)
   if (styleMode === 'inline') {
     return (
       <motion.a
@@ -58,27 +57,46 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({
         whileHover={{ scale: 1.05, y: -2 }}
         whileTap={{ scale: 0.96 }}
         exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-        className="group relative flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-black/35 hover:bg-black/55 backdrop-blur-xl border border-white/10 hover:border-white/30 transition-all cursor-pointer select-none shadow-md"
+        className="group relative inline-flex items-center cursor-pointer select-none rounded-2xl"
         title={`${bookmark.title}\n(${bookmark.url})`}
       >
-        <BookmarkThumbnail
-          title={bookmark.title}
-          url={bookmark.url}
-          icon={bookmark.icon}
-          size="sm"
-          interactive={false}
-          showBackground={false}
-        />
-        {showTitle && (
-          <span className="text-xs font-semibold text-white/95 truncate max-w-[120px] drop-shadow-sm">
-            {bookmark.title}
-          </span>
-        )}
-        {isAltPressed && index < 9 && (
-          <span className="px-1.5 py-0.2 rounded-md bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] text-[10px] font-bold font-mono shadow-xs">
-            {index + 1}
-          </span>
-        )}
+        <GlassSurface
+          width="auto"
+          height="auto"
+          borderRadius={18}
+          borderWidth={0.07}
+          blur={11}
+          brightness={50}
+          opacity={0.93}
+          distortionScale={-180}
+          displace={3}
+          redOffset={0}
+          greenOffset={10}
+          blueOffset={20}
+          backgroundOpacity={0.28}
+          saturation={1}
+          className="inline-flex transition-transform duration-200"
+          contentClassName="px-3.5 py-1.5 flex items-center gap-2.5 w-auto h-auto"
+        >
+          <BookmarkThumbnail
+            title={bookmark.title}
+            url={bookmark.url}
+            icon={bookmark.icon}
+            size="sm"
+            interactive={false}
+            showBackground={false}
+          />
+          {showTitle && (
+            <span className="text-xs font-semibold text-neutral-900 dark:text-white/95 truncate max-w-[130px] drop-shadow-xs">
+              {bookmark.title}
+            </span>
+          )}
+          {isAltPressed && index < 9 && (
+            <span className="px-1.5 py-0.2 rounded-md bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] text-[10px] font-bold font-mono shadow-xs shrink-0">
+              {index + 1}
+            </span>
+          )}
+        </GlassSurface>
       </motion.a>
     )
   }
@@ -139,7 +157,7 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({
       {showTitle && (
         <motion.span
           variants={titleVariants}
-          className={`text-[11px] sm:text-xs font-semibold text-white/95 text-contrast-subtle truncate ${textWidthClass} text-center mt-1.5 pointer-events-none drop-shadow-md tracking-tight`}
+          className={`text-[11px] sm:text-xs font-semibold text-white text-contrast-subtle truncate ${textWidthClass} text-center mt-1.5 pointer-events-none tracking-tight`}
         >
           {bookmark.title}
         </motion.span>

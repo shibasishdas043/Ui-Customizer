@@ -19,11 +19,11 @@ export const NotesWidget: React.FC<NotesWidgetProps> = ({ config, onUpdateConten
       <AnimatePresence>
         {isOpen ? (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            initial={{ opacity: 0, y: 16, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
-            className={`glass-panel rounded-2xl flex flex-col shadow-2xl overflow-hidden transition-all duration-300 ${
+            exit={{ opacity: 0, y: 16, scale: 0.92 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+            className={`glass-panel rounded-2xl flex flex-col shadow-2xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
               isExpanded ? 'w-96 sm:w-[480px] h-96' : 'w-80 h-72'
             }`}
           >

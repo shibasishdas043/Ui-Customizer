@@ -13,6 +13,7 @@ import {
   X,
   Sparkles,
   ChevronRight,
+  Music2,
 } from 'lucide-react'
 import type { CustomizerSettings, QuickLinksStyle } from '../../types'
 import { GlassDropdown, type GlassDropdownOption } from '../../../../shared'
@@ -841,7 +842,62 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
         </div>
       </div>
 
-      {/* 5. Quick Links Dock Quick Settings */}
+      {/* 5. Now Playing Media Pill Options */}
+      <div className="p-4 rounded-2xl bg-white/[0.03] space-y-4">
+        <h4 className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2] flex items-center gap-2">
+          <Music2 className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+          Now Playing Media Pill
+        </h4>
+        <p className="text-[11px] text-[#383531] dark:text-[#cfc4b2] font-medium leading-relaxed">
+          Displays an interactive capsule beside the search bar with live audio equalizer, thumbnail, and playback controls whenever any tab plays music or video.
+        </p>
+        <div className="space-y-3">
+          <label className="flex items-center justify-between cursor-pointer">
+            <div>
+              <span className="text-xs font-medium text-[#141413] dark:text-slate-200 block">Enable Media Pill</span>
+              <span className="text-[11px] text-[#8c827a] dark:text-slate-400">Detect and show media when sound plays in any tab</span>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.showMediaPill ?? true}
+              onChange={(e) => onUpdate({ showMediaPill: e.target.checked })}
+              className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
+            />
+          </label>
+
+          {(settings.showMediaPill ?? true) && (
+            <>
+              <label className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <span className="text-xs font-medium text-[#141413] dark:text-slate-200 block">Expand on Hover</span>
+                  <span className="text-[11px] text-[#8c827a] dark:text-slate-400">Pill smoothly expands and collapses search bar on hover</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.mediaPillHoverExpand ?? true}
+                  onChange={(e) => onUpdate({ mediaPillHoverExpand: e.target.checked })}
+                  className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <span className="text-xs font-medium text-[#141413] dark:text-slate-200 block">Show Playback Controls</span>
+                  <span className="text-[11px] text-[#8c827a] dark:text-slate-400">Show Play/Pause, Mute, and Tab Jump buttons when expanded</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.mediaPillShowControls ?? true}
+                  onChange={(e) => onUpdate({ mediaPillShowControls: e.target.checked })}
+                  className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
+                />
+              </label>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* 6. Quick Links Dock Quick Settings */}
       <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3.5">
         <div className="flex items-center justify-between">
           <h4 className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2] flex items-center gap-2">
@@ -895,19 +951,21 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
             </div>
           </div>
 
-          {/* Tile Background Toggle */}
-          <label className="flex items-center justify-between cursor-pointer pt-1">
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Tile Background</span>
-              <span className="text-[11px] text-[#383531] dark:text-slate-400">Frosted squircle tile vs transparent icon</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.quickLinksBackground ?? true}
-              onChange={(e) => onUpdate({ quickLinksBackground: e.target.checked })}
-              className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
-            />
-          </label>
+          {/* Tile Background Toggle (Grid & Inline modes) */}
+          {(settings.quickLinksStyle ?? 'dock') !== 'dock' && (settings.quickLinksStyle ?? 'dock') !== 'minimal' && (
+            <label className="flex items-center justify-between cursor-pointer pt-1">
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Tile Background</span>
+                <span className="text-[11px] text-[#383531] dark:text-slate-400">Frosted squircle tile vs transparent icon</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.quickLinksBackground ?? true}
+                onChange={(e) => onUpdate({ quickLinksBackground: e.target.checked })}
+                className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
+              />
+            </label>
+          )}
 
           <div className="flex items-center justify-between pt-1">
             <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Open Links In</span>

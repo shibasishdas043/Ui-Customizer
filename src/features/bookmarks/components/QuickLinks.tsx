@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { BookmarkItem, QuickLinksStyle } from '../types'
 import { BookmarkCard } from './BookmarkCard'
 import { migrateBookmarksToPermanentCache } from '../utils/faviconCacheHelper'
+import { GlassSurface } from '../../../shared/components/GlassSurface'
 
 interface QuickLinksProps {
   links: BookmarkItem[]
@@ -118,6 +119,7 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
   const linkCards = (
     <motion.div
       layout
+      transition={{ layout: { type: 'spring', damping: 28, stiffness: 260 } }}
       className={getLayoutClasses()}
       style={isFixedCols ? { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } : undefined}
     >
@@ -140,11 +142,28 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
   )
 
   return (
-    <div className="w-full flex justify-center px-4 relative z-10 transition-all duration-300">
+    <div className="w-full flex justify-center px-4 relative z-10 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
       {styleMode === 'dock' ? (
-        <div className="inline-flex items-center justify-center max-w-full px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-3xl bg-black/25 dark:bg-black/40 backdrop-blur-2xl border border-white/12 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)] transition-all duration-300">
+        <GlassSurface
+          width="auto"
+          height="auto"
+          borderRadius={28}
+          borderWidth={0.07}
+          blur={11}
+          brightness={50}
+          opacity={0.93}
+          distortionScale={-180}
+          displace={3}
+          redOffset={0}
+          greenOffset={10}
+          blueOffset={20}
+          backgroundOpacity={0.28}
+          saturation={1}
+          className="inline-flex max-w-full"
+          contentClassName="px-4 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-center w-auto h-auto"
+        >
           {linkCards}
-        </div>
+        </GlassSurface>
       ) : (
         <div className="w-full max-w-5xl mx-auto flex justify-center">
           {linkCards}

@@ -197,7 +197,7 @@ export const SearchEnginesManager: React.FC<SearchEnginesManagerProps> = ({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                   className={`flex items-center justify-between p-3 rounded-2xl transition-all border-0 outline-none shadow-xs ${
                     isDefault
                       ? 'bg-rose-50/90 dark:bg-[var(--accent-color)]/15'

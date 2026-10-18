@@ -100,7 +100,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ config, inline = f
     <motion.div
       initial={false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       {content}
     </motion.div>

@@ -80,6 +80,11 @@ export interface CustomizerSettings {
   searchInNewTab: boolean
   searchEngines: SearchEngineItem[]
 
+  // Now Playing Media Pill
+  showMediaPill: boolean
+  mediaPillHoverExpand: boolean
+  mediaPillShowControls: boolean
+
   // Quick Links (Bonjourr / Apple Dock Pattern)
   showQuickLinks: boolean
   bookmarksInNewTab: boolean

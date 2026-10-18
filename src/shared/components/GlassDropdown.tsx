@@ -188,7 +188,7 @@ export function GlassDropdown<T extends string | number = string>({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         onClick={toggleDropdown}
-        className={`glass-dropdown-trigger h-10 w-full flex items-center justify-between px-3.5 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-150 border-0 outline-none ring-0 shadow-[0_1px_3px_rgba(20,20,19,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.35)] ${
+        className={`glass-dropdown-trigger h-10 w-full flex items-center justify-between px-3.5 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] border-0 outline-none ring-0 shadow-[0_1px_3px_rgba(20,20,19,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.35)] ${
           isOpen
             ? 'bg-[#fcfbf9] text-[#141413] dark:bg-[#35312b] dark:text-[#faf9f5]'
             : 'bg-white hover:bg-[#faf9f5] text-[#141413] dark:bg-[#2b2824] dark:hover:bg-[#35312b] dark:text-[#faf9f5]'
@@ -216,7 +216,7 @@ export function GlassDropdown<T extends string | number = string>({
             </span>
           )}
           <ChevronDown
-            className={`w-3.5 h-3.5 opacity-60 shrink-0 transition-transform duration-200 ${
+            className={`w-3.5 h-3.5 opacity-60 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
               isOpen ? 'rotate-180 text-[var(--accent-color)] opacity-100' : ''
             }`}
           />
@@ -228,15 +228,22 @@ export function GlassDropdown<T extends string | number = string>({
         {isOpen && (
           <motion.div
             initial={{
-              opacity: 1,
+              opacity: 0,
+              y: isUpward ? 6 : -6,
+              scale: 0.96,
             }}
             animate={{
               opacity: 1,
+              y: 0,
+              scale: 1,
             }}
             exit={{
               opacity: 0,
+              y: isUpward ? 4 : -4,
+              scale: 0.97,
             }}
-            transition={{ duration: 0.1, ease: 'easeOut' }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            style={{ transformOrigin: isUpward ? 'bottom' : 'top' }}
             className={`glass-dropdown-menu absolute z-50 ${
               align === 'right' ? 'right-0' : 'left-0'
             } ${

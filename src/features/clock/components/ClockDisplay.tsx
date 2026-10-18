@@ -60,7 +60,7 @@ export const ClockDisplay: React.FC<ClockDisplayProps> = ({
             marginBottom: 'var(--clock-period-offset, 0.08em)',
             letterSpacing: '0.12em',
           }}
-          className="ml-2 sm:ml-2.5 font-semibold uppercase text-white/65 text-contrast-strong select-none self-end"
+          className="ml-2 sm:ml-2.5 font-semibold uppercase text-white/70 text-contrast-strong select-none self-end"
         >
           {time.period}
         </span>

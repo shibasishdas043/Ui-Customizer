@@ -35,7 +35,7 @@ export const QuotesWidget: React.FC<QuotesWidgetProps> = ({ config }) => {
 
           {/* Author Display (Always visible or hover reveal) */}
           <p
-            className={`text-[11px] font-medium text-white/80 text-contrast-subtle transition-opacity duration-300 ${
+            className={`text-[11px] font-medium text-white/85 text-contrast-subtle transition-opacity duration-300 ${
               alwaysShowAuthor ? 'opacity-90' : 'opacity-0 group-hover:opacity-90'
             }`}
           >
