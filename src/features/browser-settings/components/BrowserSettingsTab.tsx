@@ -192,14 +192,9 @@ export const BrowserSettingsTab: React.FC<BrowserSettingsTabProps> = ({ config, 
 
       {/* 4. Extension & Version Information */}
       <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3">
-        <h4 className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2] flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <Info className="w-3.5 h-3.5 text-[var(--accent-color)]" />
-            Extension Information
-          </span>
-          <span className="font-mono text-[10px] px-2 py-0.5 rounded-lg bg-[var(--accent-color)]/15 text-[var(--accent-color)] font-semibold lowercase tracking-normal">
-            v{version}
-          </span>
+        <h4 className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2] flex items-center gap-2">
+          <Info className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+          Extension Information
         </h4>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] shadow-xs">
