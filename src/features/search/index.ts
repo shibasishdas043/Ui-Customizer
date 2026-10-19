@@ -14,4 +14,28 @@ export {
   migrateSearchEnginesToPermanentCache,
   extractEngineDomain,
 } from './utils/searchFaviconHelper'
-export type { SearchEngineItem, SearchEngineId, SearchConfig } from './types'
+export {
+  loadSearchHistory,
+  getCachedSearchHistory,
+  addSearchHistory,
+  removeSearchHistoryItem,
+  clearAllSearchHistory,
+  calculateBaseFrecency,
+  formatRelativeTime,
+} from './utils/searchHistoryHelper'
+export {
+  scoreHistoryCandidate,
+  getHistoryMatches,
+  getTopGhostCompletion,
+  blendSuggestions,
+} from './utils/searchRankingHelper'
+export type {
+  SearchEngineItem,
+  SearchEngineId,
+  SearchConfig,
+  SearchHistoryItem,
+  SuggestionItem,
+  SuggestionType,
+  SuggestionMatchType,
+} from './types'
+

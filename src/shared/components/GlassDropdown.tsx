@@ -23,6 +23,7 @@ export interface GlassDropdownProps<T extends string | number = string> {
   onChange: (value: T) => void
   placeholder?: string
   disabled?: boolean
+  size?: 'sm' | 'md'
   className?: string
   triggerClassName?: string
   menuClassName?: string
@@ -39,6 +40,7 @@ export function GlassDropdown<T extends string | number = string>({
   onChange,
   placeholder = 'Select an option...',
   disabled = false,
+  size = 'md',
   className = '',
   triggerClassName = '',
   menuClassName = '',
@@ -188,7 +190,9 @@ export function GlassDropdown<T extends string | number = string>({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         onClick={toggleDropdown}
-        className={`glass-dropdown-trigger h-10 w-full flex items-center justify-between px-3.5 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] border-0 outline-none ring-0 shadow-[0_1px_3px_rgba(20,20,19,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.35)] ${
+        className={`glass-dropdown-trigger ${
+          size === 'sm' ? 'h-8.5 px-3 rounded-xl' : 'h-10 px-3.5 rounded-xl'
+        } w-full flex items-center justify-between text-xs font-semibold cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] border-0 outline-none ring-0 shadow-[0_1px_3px_rgba(20,20,19,0.08)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.35)] ${
           isOpen
             ? 'bg-[#fcfbf9] text-[#141413] dark:bg-[#35312b] dark:text-[#faf9f5]'
             : 'bg-white hover:bg-[#faf9f5] text-[#141413] dark:bg-[#2b2824] dark:hover:bg-[#35312b] dark:text-[#faf9f5]'
@@ -245,9 +249,7 @@ export function GlassDropdown<T extends string | number = string>({
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             style={{ transformOrigin: isUpward ? 'bottom' : 'top' }}
             className={`glass-dropdown-menu absolute z-50 ${
-              align === 'right' ? 'right-0' : 'left-0'
-            } ${
-              align === 'right' ? 'w-56 sm:w-64' : 'w-full'
+              align === 'right' ? 'right-0 min-w-full w-56 sm:w-64' : 'left-0 w-full'
             } ${
               isUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
             } bg-white dark:bg-[#252320] rounded-2xl p-1 shadow-[0_16px_40px_rgba(20,20,19,0.15)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.85)] border-0 outline-none ring-0 max-h-[300px] overflow-y-auto scrollbar-none ${menuClassName}`}
@@ -308,7 +310,7 @@ export function GlassDropdown<T extends string | number = string>({
                         </span>
                       )}
                       {isSelected && (
-                        <Check className="w-3.5 h-3.5 text-[var(--accent-color)] stroke-[2.5]" />
+                        <Check className="w-3.5 h-3.5 text-current stroke-[2.5]" />
                       )}
                     </div>
                   </button>

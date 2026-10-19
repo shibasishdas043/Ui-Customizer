@@ -693,15 +693,19 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
           {settings.showQuotes && (
             <div className="pt-2 border-t border-black/5 dark:border-white/5 space-y-4">
               {/* Quote Collection Dropdown */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-[#141413] dark:text-slate-300">
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs font-medium text-[#141413] dark:text-slate-300">
                   Quote Collection
-                </label>
-                <GlassDropdown
-                  value={settings.quoteType || 'classic'}
-                  options={QUOTE_TYPE_OPTIONS}
-                  onChange={(val) => onUpdate({ quoteType: val })}
-                />
+                </span>
+                <div className="w-56 sm:w-64">
+                  <GlassDropdown
+                    value={settings.quoteType || 'classic'}
+                    options={QUOTE_TYPE_OPTIONS}
+                    onChange={(val) => onUpdate({ quoteType: val })}
+                    align="right"
+                    size="sm"
+                  />
+                </div>
               </div>
 
               {/* Language Selection for Classic Quotes */}
@@ -730,15 +734,19 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
               )}
 
               {/* Rotation Frequency Dropdown */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-[#141413] dark:text-slate-300">
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs font-medium text-[#141413] dark:text-slate-300">
                   Rotation Frequency
-                </label>
-                <GlassDropdown
-                  value={settings.quoteFrequency || 'tabs'}
-                  options={QUOTE_FREQUENCY_OPTIONS}
-                  onChange={(val) => onUpdate({ quoteFrequency: val })}
-                />
+                </span>
+                <div className="w-48 sm:w-56">
+                  <GlassDropdown
+                    value={settings.quoteFrequency || 'tabs'}
+                    options={QUOTE_FREQUENCY_OPTIONS}
+                    onChange={(val) => onUpdate({ quoteFrequency: val })}
+                    align="right"
+                    size="sm"
+                  />
+                </div>
               </div>
 
               {/* Always Show Author Toggle */}
@@ -921,9 +929,9 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
           </label>
 
           {/* Style Mode Selector */}
-          <div className="space-y-1.5 pt-1">
+          <div className="flex items-center justify-between pt-1">
             <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Dock Style</span>
-            <div className="grid grid-cols-4 gap-1.5 p-1 bg-black/5 dark:bg-white/[0.04] rounded-xl">
+            <div className="flex p-0.5 rounded-xl bg-black/5 dark:bg-white/[0.04] text-xs font-medium gap-0.5">
               {(
                 [
                   { id: 'dock', label: 'macOS Dock' },
@@ -938,7 +946,7 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                     key={mode.id}
                     type="button"
                     onClick={() => onUpdate({ quickLinksStyle: mode.id })}
-                    className={`py-1.5 px-1 rounded-lg text-[11px] font-semibold text-center cursor-pointer transition-colors border-0 outline-none ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors border-0 outline-none ${
                       isActive
                         ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
                         : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white'

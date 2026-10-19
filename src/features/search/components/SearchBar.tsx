@@ -1,16 +1,28 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import type React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search } from 'lucide-react'
-import type { SearchEngineItem } from '../types'
+import type { SearchEngineItem, SearchHistoryItem, SuggestionItem } from '../types'
 import { DEFAULT_SEARCH_ENGINES } from '../config/defaultEngines'
 import { EngineSelector, EngineSelectorDropdown } from './EngineSelector'
 import { SearchEngineIcon } from './SearchEngineIcon'
 import { SearchSuggestionsDropdown } from './SearchSuggestionsDropdown'
-import { buildSearchUrl } from '../utils/searchUrlHelper'
+import { buildSearchUrl, isValidUrl } from '../utils/searchUrlHelper'
 import { migrateSearchEnginesToPermanentCache } from '../utils/searchFaviconHelper'
 import { fetchSearchSuggestions } from '../utils/searchSuggestionsHelper'
+import {
+  loadSearchHistory,
+  addSearchHistory,
+  removeSearchHistoryItem,
+  clearAllSearchHistory,
+} from '../utils/searchHistoryHelper'
+import {
+  getHistoryMatches,
+  getTopGhostCompletion,
+  blendSuggestions,
+} from '../utils/searchRankingHelper'
 import { GlassSurface } from '../../../shared/components/GlassSurface'
+
 
 interface SearchBarProps {
   currentEngine: string
@@ -43,11 +55,29 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false)
+  const [history, setHistory] = useState<SearchHistoryItem[]>([])
 
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const rawTypedQueryRef = useRef<string>('')
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const isTyping = query.trim().length > 0
+
+  // Cleanup pending blur timers on unmount
+  useEffect(() => {
+    return () => {
+      if (blurTimerRef.current) {
+        clearTimeout(blurTimerRef.current)
+      }
+    }
+  }, [])
+
+  // Load search history from local/extension storage on mount
+  useEffect(() => {
+    loadSearchHistory().then(setHistory)
+  }, [])
+
 
   // Real-time synchronization of typing state with parent hero row coordinator
   useEffect(() => {
@@ -229,8 +259,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     const trimmed = query.trim()
     if (!trimmed || !isFocused) {
       const resetTimer = setTimeout(() => {
-        setSuggestions([])
-        setSelectedIndex(-1)
+        setSuggestions((prev) => (prev.length > 0 ? [] : prev))
+        setSelectedIndex((prev) => (prev !== -1 ? -1 : prev))
       }, 0)
       return () => clearTimeout(resetTimer)
     }
@@ -252,34 +282,94 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     }
   }, [query, currentEngine, isFocused])
 
-  if (!visible) return null
-
   const activeEnginesList = engines && engines.length > 0 ? engines : DEFAULT_SEARCH_ENGINES
   const activeEngine =
     activeEnginesList.find((e) => e.id === currentEngine) || activeEnginesList[0]
 
-  const allDropdownItems = isTyping
-    ? [
-        query.trim(),
-        ...suggestions
-          .filter((s) => s.trim().toLowerCase() !== query.trim().toLowerCase())
-          .slice(0, 7),
-      ]
-    : []
+
+  const trimmedQuery = query.trim()
+
+  // Compute matching history items based on frecency and query match
+  const historyMatches = useMemo(() => {
+    return getHistoryMatches(trimmedQuery, history, 4)
+  }, [trimmedQuery, history])
+
+  // Calculate top candidate for inline ghost auto-completion
+  const ghostCandidate = useMemo(() => {
+    return getTopGhostCompletion(query, historyMatches, suggestions)
+  }, [query, historyMatches, suggestions])
+
+  // Remainder to show as ghost text overlay
+  const ghostRemainder =
+    ghostCandidate &&
+    ghostCandidate.toLowerCase().startsWith(query.toLowerCase()) &&
+    ghostCandidate.length > query.length
+      ? ghostCandidate.slice(query.length)
+      : ''
+
+  // Unified items for the suggestions dropdown (strictly active only when typing)
+  const dropdownItems: SuggestionItem[] = useMemo(() => {
+    if (!isTyping || !trimmedQuery) {
+      return []
+    }
+    return [
+      {
+        id: 'current_query',
+        type: 'current-query',
+        query: trimmedQuery,
+        score: 1000,
+      },
+      ...blendSuggestions(trimmedQuery, historyMatches, suggestions, 7),
+    ]
+  }, [isTyping, trimmedQuery, historyMatches, suggestions])
+
+
+  const executeDirectUrlNavigation = (url: string) => {
+    setShowSuggestions(false)
+    setDropdownOpen(false)
+    if (searchInNewTab) {
+      window.open(url, '_blank')
+    } else {
+      window.location.assign(url)
+    }
+  }
 
   const executeSearchWithEngine = (engineId: string, customQuery?: string) => {
+    const selectedItem = selectedIndex >= 0 ? dropdownItems[selectedIndex] : null
+
+    // 1. If user selected a direct URL recommendation
+    if (selectedItem?.type === 'url' && selectedItem.url) {
+      addSearchHistory(selectedItem.query, currentEngine).then(setHistory)
+      executeDirectUrlNavigation(selectedItem.url)
+      return
+    }
+
     const rawTarget =
       customQuery !== undefined
         ? customQuery
-        : selectedIndex >= 0 && allDropdownItems[selectedIndex]
-        ? allDropdownItems[selectedIndex]
+        : selectedItem
+        ? selectedItem.query
+        : ghostRemainder && isFocused && selectedIndex === -1
+        ? query + ghostRemainder
         : query
+
     const trimmed = rawTarget.trim()
     if (!trimmed) return
 
+    // 2. Direct URL navigation check (e.g. user typed "github.com" or "localhost:3000")
+    if (isValidUrl(trimmed)) {
+      addSearchHistory(trimmed, engineId).then(setHistory)
+      const directUrl = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+      executeDirectUrlNavigation(directUrl)
+      return
+    }
+
+    // 3. Asynchronously record into smart search history
+    addSearchHistory(trimmed, engineId).then(setHistory)
+
     const engineToUse = activeEnginesList.find((e) => e.id === engineId) || activeEngine
 
-    // Per user choice A1: Update active engine for future searches as well!
+    // Update active engine for future searches
     if (engineId !== currentEngine) {
       onEngineChange(engineId)
     }
@@ -295,56 +385,149 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     }
   }
 
+  const handleRemoveHistoryItem = (targetQuery: string) => {
+    removeSearchHistoryItem(targetQuery).then(setHistory)
+  }
+
+  const handleClearAllHistory = () => {
+    clearAllSearchHistory().then(() => setHistory([]))
+  }
+
+  const handleInsertSuggestion = (suggestionText: string) => {
+    setQuery(suggestionText)
+    rawTypedQueryRef.current = suggestionText
+    setSelectedIndex(-1)
+    setShowSuggestions(true)
+    if (inputRef.current) {
+      inputRef.current.focus()
+      const len = suggestionText.length
+      inputRef.current.setSelectionRange(len, len)
+    }
+  }
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const selectedItem = selectedIndex >= 0 ? dropdownItems[selectedIndex] : null
     const targetQuery =
-      selectedIndex >= 0 && allDropdownItems[selectedIndex]
-        ? allDropdownItems[selectedIndex]
+      selectedItem
+        ? selectedItem.query
+        : ghostRemainder && isFocused && selectedIndex === -1
+        ? query + ghostRemainder
         : query
     executeSearchWithEngine(currentEngine, targetQuery)
   }
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Tab / Shift+Tab cycles through the right-side search engines when typing
-    if (e.key === 'Tab' && isTyping && activeEnginesList.length > 1) {
-      e.preventDefault()
-      const currentIndex = activeEnginesList.findIndex((eng) => eng.id === currentEngine)
-      const validIndex = currentIndex >= 0 ? currentIndex : 0
-
-      const targetIndex = e.shiftKey
-        ? (validIndex - 1 + activeEnginesList.length) % activeEnginesList.length
-        : (validIndex + 1) % activeEnginesList.length
-
-      const nextEngine = activeEnginesList[targetIndex]
-      if (nextEngine) {
-        onEngineChange(nextEngine.id)
+    // 1. Shift + Delete: Chrome Omnibox instant removal of highlighted history suggestion
+    if (e.shiftKey && e.key === 'Delete') {
+      if (selectedIndex >= 0 && dropdownItems[selectedIndex]?.type === 'history') {
+        e.preventDefault()
+        const target = dropdownItems[selectedIndex].query
+        handleRemoveHistoryItem(target)
+        setSelectedIndex(-1)
+        setQuery(rawTypedQueryRef.current)
+        return
       }
-      return
     }
 
-    if (e.key === 'ArrowDown') {
-      if (allDropdownItems.length > 0) {
+    // 2. Ctrl + Enter or Cmd + Enter: Browser Omnibox append "www. ... .com"
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault()
+      const clean = (selectedIndex >= 0 && dropdownItems[selectedIndex] ? dropdownItems[selectedIndex].query : query).trim()
+      if (clean) {
+        const url = /^https?:\/\//i.test(clean)
+          ? clean
+          : `https://www.${clean.replace(/^(https?:\/\/)?(www\.)?/, '')}.com`
+        addSearchHistory(clean, currentEngine).then(setHistory)
+        executeDirectUrlNavigation(url)
+        return
+      }
+    }
+
+    // 3. Tab key: First priority completes inline ghost text!
+    if (e.key === 'Tab') {
+      if (ghostRemainder && selectedIndex === -1) {
         e.preventDefault()
-        setSelectedIndex((prev) => (prev + 1 >= allDropdownItems.length ? 0 : prev + 1))
+        const completed = query + ghostRemainder
+        setQuery(completed)
+        rawTypedQueryRef.current = completed
+        return
+      }
+
+      // Second priority: cycles through right-side search engines when typing
+      if (isTyping && activeEnginesList.length > 1) {
+        e.preventDefault()
+        const currentIndex = activeEnginesList.findIndex((eng) => eng.id === currentEngine)
+        const validIndex = currentIndex >= 0 ? currentIndex : 0
+
+        const targetIndex = e.shiftKey
+          ? (validIndex - 1 + activeEnginesList.length) % activeEnginesList.length
+          : (validIndex + 1) % activeEnginesList.length
+
+        const nextEngine = activeEnginesList[targetIndex]
+        if (nextEngine) {
+          onEngineChange(nextEngine.id)
+        }
+        return
+      }
+    }
+
+    // 4. ArrowRight or End key: accepts ghost completion when caret is at the end of input
+    if ((e.key === 'ArrowRight' || e.key === 'End') && ghostRemainder && selectedIndex === -1) {
+      const input = inputRef.current
+      if (input && input.selectionStart === query.length && input.selectionEnd === query.length) {
+        e.preventDefault()
+        const completed = query + ghostRemainder
+        setQuery(completed)
+        rawTypedQueryRef.current = completed
+        return
+      }
+    }
+
+    // 5. ArrowDown: navigates dropdown suggestions with live input reflection (Google style)
+    if (e.key === 'ArrowDown') {
+      if (dropdownItems.length > 0) {
+        e.preventDefault()
+        const nextIndex = selectedIndex + 1 >= dropdownItems.length ? -1 : selectedIndex + 1
+        setSelectedIndex(nextIndex)
         setShowSuggestions(true)
+        if (nextIndex >= 0 && dropdownItems[nextIndex]) {
+          setQuery(dropdownItems[nextIndex].query)
+        } else {
+          setQuery(rawTypedQueryRef.current)
+        }
       }
     } else if (e.key === 'ArrowUp') {
-      if (allDropdownItems.length > 0) {
+      if (dropdownItems.length > 0) {
         e.preventDefault()
-        setSelectedIndex((prev) => (prev <= 0 ? allDropdownItems.length - 1 : prev - 1))
+        const nextIndex = selectedIndex <= -1 ? dropdownItems.length - 1 : selectedIndex - 1
+        setSelectedIndex(nextIndex)
         setShowSuggestions(true)
+        if (nextIndex >= 0 && dropdownItems[nextIndex]) {
+          setQuery(dropdownItems[nextIndex].query)
+        } else {
+          setQuery(rawTypedQueryRef.current)
+        }
       }
     } else if (e.key === 'Escape') {
-      setShowSuggestions(false)
-      setSelectedIndex(-1)
+      if (showSuggestions || ghostRemainder || selectedIndex >= 0) {
+        e.preventDefault()
+        setShowSuggestions(false)
+        setSelectedIndex(-1)
+        setQuery(rawTypedQueryRef.current)
+      } else {
+        inputRef.current?.blur()
+      }
     }
   }
+
+  if (!visible) return null
 
   return (
     <div
       ref={containerRef}
       className={`w-full mx-auto relative ${
-        dropdownOpen || (isTyping && showSuggestions) ? 'z-50' : 'z-20'
+        dropdownOpen || (isTyping && showSuggestions && dropdownItems.length > 0) ? 'z-50' : 'z-20'
       } ${className !== undefined ? className : 'px-4'}`}
     >
       <div className="relative w-full">
@@ -379,7 +562,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             isCollapsed && !isTyping ? 'justify-center p-0' : 'px-3.5 sm:px-4'
           }`}
         >
-          {/* Left Side: Search Engine Selector (Always present, maintaining clear engine identity) */}
+          {/* Left Side: Search Engine Selector */}
           <div className="shrink-0 flex items-center justify-center">
             <EngineSelector
               currentEngineId={currentEngine}
@@ -397,48 +580,97 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             />
           </div>
 
-          {/* Search Input Field */}
-          <input
-            ref={inputRef}
-            id="aura-search-input"
-            autoFocus={visible}
-            type="text"
-            value={query}
-            onChange={(e) => {
-              const val = e.target.value
-              setQuery(val)
-              if (dropdownOpen) setDropdownOpen(false)
-              if (val.trim().length > 0) {
-                setShowSuggestions(true)
-              } else {
-                setShowSuggestions(false)
-                setSelectedIndex(-1)
+          {/* Search Input Field with Inline Ghost Completion Overlay */}
+          <div className="relative flex-1 min-w-0 flex items-center h-full">
+            {/* Ghost Auto-Completion Layer (Strictly Aligned) */}
+            {ghostRemainder && selectedIndex === -1 && !isCollapsed && isFocused && (
+              <div
+                className="absolute inset-0 flex items-center pointer-events-none select-none px-2.5 text-sm sm:text-base font-medium truncate leading-normal"
+                aria-hidden="true"
+              >
+                <span className="opacity-0 whitespace-pre">{query}</span>
+                <span className="text-neutral-500 dark:text-neutral-400 font-normal whitespace-pre opacity-70">
+                  {ghostRemainder}
+                </span>
+              </div>
+            )}
+
+            <input
+              ref={inputRef}
+              id="aura-search-input"
+              autoFocus={visible}
+              type="text"
+              value={query}
+              onChange={(e) => {
+                const val = e.target.value
+
+                // Fast Omnibox Bang shortcut check (e.g. "!yt ", "!w ", "!g ", "!d ")
+                const bangMatch = val.match(/^!([a-zA-Z0-9]+)\s+(.*)$/)
+                if (bangMatch) {
+                  const shortcutKey = bangMatch[1].toLowerCase()
+                  const remainderQuery = bangMatch[2]
+                  const matchedEngine = activeEnginesList.find(
+                    (eng) =>
+                      eng.shortcut?.toLowerCase() === `!${shortcutKey}` ||
+                      eng.shortcut?.toLowerCase() === shortcutKey ||
+                      eng.id.toLowerCase() === shortcutKey
+                  )
+                  if (matchedEngine) {
+                    onEngineChange(matchedEngine.id)
+                    setQuery(remainderQuery)
+                    rawTypedQueryRef.current = remainderQuery
+                    setSelectedIndex(-1)
+                    setShowSuggestions(true)
+                    return
+                  }
+                }
+
+                setQuery(val)
+                rawTypedQueryRef.current = val
+                if (dropdownOpen) setDropdownOpen(false)
+                if (val.trim().length > 0) {
+                  setShowSuggestions(true)
+                } else {
+                  setShowSuggestions(false)
+                  setSelectedIndex(-1)
+                }
+              }}
+              onKeyDown={handleInputKeyDown}
+              onFocus={() => {
+                if (blurTimerRef.current) {
+                  clearTimeout(blurTimerRef.current)
+                  blurTimerRef.current = null
+                }
+                setIsFocused(true)
+                if (query.trim().length > 0) {
+                  setShowSuggestions(true)
+                } else {
+                  setShowSuggestions(false)
+                  setSelectedIndex(-1)
+                }
+              }}
+              onBlur={() => {
+                // Keep focused true slightly for click events
+                if (blurTimerRef.current) {
+                  clearTimeout(blurTimerRef.current)
+                }
+                blurTimerRef.current = setTimeout(() => {
+                  setIsFocused(false)
+                  setShowSuggestions(false)
+                }, 250)
+              }}
+
+              placeholder={
+                isCollapsed
+                  ? 'Search...'
+                  : `Search with ${activeEngine.name} or type a URL...`
               }
-            }}
-            onKeyDown={handleInputKeyDown}
-            onFocus={() => {
-              setIsFocused(true)
-              if (query.trim().length > 0) {
-                setShowSuggestions(true)
-              }
-            }}
-            onBlur={() => {
-              // Keep focused true slightly for click events
-              setTimeout(() => {
-                setIsFocused(false)
-                setShowSuggestions(false)
-              }, 250)
-            }}
-            placeholder={
-              isCollapsed
-                ? 'Search...'
-                : `Search with ${activeEngine.name} or type a URL...`
-            }
-            title={`Search with ${activeEngine.name} (Alt+L or / to focus)`}
-            className={`flex-1 min-w-0 bg-transparent py-1 text-sm sm:text-base text-black dark:text-white placeholder-neutral-600 dark:placeholder-white/45 font-medium focus:outline-none transition-opacity duration-200 ${
-              isCollapsed && !isTyping ? 'sr-only' : 'px-2.5 opacity-100'
-            }`}
-          />
+              title={`Search with ${activeEngine.name} (Alt+L or / to focus)`}
+              className={`w-full bg-transparent py-1 text-sm sm:text-base text-black dark:text-white placeholder-neutral-600 dark:placeholder-white/45 font-medium focus:outline-none transition-opacity duration-200 ${
+                isCollapsed && !isTyping ? 'sr-only' : 'px-2.5 opacity-100'
+              }`}
+            />
+          </div>
 
           {/* Right Side: Normal submit button (when empty) OR row of round engine icons (when typing) */}
           {(!isCollapsed || isTyping) && (
@@ -517,11 +749,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Realtime Autocomplete Suggestions Dropdown */}
+      {/* Realtime Autocomplete & History Suggestions Dropdown */}
       <AnimatePresence>
-        {isTyping && showSuggestions && (
+        {isTyping && showSuggestions && dropdownItems.length > 0 && (
           <SearchSuggestionsDropdown
-            suggestions={suggestions}
+            items={dropdownItems}
             selectedIndex={selectedIndex}
             query={query}
             activeEngine={activeEngine}
@@ -529,6 +761,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               setQuery(selectedSuggestion)
               executeSearchWithEngine(currentEngine, selectedSuggestion)
             }}
+            onInsert={handleInsertSuggestion}
+            onRemoveHistoryItem={handleRemoveHistoryItem}
+            onClearAllHistory={handleClearAllHistory}
           />
         )}
       </AnimatePresence>
@@ -536,3 +771,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     </div>
   )
 }
+
+
+

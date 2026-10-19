@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useId, useCallback } from 'react'
+import { useEffect, useState, useRef, useId, useCallback, useMemo } from 'react'
 import type React from 'react'
 import type { ReactNode, CSSProperties, RefObject } from 'react'
 import './GlassSurface.css'
@@ -304,6 +304,68 @@ const bendShape = (trace: TraceResult, edge: number, softness: number, calm: num
   })
 }
 
+const displacementMapCache = new Map<string, string>()
+
+const getOrCreateDisplacementMap = (
+  width: number,
+  height: number,
+  borderRadius: number,
+  borderWidth: number,
+  brightness: number,
+  opacity: number,
+  blur: number,
+  mixBlendMode: string
+): string => {
+  const actualWidth = Math.max(1, Math.round(width))
+  const actualHeight = Math.max(1, Math.round(height))
+  const key = `${actualWidth}x${actualHeight}_r${borderRadius}_bw${borderWidth}_b${brightness}_o${opacity}_bl${blur}_m${mixBlendMode}`
+  const cached = displacementMapCache.get(key)
+  if (cached) return cached
+
+  const edgeSize = Math.min(actualWidth, actualHeight) * (borderWidth * 0.5)
+
+  // Use standard static IDs inside the isolated SVG document so the data URI is 100% deterministic & hits browser image cache
+  const svgContent = `
+    <svg width="${actualWidth}" height="${actualHeight}" viewBox="0 0 ${actualWidth} ${actualHeight}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="red-grad" x1="100%" y1="0%" x2="0%" y2="0%">
+          <stop offset="0%" stop-color="#0000"/>
+          <stop offset="100%" stop-color="red"/>
+        </linearGradient>
+        <linearGradient id="blue-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#0000"/>
+          <stop offset="100%" stop-color="blue"/>
+        </linearGradient>
+        <filter id="soft" filterUnits="userSpaceOnUse" x="0" y="0" width="${actualWidth}" height="${actualHeight}" color-interpolation-filters="sRGB">
+          <feGaussianBlur stdDeviation="${blur}" />
+        </filter>
+      </defs>
+      <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" fill="black"></rect>
+      <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" rx="${borderRadius}" fill="url(#red-grad)" />
+      <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" rx="${borderRadius}" fill="url(#blue-grad)" style="mix-blend-mode: ${mixBlendMode}" />
+      <rect x="${edgeSize}" y="${edgeSize}" width="${actualWidth - edgeSize * 2}" height="${actualHeight - edgeSize * 2}" rx="${borderRadius}" fill="hsl(0 0% ${brightness}% / ${opacity})" filter="url(#soft)" />
+    </svg>
+  `
+
+  const url = `data:image/svg+xml,${encodeURIComponent(svgContent)}`
+  displacementMapCache.set(key, url)
+  return url
+}
+
+// Pre-warm commonly used displacement maps into the browser image cache
+if (typeof window !== 'undefined') {
+  try {
+    const barMap = getOrCreateDisplacementMap(600, 50, 25, 0.07, 50, 0.93, 11, 'difference')
+    const dropMap = getOrCreateDisplacementMap(600, 300, 24, 0.07, 50, 0.93, 11, 'difference')
+    const img1 = new Image()
+    img1.src = barMap
+    const img2 = new Image()
+    img2.src = dropMap
+  } catch {
+    // Non-browser or SSR fallback
+  }
+}
+
 const supportsSVGFilters = (filterId: string): boolean => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return false
@@ -387,9 +449,21 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
 }) => {
   const uniqueId = useId().replace(/:/g, '-')
   const filterId = `glass-filter-${uniqueId}`
-  const redGradId = `red-grad-${uniqueId}`
-  const blueGradId = `blue-grad-${uniqueId}`
-  const softId = `soft-${uniqueId}`
+
+  const initialMapUrl = useMemo(() => {
+    const initialW = typeof width === 'number' ? width : 600
+    const initialH = typeof height === 'number' ? height : (height === 'auto' ? 300 : 80)
+    return getOrCreateDisplacementMap(
+      initialW,
+      initialH,
+      borderRadius,
+      borderWidth,
+      brightness,
+      opacity,
+      blur,
+      mixBlendMode
+    )
+  }, [width, height, borderRadius, borderWidth, brightness, opacity, blur, mixBlendMode])
 
   const [svgSupported] = useState(() => (typeof window !== 'undefined' ? supportsSVGFilters(filterId) : false))
   const [checked] = useState(true)
@@ -406,7 +480,7 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
   const gaussianBlurRef = useRef<SVGFEGaussianBlurElement | null>(null)
   const traceRef = useRef<TraceResult | null>(null)
   const shapeMapRef = useRef('')
-  const mapUrlRef = useRef('')
+  const mapUrlRef = useRef<string>(initialMapUrl)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const settingsRef = useRef({
@@ -437,38 +511,26 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
 
   const generateDisplacementMap = useCallback(() => {
     const rect = containerRef.current?.getBoundingClientRect()
-    const actualWidth = rect?.width || 400
-    const actualHeight = rect?.height || 200
-    const edgeSize = Math.min(actualWidth, actualHeight) * (borderWidth * 0.5)
-
-    const svgContent = `
-      <svg width="${actualWidth}" height="${actualHeight}" viewBox="0 0 ${actualWidth} ${actualHeight}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="${redGradId}" x1="100%" y1="0%" x2="0%" y2="0%">
-            <stop offset="0%" stop-color="#0000"/>
-            <stop offset="100%" stop-color="red"/>
-          </linearGradient>
-          <linearGradient id="${blueGradId}" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#0000"/>
-            <stop offset="100%" stop-color="blue"/>
-          </linearGradient>
-          <filter id="${softId}" filterUnits="userSpaceOnUse" x="0" y="0" width="${actualWidth}" height="${actualHeight}" color-interpolation-filters="sRGB">
-            <feGaussianBlur stdDeviation="${blur}" />
-          </filter>
-        </defs>
-        <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" fill="black"></rect>
-        <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" rx="${borderRadius}" fill="url(#${redGradId})" />
-        <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" rx="${borderRadius}" fill="url(#${blueGradId})" style="mix-blend-mode: ${mixBlendMode}" />
-        <rect x="${edgeSize}" y="${edgeSize}" width="${actualWidth - edgeSize * 2}" height="${actualHeight - edgeSize * 2}" rx="${borderRadius}" fill="hsl(0 0% ${brightness}% / ${opacity})" filter="url(#${softId})" />
-      </svg>
-    `
-
-    return `data:image/svg+xml,${encodeURIComponent(svgContent)}`
-  }, [redGradId, blueGradId, softId, blur, borderRadius, mixBlendMode, borderWidth, brightness, opacity])
+    const actualWidth = rect?.width || (typeof width === 'number' ? width : 600)
+    const actualHeight = rect?.height || (typeof height === 'number' ? height : (height === 'auto' ? 300 : 80))
+    return getOrCreateDisplacementMap(
+      actualWidth,
+      actualHeight,
+      borderRadius,
+      borderWidth,
+      brightness,
+      opacity,
+      blur,
+      mixBlendMode
+    )
+  }, [width, height, borderRadius, borderWidth, brightness, opacity, blur, mixBlendMode])
 
   const updateDisplacementMap = useCallback(() => {
-    mapUrlRef.current = shapeMapRef.current || generateDisplacementMap()
-    feImageRef.current?.setAttribute('href', mapUrlRef.current)
+    const nextUrl = shapeMapRef.current || generateDisplacementMap()
+    if (nextUrl !== mapUrlRef.current) {
+      mapUrlRef.current = nextUrl
+      feImageRef.current?.setAttribute('href', nextUrl)
+    }
   }, [generateDisplacementMap])
 
   useEffect(() => {
@@ -511,7 +573,10 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
 
     const resizeObserver = new ResizeObserver(() => {
       const element = containerRef.current
-      if (element) setBoxSize(`${element.offsetWidth}x${element.offsetHeight}`)
+      if (element) {
+        const next = `${element.offsetWidth}x${element.offsetHeight}`
+        setBoxSize((prev) => (prev !== next ? next : prev))
+      }
     })
 
     resizeObserver.observe(containerRef.current)
@@ -822,9 +887,27 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
       <svg className="glass-surface__filter" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <filter id={filterId} colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">
-            <feImage ref={feImageRef} x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map" />
+            <feImage
+              ref={feImageRef}
+              href={initialMapUrl}
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              preserveAspectRatio="none"
+              result="map"
+            />
 
-            <feDisplacementMap ref={redChannelRef} in="SourceGraphic" in2="map" id="redchannel" result="dispRed" />
+            <feDisplacementMap
+              ref={redChannelRef}
+              in="SourceGraphic"
+              in2="map"
+              id="redchannel"
+              result="dispRed"
+              scale={distortionScale + redOffset}
+              xChannelSelector={xChannel}
+              yChannelSelector={yChannel}
+            />
             <feColorMatrix
               in="dispRed"
               type="matrix"
@@ -841,6 +924,9 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
               in2="map"
               id="greenchannel"
               result="dispGreen"
+              scale={distortionScale + greenOffset}
+              xChannelSelector={xChannel}
+              yChannelSelector={yChannel}
             />
             <feColorMatrix
               in="dispGreen"
@@ -852,7 +938,16 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
               result="green"
             />
 
-            <feDisplacementMap ref={blueChannelRef} in="SourceGraphic" in2="map" id="bluechannel" result="dispBlue" />
+            <feDisplacementMap
+              ref={blueChannelRef}
+              in="SourceGraphic"
+              in2="map"
+              id="bluechannel"
+              result="dispBlue"
+              scale={distortionScale + blueOffset}
+              xChannelSelector={xChannel}
+              yChannelSelector={yChannel}
+            />
             <feColorMatrix
               in="dispBlue"
               type="matrix"
@@ -865,7 +960,7 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
 
             <feBlend in="red" in2="green" mode="screen" result="rg" />
             <feBlend in="rg" in2="blue" mode="screen" result="output" />
-            <feGaussianBlur ref={gaussianBlurRef} in="output" stdDeviation="0.7" />
+            <feGaussianBlur ref={gaussianBlurRef} in="output" stdDeviation={displace} />
           </filter>
         </defs>
       </svg>
