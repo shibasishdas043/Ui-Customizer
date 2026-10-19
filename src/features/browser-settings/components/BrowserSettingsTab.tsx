@@ -1,6 +1,25 @@
 import React from 'react'
-import { Globe, ArrowRight, ExternalLink, ShieldCheck, Home } from 'lucide-react'
+import { Globe, ArrowRight, ExternalLink, ShieldCheck, Home, Info, RefreshCw, CheckCircle2, Sparkles } from 'lucide-react'
 import type { BrowserBehaviorConfig } from '../types'
+import { getAppVersion, isExtensionRuntime } from '../../../shared'
+import { useAutoUpdate } from '../../auto-update'
+
+function formatLastChecked(timestamp: number): string {
+  if (!timestamp) return 'Never'
+  const diff = Date.now() - timestamp
+  if (diff < 60 * 1000) return 'Just now'
+  if (diff < 60 * 60 * 1000) {
+    const mins = Math.floor(diff / (60 * 1000))
+    return `${mins}m ago`
+  }
+  const date = new Date(timestamp)
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
 interface BrowserSettingsTabProps {
   config: BrowserBehaviorConfig
@@ -8,6 +27,10 @@ interface BrowserSettingsTabProps {
 }
 
 export const BrowserSettingsTab: React.FC<BrowserSettingsTabProps> = ({ config, onUpdate }) => {
+  const version = getAppVersion()
+  const isExtension = isExtensionRuntime()
+  const { updateInfo, checkForUpdate, applyUpdate } = useAutoUpdate()
+
   return (
     <div className="space-y-4">
       {/* Overview Banner */}
@@ -166,6 +189,95 @@ export const BrowserSettingsTab: React.FC<BrowserSettingsTabProps> = ({ config, 
           )}
         </div>
       </div>
+
+      {/* 4. Extension & Version Information */}
+      <div className="p-4 rounded-2xl bg-white/[0.03] space-y-3">
+        <h4 className="text-[11px] font-bold uppercase tracking-[1.5px] text-[#141413] dark:text-[#cfc4b2] flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Info className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+            Extension Information
+          </span>
+          <span className="font-mono text-[10px] px-2 py-0.5 rounded-lg bg-[var(--accent-color)]/15 text-[var(--accent-color)] font-semibold lowercase tracking-normal">
+            v{version}
+          </span>
+        </h4>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] shadow-xs">
+            <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#736e65] dark:text-[#a8a49c]">Installed Version</span>
+            <span className="font-mono font-bold text-sm text-[#141413] dark:text-[#faf9f5]">v{version}</span>
+          </div>
+          <div className="p-3 rounded-xl bg-white dark:bg-white/[0.04] shadow-xs">
+            <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#736e65] dark:text-[#a8a49c]">Runtime Platform</span>
+            <span className="font-semibold text-xs text-[#141413] dark:text-[#faf9f5] flex items-center gap-1.5 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+              <span>{isExtension ? 'Chrome Extension (MV3)' : 'Web Dashboard'}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Update Checker Status & Actions */}
+        <div className="pt-2.5 border-t border-black/5 dark:border-white/5 space-y-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <span className="block text-xs font-semibold text-[#141413] dark:text-[#faf9f5]">
+                Auto-Update Checker
+              </span>
+              <p className="text-[11px] text-[#736e65] dark:text-[#a8a49c] font-medium">
+                Checks daily • Last check: {formatLastChecked(updateInfo.lastCheckedTime)}
+              </p>
+            </div>
+
+            {updateInfo.status === 'update_available' ? (
+              <button
+                type="button"
+                onClick={applyUpdate}
+                className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Restart & Update</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={checkForUpdate}
+                disabled={updateInfo.status === 'checking'}
+                className="px-3 py-1.5 rounded-xl bg-white dark:bg-white/[0.06] hover:bg-black/5 dark:hover:bg-white/10 text-[#141413] dark:text-[#ece6dc] text-xs font-semibold flex items-center gap-1.5 border border-black/5 dark:border-white/5 disabled:opacity-50 transition-all cursor-pointer shadow-xs"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${updateInfo.status === 'checking' ? 'animate-spin text-[var(--accent-color)]' : ''}`} />
+                <span>{updateInfo.status === 'checking' ? 'Checking...' : 'Check for Updates'}</span>
+              </button>
+            )}
+          </div>
+
+          {/* Real-time status feedback */}
+          {updateInfo.status === 'up_to_date' && (
+            <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Aura is currently up to date (v{version}).</span>
+            </div>
+          )}
+
+          {updateInfo.status === 'update_available' && (
+            <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              <span>New version v{updateInfo.availableVersion} downloaded by Chrome! Click &ldquo;Restart &amp; Update&rdquo; to apply.</span>
+            </div>
+          )}
+
+          {updateInfo.status === 'throttled' && (
+            <p className="text-[10px] text-[#736e65] dark:text-[#a8a49c]">
+              Check throttled by Chrome (already checked recently).
+            </p>
+          )}
+
+          {updateInfo.error && (
+            <p className="text-[10px] text-amber-500">
+              Update check error: {updateInfo.error}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
+

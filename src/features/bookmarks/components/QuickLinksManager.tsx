@@ -211,7 +211,9 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
           <div className="pt-2.5 flex items-center justify-between">
             <div>
               <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Tile Backgrounds</span>
-              <p className="text-[11px] text-[#383531] dark:text-slate-400 font-medium">Show frosted squircle cards behind icons</p>
+              <p className="text-[11px] text-[#383531] dark:text-slate-400 font-medium">
+                {styleMode === 'inline' ? 'Show frosted glass capsules behind links' : 'Show frosted squircle cards behind icons'}
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -226,7 +228,7 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
         )}
 
         {/* Grid Columns (Bonjourr / Rea architectural pattern) */}
-        {onUpdateCols && (
+        {onUpdateCols && styleMode === 'grid' && (
           <div className="pt-2.5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Columns Per Row</span>
@@ -256,7 +258,7 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
         )}
 
         {/* Tile Size (Bonjourr pattern) */}
-        {onUpdateSize && (
+        {onUpdateSize && styleMode !== 'inline' && (
           <div className="pt-2.5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Icon Tile Size</span>

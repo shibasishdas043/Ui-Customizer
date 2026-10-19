@@ -4,3 +4,4 @@ export type { GlassDropdownOption, GlassDropdownProps } from './components/Glass
 export { useClickOutside } from './hooks/useClickOutside'
 export { useKeyboardShortcut } from './hooks/useKeyboardShortcut'
 export { useThemeIsDark } from './hooks/useThemeIsDark'
+export { getAppVersion, isExtensionRuntime } from './utils/version'

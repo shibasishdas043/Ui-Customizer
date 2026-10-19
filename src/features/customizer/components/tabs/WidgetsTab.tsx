@@ -964,7 +964,9 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
             <label className="flex items-center justify-between cursor-pointer pt-1">
               <div className="flex flex-col">
                 <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Tile Background</span>
-                <span className="text-[11px] text-[#383531] dark:text-slate-400">Frosted squircle tile vs transparent icon</span>
+                <span className="text-[11px] text-[#383531] dark:text-slate-400">
+                  {settings.quickLinksStyle === 'inline' ? 'Frosted capsule pill vs transparent capsule' : 'Frosted squircle tile vs transparent icon'}
+                </span>
               </div>
               <input
                 type="checkbox"

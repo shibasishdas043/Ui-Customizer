@@ -101,15 +101,16 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({
   if (!visible || links.length === 0) return null
 
   // Calculate layout classes (Bonjourr / Rea architectural pattern)
-  const isFixedCols = typeof cols === 'number' && cols > 0
+  // Columns only apply in 'grid' mode — 'inline' is a fluid pill row and 'dock' is a single-row shelf
+  const isFixedCols = styleMode === 'grid' && typeof cols === 'number' && cols > 0
 
   const getLayoutClasses = () => {
-    if (isFixedCols) {
-      return 'grid justify-items-center justify-center gap-3 sm:gap-4 md:gap-5'
+    if (styleMode === 'inline') {
+      return 'flex flex-wrap items-center justify-center gap-3 sm:gap-3.5 max-w-5xl mx-auto'
     }
 
-    if (styleMode === 'inline') {
-      return 'flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 max-w-4xl'
+    if (isFixedCols) {
+      return 'grid justify-items-center justify-center gap-3 sm:gap-4 md:gap-5'
     }
 
     // Auto-flow dock: flexible wrap with centered alignment so links naturally stay in 1 row!

@@ -83,26 +83,28 @@ export const MediaPill: React.FC<MediaPillProps> = ({
     }, 180)
   }
 
+  const targetWidth = isFullStandalone
+    ? '100%'
+    : isCircleCollapsed
+    ? 50
+    : isHoverExpanded
+    ? 440
+    : 190
+
   return (
     <motion.div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      initial={{ opacity: 0, scale: 0.95, y: 8 }}
+      initial={{ opacity: 0, scale: 0.95, y: 8, width: targetWidth }}
       animate={{
         opacity: 1,
         scale: 1,
         y: 0,
-        width: isFullStandalone
-          ? '100%'
-          : isCircleCollapsed
-          ? 50
-          : isHoverExpanded
-          ? 440
-          : 190,
+        width: targetWidth,
       }}
       exit={{ opacity: 0, scale: 0.9, y: 10 }}
       transition={{
-        duration: 0.52,
+        duration: 0.45,
         ease: [0.22, 1, 0.36, 1],
       }}
       className="relative rounded-full h-[50px] min-h-[50px] cursor-pointer select-none overflow-hidden shrink-0 max-w-[calc(100vw-80px)]"

@@ -11,7 +11,7 @@ interface BookmarkThumbnailProps {
   title: string
   url: string
   icon?: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
   className?: string
   interactive?: boolean
   showBackground?: boolean
@@ -160,6 +160,7 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
   const hasError = !displayIcon || failedIcon === displayIcon
 
   const dimensions = {
+    xs: 'w-7 h-7 rounded-full text-xs',
     sm: 'w-9 h-9 rounded-xl text-xs',
     md: 'w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-2xl text-base sm:text-lg',
     lg: 'w-16 h-16 rounded-2xl text-xl',
@@ -168,11 +169,13 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
   // Proportional icon sizing for bold, prominent display (Bonjourr pattern)
   const iconDimensions = showBackground
     ? {
+        xs: 'w-4.5 h-4.5',
         sm: 'w-5 h-5',
         md: 'w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9',
         lg: 'w-10 h-10',
       }[size]
     : {
+        xs: 'w-5.5 h-5.5',
         sm: 'w-7 h-7',
         md: 'w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11',
         lg: 'w-13 h-13',
@@ -181,12 +184,14 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
   const isMonochrome = title.toLowerCase().includes('github') || title.toLowerCase().includes('x /') || title.toLowerCase() === 'x'
 
   const sizePixels = {
+    xs: 28,
     sm: 38,
     md: 52,
     lg: 64,
   }[size]
 
   const radiusPixels = {
+    xs: 14,
     sm: 12,
     md: 18,
     lg: 22,
@@ -287,7 +292,7 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
 
     return (
       <div
-        className={`${dimensions} border-transparent shadow-none flex items-center justify-center overflow-hidden ${className}`}
+        className={`${dimensions} border-transparent shadow-none flex items-center justify-center overflow-hidden shrink-0 ${className}`}
       >
         <img
           src={displayIcon}
@@ -374,7 +379,7 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
     return (
       <motion.div
         variants={fallbackVariants}
-        className={`${dimensions} bg-gradient-to-br ${gradient} flex items-center justify-center font-bold text-white select-none border border-white/10 will-change-transform ${className}`}
+        className={`${dimensions} bg-gradient-to-br ${gradient} flex items-center justify-center font-bold text-white select-none border border-white/10 shrink-0 will-change-transform ${className}`}
       >
         {initial && initial !== '?' ? (
           <span className="tracking-tight drop-shadow-sm">{initial}</span>
@@ -387,7 +392,9 @@ export const BookmarkThumbnail: React.FC<BookmarkThumbnailProps> = ({
 
   return (
     <div
-      className={`${dimensions} bg-gradient-to-br ${gradient} flex items-center justify-center font-bold text-white shadow-lg select-none border border-white/10 ${className}`}
+      className={`${dimensions} bg-gradient-to-br ${gradient} flex items-center justify-center font-bold text-white ${
+        size === 'xs' ? 'shadow-none' : 'shadow-lg'
+      } shrink-0 select-none border border-white/10 ${className}`}
     >
       {initial && initial !== '?' ? (
         <span className="tracking-tight drop-shadow-sm">{initial}</span>

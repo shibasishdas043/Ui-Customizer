@@ -11,6 +11,7 @@ import { WeatherWidget } from '../features/weather'
 import { QuotesWidget } from '../features/quotes'
 import { useBrowserBehavior } from '../features/browser-settings'
 import { MediaPill, useNowPlayingTab } from '../features/media-pill'
+import { useAutoUpdate, UpdateAvailableToast } from '../features/auto-update'
 import type { AccentColor } from '../features/customizer'
 
 const ACCENT_COLOR_MAP: Record<AccentColor, { hex: string; rgb: string; textDark?: boolean }> = {
@@ -32,11 +33,20 @@ export default function App() {
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false)
   const [isMediaPillHovered, setIsMediaPillHovered] = useState(false)
   const [isSearchTyping, setIsSearchTyping] = useState(false)
+  const [isInitialMount, setIsInitialMount] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialMount(false), 350)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Real-time tab audio and media tracker
   const { activeMedia, togglePlayPause, toggleMute, jumpToTab } = useNowPlayingTab(
     settings.showMediaPill ?? true,
   )
+
+  // Auto update check (runs once a day in background, listens for Chrome update downloads)
+  const { updateInfo, applyUpdate } = useAutoUpdate()
 
   // Browser redirect & startup hook
   const { redirectingTo, countdown, cancelRedirect } = useBrowserBehavior({
@@ -271,6 +281,7 @@ export default function App() {
             >
               {settings.showSearch && (
                 <motion.div
+                  initial={false}
                   animate={{
                     width:
                       activeMedia && settings.showMediaPill
@@ -284,7 +295,7 @@ export default function App() {
                         : '100%',
                   }}
                   transition={{
-                    duration: 0.52,
+                    duration: isInitialMount ? 0 : 0.45,
                     ease: [0.22, 1, 0.36, 1],
                   }}
                   className={`flex items-center justify-center shrink-0 ${
@@ -377,6 +388,14 @@ export default function App() {
         onUpdate={(updated) => updateSettings(updated)}
         onReset={resetSettings}
       />
+
+      {/* Auto-Update Notification Pill */}
+      {updateInfo.status === 'update_available' && (
+        <UpdateAvailableToast
+          availableVersion={updateInfo.availableVersion}
+          onApplyUpdate={applyUpdate}
+        />
+      )}
     </main>
   )
 }

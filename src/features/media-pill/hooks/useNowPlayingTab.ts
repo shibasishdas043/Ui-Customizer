@@ -173,21 +173,28 @@ function fetchTabMediaMetadata(
   }
 }
 
+const MEDIA_STORAGE_KEY = 'aura_last_active_media_v2'
+const TAB_ID_STORAGE_KEY = 'aura_last_media_tab_id_v2'
+
 export function useNowPlayingTab(enabled: boolean = true) {
   const isExtensionEnv = typeof chrome !== 'undefined' && !!chrome.tabs && !!chrome.tabs.query
   const activeTabIdRef = useRef<number | null>(
     typeof window !== 'undefined'
-      ? Number(sessionStorage.getItem('aura_last_media_tab_id')) || null
+      ? Number(localStorage.getItem(TAB_ID_STORAGE_KEY) || sessionStorage.getItem('aura_last_media_tab_id')) || null
       : null
   )
 
   const [activeMedia, setActiveMedia] = useState<NowPlayingMedia | null>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const cached = sessionStorage.getItem('aura_last_active_media')
+        const cached = localStorage.getItem(MEDIA_STORAGE_KEY) || sessionStorage.getItem('aura_last_active_media')
         if (cached) {
           const parsed = JSON.parse(cached)
-          if (parsed && parsed.tabId) return parsed
+          // Accept cached active media if it has a valid tabId and was seen within the last 45 seconds
+          if (parsed && parsed.tabId && (!parsed._savedAt || Date.now() - parsed._savedAt < 45000)) {
+            const { _savedAt, ...mediaData } = parsed
+            return mediaData as NowPlayingMedia
+          }
         }
       } catch {
         // Safe fallback
@@ -219,6 +226,7 @@ export function useNowPlayingTab(enabled: boolean = true) {
     const tabId = candidateTab.id
     activeTabIdRef.current = tabId
     try {
+      localStorage.setItem(TAB_ID_STORAGE_KEY, String(tabId))
       sessionStorage.setItem('aura_last_media_tab_id', String(tabId))
     } catch {
       // Safe fallback
@@ -283,6 +291,7 @@ export function useNowPlayingTab(enabled: boolean = true) {
 
       setActiveMedia(updatedMedia)
       try {
+        localStorage.setItem(MEDIA_STORAGE_KEY, JSON.stringify({ ...updatedMedia, _savedAt: Date.now() }))
         sessionStorage.setItem('aura_last_active_media', JSON.stringify(updatedMedia))
       } catch {
         // Safe fallback
@@ -329,6 +338,8 @@ export function useNowPlayingTab(enabled: boolean = true) {
             setActiveMedia(null)
             activeTabIdRef.current = null
             try {
+              localStorage.removeItem(TAB_ID_STORAGE_KEY)
+              localStorage.removeItem(MEDIA_STORAGE_KEY)
               sessionStorage.removeItem('aura_last_media_tab_id')
               sessionStorage.removeItem('aura_last_active_media')
             } catch {
@@ -414,11 +425,30 @@ export function useNowPlayingTab(enabled: boolean = true) {
       }
     }
 
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === MEDIA_STORAGE_KEY) {
+        if (!e.newValue) {
+          setActiveMedia(null)
+          activeTabIdRef.current = null
+        } else {
+          try {
+            const parsed = JSON.parse(e.newValue)
+            if (parsed && parsed.tabId) {
+              const { _savedAt, ...mediaData } = parsed
+              setActiveMedia(mediaData)
+              activeTabIdRef.current = mediaData.tabId
+            }
+          } catch {}
+        }
+      }
+    }
+
     chrome.tabs.onUpdated.addListener(handleTabUpdated)
     chrome.tabs.onRemoved.addListener(handleTabRemoved)
     chrome.tabs.onActivated?.addListener(handleActivated)
     window.addEventListener('focus', handleFocusOrVisible)
     document.addEventListener('visibilitychange', handleFocusOrVisible)
+    window.addEventListener('storage', handleStorageChange)
 
     // Interval polling ensures immediate detection of play/pause transitions across background tabs
     const interval = setInterval(scanTabs, 800)
@@ -429,6 +459,7 @@ export function useNowPlayingTab(enabled: boolean = true) {
       chrome.tabs.onActivated?.removeListener(handleActivated)
       window.removeEventListener('focus', handleFocusOrVisible)
       document.removeEventListener('visibilitychange', handleFocusOrVisible)
+      window.removeEventListener('storage', handleStorageChange)
       clearInterval(interval)
     }
   }, [enabled, isExtensionEnv, scanTabs])

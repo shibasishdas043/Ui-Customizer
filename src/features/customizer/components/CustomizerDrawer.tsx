@@ -20,6 +20,7 @@ import { WidgetsTab } from './tabs/WidgetsTab'
 import { CustomCssTab } from './tabs/CustomCssTab'
 import { BrowserSettingsTab } from '../../../features/browser-settings'
 import { QuickLinksManager } from '../../../features/bookmarks'
+import { getAppVersion } from '../../../shared'
 
 interface CustomizerDrawerProps {
   isOpen: boolean
@@ -93,6 +94,7 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('appearance')
   const [copiedStatus, setCopiedStatus] = useState(false)
+  const appVersion = getAppVersion()
 
   // Close modal on Escape key press
   useEffect(() => {
@@ -198,12 +200,23 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
                   <img src="/icons/icon-48.png" alt="Aura Logo" className="w-full h-full object-contain rounded-xl" />
                 </div>
                 <div>
-                  <h2
-                    className="settings-serif-title text-base sm:text-lg font-normal tracking-tight transition-colors"
-                    style={{ color: isDark ? '#faf9f5' : '#141413' }}
-                  >
-                    UI Customizer
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2
+                      className="settings-serif-title text-base sm:text-lg font-normal tracking-tight transition-colors"
+                      style={{ color: isDark ? '#faf9f5' : '#141413' }}
+                    >
+                      UI Customizer
+                    </h2>
+                    <span
+                      className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md transition-colors"
+                      style={{
+                        backgroundColor: isDark ? '#22201d' : '#efe9de',
+                        color: isDark ? '#cfc4b2' : '#524f49',
+                      }}
+                    >
+                      v{appVersion}
+                    </span>
+                  </div>
                   <p
                     className="text-[11px] mt-0.5 transition-colors font-medium"
                     style={{ color: isDark ? '#a8a49c' : '#383531' }}
@@ -374,6 +387,15 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset Defaults</span>
               </button>
+
+              <div className="pt-0.5 text-center select-none">
+                <span
+                  className="text-[10px] font-mono tracking-wider transition-colors font-medium"
+                  style={{ color: isDark ? '#8c867a' : '#8c867a' }}
+                >
+                  Aura v{appVersion}
+                </span>
+              </div>
             </div>
           </aside>
 

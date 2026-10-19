@@ -57,13 +57,13 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({
         whileHover={{ scale: 1.05, y: -2 }}
         whileTap={{ scale: 0.96 }}
         exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-        className="group relative inline-flex items-center cursor-pointer select-none rounded-2xl"
-        title={`${bookmark.title}\n(${bookmark.url})`}
+        className="group relative inline-flex items-center cursor-pointer select-none rounded-full shrink-0"
+        title={`${bookmark.title}\n(${bookmark.url})${index < 9 ? `\nAlt+${index + 1} to open` : ''}`}
       >
         <GlassSurface
           width="auto"
           height="auto"
-          borderRadius={18}
+          borderRadius={22}
           borderWidth={0.07}
           blur={11}
           brightness={50}
@@ -75,27 +75,33 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({
           blueOffset={20}
           backgroundOpacity={0.28}
           saturation={1}
-          className="inline-flex transition-transform duration-200"
-          contentClassName="px-3.5 py-1.5 flex items-center gap-2.5 w-auto h-auto"
+          className="inline-flex shrink-0 transition-transform duration-200"
+          contentClassName="!p-0 w-auto h-auto flex items-center justify-start shrink-0"
         >
-          <BookmarkThumbnail
-            title={bookmark.title}
-            url={bookmark.url}
-            icon={bookmark.icon}
-            size="sm"
-            interactive={false}
-            showBackground={false}
-          />
-          {showTitle && (
-            <span className="text-xs font-semibold text-neutral-900 dark:text-white/95 truncate max-w-[130px] drop-shadow-xs">
-              {bookmark.title}
-            </span>
-          )}
-          {isAltPressed && index < 9 && (
-            <span className="px-1.5 py-0.2 rounded-md bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] text-[10px] font-bold font-mono shadow-xs shrink-0">
-              {index + 1}
-            </span>
-          )}
+          <div
+            className={`flex items-center gap-2.5 ${
+              showTitle ? 'pl-3.5 pr-6' : 'px-3'
+            } py-2 min-h-[42px] shrink-0 whitespace-nowrap`}
+          >
+            <BookmarkThumbnail
+              title={bookmark.title}
+              url={bookmark.url}
+              icon={bookmark.icon}
+              size="xs"
+              interactive={false}
+              showBackground={false}
+            />
+            {showTitle && (
+              <span className="text-[13.5px] font-semibold text-neutral-900 dark:text-white/95 whitespace-nowrap truncate max-w-[180px] drop-shadow-xs leading-normal select-none">
+                {bookmark.title}
+              </span>
+            )}
+            {isAltPressed && index < 9 && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-md bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] text-[10px] font-bold font-mono shadow-xs shrink-0 leading-none">
+                {index + 1}
+              </span>
+            )}
+          </div>
         </GlassSurface>
       </motion.a>
     )
