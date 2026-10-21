@@ -349,8 +349,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         ? customQuery
         : selectedItem
         ? selectedItem.query
-        : ghostRemainder && isFocused && selectedIndex === -1
-        ? query + ghostRemainder
         : query
 
     const trimmed = rawTarget.trim()
@@ -411,8 +409,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     const targetQuery =
       selectedItem
         ? selectedItem.query
-        : ghostRemainder && isFocused && selectedIndex === -1
-        ? query + ghostRemainder
         : query
     executeSearchWithEngine(currentEngine, targetQuery)
   }

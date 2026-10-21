@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Aura · UI Customizer & Startpage",
   "short_name": "Aura",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "A stunning, minimalist startpage with dynamic wallpapers, clock, weather, custom search, and personal productivity tools.",
   "action": {
     "title": "Aura · UI Customizer",
