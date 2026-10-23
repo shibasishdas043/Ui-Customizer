@@ -19,6 +19,8 @@ import {
   replenishPreloadBufferInBackground,
   getTabBufferKey,
   clearOutdatedBuffers,
+  isBrowserTabReload,
+  TAB_SESSION_PHOTO_KEY,
 } from '../utils/tabPreloadManager'
 
 interface WallpaperBackgroundProps {
@@ -52,10 +54,10 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
       : 'default')
 
   const loadRequestId = useRef(0)
+  const hasHandledReloadRef = useRef(false)
   const lastCollectionKeyRef = useRef<string>(
     `${provider}_${config.defaultCategory || ''}_${config.customCollectionId || config.unsplashCollectionId || ''}_${config.customSearchQuery || ''}_${config.redditSubreddit || ''}`
   )
-
 
   // Determine initial synchronous photo (computed strictly once on component mount)
   const [initialPhoto] = useState<UnsplashPhoto>(() => {
@@ -69,16 +71,41 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
       return { id: 'custom_url', url, author: 'Custom Image' }
     }
 
+    const isReload = isBrowserTabReload()
+    const shouldChangeOnReload = isReload && !!config.changeOnReload
+
+    // When changeOnReload is enabled and browser tab is reloaded:
+    // Pop a fresh photo directly from the upfront buffer for 0ms instant display!
+    if (shouldChangeOnReload) {
+      const popped = popNextBufferedTabPhoto(
+        provider,
+        {
+          defaultCategory: config.defaultCategory,
+          customCollectionId: config.customCollectionId || config.unsplashCollectionId,
+          customSearchQuery: config.customSearchQuery,
+          redditSubreddit: config.redditSubreddit,
+        },
+        true // bypass session cache
+      )
+      if (popped?.url) {
+        return popped
+      }
+    }
+
     // When frequency is 'tabs':
-    // 1. Check if this tab already has its assigned session photo (prevents jumping on F5/refresh)
+    // 1. Check if this tab already has its assigned session photo (prevents jumping on F5/refresh unless shouldChangeOnReload)
     // 2. Otherwise pop the next image from the upfront 2-3 preloaded future buffer (0ms instant load!)
     if (config.changeFrequency === 'tabs') {
-      const popped = popNextBufferedTabPhoto(provider, {
-        defaultCategory: config.defaultCategory,
-        customCollectionId: config.customCollectionId || config.unsplashCollectionId,
-        customSearchQuery: config.customSearchQuery,
-        redditSubreddit: config.redditSubreddit,
-      })
+      const popped = popNextBufferedTabPhoto(
+        provider,
+        {
+          defaultCategory: config.defaultCategory,
+          customCollectionId: config.customCollectionId || config.unsplashCollectionId,
+          customSearchQuery: config.customSearchQuery,
+          redditSubreddit: config.redditSubreddit,
+        },
+        shouldChangeOnReload
+      )
       if (popped?.url) {
         return popped
       }
@@ -245,6 +272,80 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
         redditSubreddit: config.redditSubreddit,
       }
 
+      // 2.5 Dedicated Browser Tab Reload Override
+      // When changeOnReload is enabled and the user reloaded this browser tab (F5 / ⟳),
+      // we ALWAYS load a new wallpaper based on current provider/settings,
+      // regardless of what changeFrequency is set to in the dropdown menu.
+      const isReload = isBrowserTabReload()
+      const shouldTriggerReloadCycle =
+        isReload &&
+        !!config.changeOnReload &&
+        !hasHandledReloadRef.current
+
+      if (shouldTriggerReloadCycle) {
+        hasHandledReloadRef.current = true
+
+        // Check if a fresh photo was already popped from the buffer during initial mount:
+        let freshPoppedPhoto: UnsplashPhoto | null = null
+        try {
+          const sessionRaw = sessionStorage.getItem(TAB_SESSION_PHOTO_KEY)
+          if (sessionRaw) {
+            const parsed: UnsplashPhoto = JSON.parse(sessionRaw)
+            if (parsed?.url && parsed.url === activeUrlRef.current && parsed.url !== config.currentPhoto?.url) {
+              freshPoppedPhoto = parsed
+            }
+          }
+        } catch {}
+
+        if (freshPoppedPhoto) {
+          activeUrlRef.current = freshPoppedPhoto.url
+          setActivePhotoMetadata(freshPoppedPhoto)
+          setCanonicalPhotoKey(freshPoppedPhoto.id || freshPoppedPhoto.url)
+          configRef.current.onUpdatePhoto?.(freshPoppedPhoto, Date.now())
+
+          // Ensure cached binary is loaded and replenish buffer for future reload:
+          getOrFetchWallpaper(freshPoppedPhoto.url, freshPoppedPhoto)
+            .then((finalSrc) => {
+              if (!isCancelled && currentId === loadRequestId.current && finalSrc) {
+                setActiveImageSrc((prev) => (prev !== finalSrc ? finalSrc : prev))
+              }
+            })
+            .catch(() => {})
+
+          replenishPreloadBufferInBackground(provider, targetOptions, freshPoppedPhoto.url)
+          return
+        }
+
+        // Otherwise (buffer was empty on mount), fetch a fresh photo live:
+        try {
+          sessionStorage.removeItem(TAB_SESSION_PHOTO_KEY)
+          const freshPhoto = await getNextPhotoForProvider({
+            provider,
+            ...targetOptions,
+            currentPhotoUrl: activeUrlRef.current,
+            forceRefresh: true,
+          })
+          if (isCancelled || currentId !== loadRequestId.current) return
+          const finalSrc = await getOrFetchWallpaper(freshPhoto.url, freshPhoto)
+          if (isCancelled || currentId !== loadRequestId.current) return
+
+          try {
+            sessionStorage.setItem(TAB_SESSION_PHOTO_KEY, JSON.stringify(freshPhoto))
+          } catch {}
+
+          activeUrlRef.current = freshPhoto.url
+          setActivePhotoMetadata(freshPhoto)
+          setCanonicalPhotoKey(freshPhoto.id || freshPhoto.url)
+          setActiveImageSrc(finalSrc)
+          configRef.current.onUpdatePhoto?.(freshPhoto, Date.now())
+
+          replenishPreloadBufferInBackground(provider, targetOptions, freshPhoto.url)
+        } catch (e) {
+          console.warn('Failed to cycle wallpaper on tab reload:', e)
+        }
+        return
+      }
+
       // 3. If frequency is 'tabs':
       if (config.changeFrequency === 'tabs') {
         // Case A: Collection, category, or search query changed in settings
@@ -399,6 +500,10 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
             setActiveImageSrc((prev) => (prev !== finalSrc ? finalSrc : prev))
           }
         }).catch(() => {})
+
+        if (config.changeOnReload) {
+          replenishPreloadBufferInBackground(provider, targetOptions, highResUrl)
+        }
         return
       }
 
@@ -454,6 +559,10 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
         } else if (configRef.current.onUpdateUnsplashPhoto) {
           configRef.current.onUpdateUnsplashPhoto(nextPhoto, Date.now())
         }
+
+        if (config.changeOnReload) {
+          replenishPreloadBufferInBackground(provider, targetOptions, nextPhoto.url)
+        }
       } catch (err) {
         console.warn('Failed to switch wallpaper:', err)
         // Ensure UI is not stuck on black screen
@@ -476,6 +585,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
     config.customBackgroundUrl,
     config.localImageDataUrl,
     config.changeFrequency,
+    config.changeOnReload,
     config.lastWallpaperChange,
     config.currentPhoto?.url,
     config.currentUnsplashPhoto?.url,

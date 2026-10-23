@@ -57,6 +57,7 @@ export interface WallpaperConfig {
   wallpaperTexture?: WallpaperTexture
   wallpaperTextureOpacity?: number // 0 - 50%
   changeFrequency: WallpaperFrequency
+  changeOnReload?: boolean
   currentPhoto?: UnsplashPhoto | null
   lastWallpaperChange?: number
   onUpdatePhoto?: (photo: UnsplashPhoto, timestamp: number) => void

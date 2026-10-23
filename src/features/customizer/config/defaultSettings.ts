@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS: CustomizerSettings = {
   wallpaperTexture: 'none',
   wallpaperTextureOpacity: 15,
   changeFrequency: 'hour',
+  changeOnReload: false,
   currentPhoto: DEFAULT_COLLECTIONS.nature.fallbackPhotos[0],
   lastWallpaperChange: 0,
 
@@ -46,6 +47,7 @@ export const DEFAULT_SETTINGS: CustomizerSettings = {
   showGreeting: true,
 
   showSearch: true,
+  searchAutoFocus: true,
   searchEngine: 'google',
   searchInNewTab: false,
   searchEngines: DEFAULT_SEARCH_ENGINES,

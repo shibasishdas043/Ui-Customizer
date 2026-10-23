@@ -56,7 +56,7 @@ export const BrowserSettingsTab: React.FC<BrowserSettingsTabProps> = ({ config, 
             className={`p-3.5 rounded-2xl text-xs font-semibold text-left transition-all cursor-pointer border-0 outline-none ${
               config.newTabMode === 'aura'
                 ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
             }`}
           >
             Aura Startpage
@@ -71,7 +71,7 @@ export const BrowserSettingsTab: React.FC<BrowserSettingsTabProps> = ({ config, 
             className={`p-3.5 rounded-2xl text-xs font-semibold text-left transition-all cursor-pointer border-0 outline-none ${
               config.newTabMode === 'redirect'
                 ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
             }`}
           >
             Saved Webpage

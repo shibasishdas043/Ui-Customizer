@@ -12,6 +12,7 @@ export type SearchEngineId = string
 
 export interface SearchConfig {
   showSearch: boolean
+  searchAutoFocus?: boolean
   searchEngine: string
   searchInNewTab: boolean
   searchEngines: SearchEngineItem[]

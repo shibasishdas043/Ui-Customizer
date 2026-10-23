@@ -169,7 +169,7 @@ export const CustomizerDrawer: React.FC<CustomizerDrawerProps> = ({
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             data-settings-theme={isDark ? 'dark' : 'light'}
-          className="settings-modal w-full max-w-[1040px] xl:max-w-[1140px] h-[92vh] sm:h-[86vh] max-h-[820px] min-h-[520px] rounded-3xl sm:rounded-[32px] flex flex-col md:flex-row overflow-hidden relative transition-colors duration-300 border-0 outline-none"
+          className={`settings-modal ${isDark ? 'dark' : ''} w-full max-w-[1040px] xl:max-w-[1140px] h-[92vh] sm:h-[86vh] max-h-[820px] min-h-[520px] rounded-3xl sm:rounded-[32px] flex flex-col md:flex-row overflow-hidden relative transition-colors duration-300 border-0 outline-none`}
           style={{
             backgroundColor: isDark ? '#181715' : '#faf9f5',
             color: isDark ? '#dcd9d2' : '#3d3d3a',

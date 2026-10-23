@@ -164,7 +164,7 @@ const SearchEngineEditorDialog: React.FC<SearchEngineDialogProps> = ({
         exit={{ opacity: 0, scale: 0.95, y: 14 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           data-settings-theme={isDark ? 'dark' : 'light'}
-          className="settings-modal w-full max-w-lg rounded-3xl flex flex-col max-h-[88vh] overflow-hidden border-0 outline-none transition-colors duration-300"
+          className={`settings-modal ${isDark ? 'dark' : ''} w-full max-w-lg rounded-3xl flex flex-col max-h-[88vh] overflow-hidden border-0 outline-none transition-colors duration-300`}
           style={{
             backgroundColor: isDark ? '#181715' : '#faf9f5',
             color: isDark ? '#ece6dc' : '#141413',
@@ -305,7 +305,7 @@ const SearchEngineEditorDialog: React.FC<SearchEngineDialogProps> = ({
                         className={`py-2 px-2 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 outline-none ${
                           category === cat
                             ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-xs'
-                            : 'bg-white dark:bg-transparent text-[#736e65] dark:text-slate-300 hover:text-[#141413] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.06]'
+                            : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                         }`}
                       >
                         {cat === 'AI' && <Sparkles className="w-3.5 h-3.5 text-cyan-300" />}
@@ -338,7 +338,7 @@ const SearchEngineEditorDialog: React.FC<SearchEngineDialogProps> = ({
                       className={`flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-xs font-medium transition-all cursor-pointer border-0 outline-none ${
                         iconMode === mode.id
                           ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-xs'
-                          : 'bg-white dark:bg-transparent text-[#736e65] dark:text-slate-300 hover:text-[#141413] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/[0.06]'
+                          : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                       }`}
                     >
                       {mode.icon}

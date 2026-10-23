@@ -284,10 +284,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
               <button
                 type="button"
                 onClick={() => onUpdate({ clockAnalog: false })}
-                className={`px-3 py-1 rounded-lg transition-all border-0 outline-none ${
+                className={`px-3 py-1 rounded-lg transition-all border-0 outline-none cursor-pointer ${
                   !settings.clockAnalog
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
-                    : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs font-semibold'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-xs'
+                    : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                 }`}
               >
                 Digital
@@ -295,10 +295,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
               <button
                 type="button"
                 onClick={() => onUpdate({ clockAnalog: true })}
-                className={`px-3 py-1 rounded-lg transition-all border-0 outline-none ${
+                className={`px-3 py-1 rounded-lg transition-all border-0 outline-none cursor-pointer ${
                   settings.clockAnalog
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
-                    : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs font-semibold'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-xs'
+                    : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                 }`}
               >
                 Analog
@@ -394,10 +394,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                       clearLocationCache()
                       window.dispatchEvent(new CustomEvent('aura:weather-refresh'))
                     }}
-                    className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-all border-0 outline-none ${
+                    className={`px-2 py-1.5 text-xs rounded-lg transition-all border-0 outline-none cursor-pointer ${
                       (settings.weatherGeolocation ?? 'approximate') === 'approximate'
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
-                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs font-semibold'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-xs'
+                        : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                     }`}
                   >
                     Approximate
@@ -412,10 +412,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                         weatherAutoLocation: false,
                       })
                     }}
-                    className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-all border-0 outline-none ${
+                    className={`px-2 py-1.5 text-xs rounded-lg transition-all border-0 outline-none cursor-pointer ${
                       settings.weatherGeolocation === 'off'
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
-                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs font-semibold'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-xs'
+                        : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                     }`}
                   >
                     Manual
@@ -430,10 +430,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                         weatherAutoLocation: true,
                       })
                     }}
-                    className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-all border-0 outline-none ${
+                    className={`px-2 py-1.5 text-xs rounded-lg transition-all border-0 outline-none cursor-pointer ${
                       settings.weatherGeolocation === 'precise'
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold'
-                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs font-semibold'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] font-semibold shadow-xs'
+                        : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                     }`}
                   >
                     Precise
@@ -644,10 +644,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                   <button
                     type="button"
                     onClick={() => onUpdate({ tempUnit: 'celsius' })}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border-0 outline-none ${
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border-0 outline-none cursor-pointer ${
                       settings.tempUnit === 'celsius'
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                        : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                     }`}
                   >
                     °C
@@ -655,10 +655,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                   <button
                     type="button"
                     onClick={() => onUpdate({ tempUnit: 'fahrenheit' })}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border-0 outline-none ${
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border-0 outline-none cursor-pointer ${
                       settings.tempUnit === 'fahrenheit'
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                        : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                     }`}
                   >
                     °F
@@ -722,8 +722,8 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                         onClick={() => onUpdate({ quoteLanguage: lang.code })}
                         className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border-0 outline-none cursor-pointer ${
                           (settings.quoteLanguage || 'en') === lang.code
-                            ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                            : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                            ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                            : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                         }`}
                       >
                         {lang.label}
@@ -819,7 +819,10 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
         </h4>
         <div className="space-y-3">
           <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Show Search Bar</span>
+            <div>
+              <span className="text-xs font-medium text-[#141413] dark:text-slate-200 block">Show Search Bar</span>
+              <span className="text-[11px] text-[#8c827a] dark:text-slate-400">Display the multi-engine search bar on your startpage</span>
+            </div>
             <input
               type="checkbox"
               checked={settings.showSearch}
@@ -828,26 +831,50 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
             />
           </label>
 
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-xs font-medium text-[#141413] dark:text-slate-200">Open Search in New Tab</span>
-            <input
-              type="checkbox"
-              checked={settings.searchInNewTab}
-              onChange={(e) => onUpdate({ searchInNewTab: e.target.checked })}
-              className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
-            />
-          </label>
+          {settings.showSearch && (
+            <>
+              <label className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <span className="text-xs font-medium text-[#141413] dark:text-slate-200 block">Auto-Focus Search Bar</span>
+                  <span className="text-[11px] text-[#8c827a] dark:text-slate-400">
+                    Automatically select search bar when opening a new tab, hitting Home, or launching the browser
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.searchAutoFocus ?? true}
+                  onChange={(e) => onUpdate({ searchAutoFocus: e.target.checked })}
+                  className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <span className="text-xs font-medium text-[#141413] dark:text-slate-200 block">Open Search in New Tab</span>
+                  <span className="text-[11px] text-[#8c827a] dark:text-slate-400">Execute search results in a new browser tab</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.searchInNewTab}
+                  onChange={(e) => onUpdate({ searchInNewTab: e.target.checked })}
+                  className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer"
+                />
+              </label>
+            </>
+          )}
         </div>
 
         {/* Embedded Search Engines Manager */}
-        <div className="pt-2">
-          <SearchEnginesManager
-            engines={settings.searchEngines || []}
-            onUpdateEngines={(newEngines) => onUpdate({ searchEngines: newEngines })}
-            currentEngineId={settings.searchEngine}
-            onSelectDefaultEngine={(engineId) => onUpdate({ searchEngine: engineId })}
-          />
-        </div>
+        {settings.showSearch && (
+          <div className="pt-2">
+            <SearchEnginesManager
+              engines={settings.searchEngines || []}
+              onUpdateEngines={(newEngines) => onUpdate({ searchEngines: newEngines })}
+              currentEngineId={settings.searchEngine}
+              onSelectDefaultEngine={(engineId) => onUpdate({ searchEngine: engineId })}
+            />
+          </div>
+        )}
       </div>
 
       {/* 5. Now Playing Media Pill Options */}
@@ -949,7 +976,7 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors border-0 outline-none ${
                       isActive
                         ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
-                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white'
+                        : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                     }`}
                   >
                     {mode.label}
@@ -985,8 +1012,8 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                 onClick={() => onUpdate({ bookmarksInNewTab: false })}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors border-0 outline-none ${
                   !settings.bookmarksInNewTab
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                    : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                 }`}
               >
                 Same Tab
@@ -996,8 +1023,8 @@ export const WidgetsTab: React.FC<WidgetsTabProps> = ({ settings, onUpdate, onNa
                 onClick={() => onUpdate({ bookmarksInNewTab: true })}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors border-0 outline-none ${
                   settings.bookmarksInNewTab
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                    : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                 }`}
               >
                 New Tab

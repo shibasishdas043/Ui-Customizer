@@ -28,6 +28,7 @@ interface SearchBarProps {
   currentEngine: string
   onEngineChange: (engine: string) => void
   visible: boolean
+  autoFocus?: boolean
   searchInNewTab?: boolean
   engines?: SearchEngineItem[]
   onOpenSettings?: () => void
@@ -41,6 +42,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   currentEngine,
   onEngineChange,
   visible,
+  autoFocus = true,
   searchInNewTab = false,
   engines = DEFAULT_SEARCH_ENGINES,
   onOpenSettings,
@@ -103,7 +105,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   // Automatic search bar focus & text selection on browser launch, new tab open, window focus, and after hitting Home button
   useEffect(() => {
-    if (!visible) return
+    if (!visible || !autoFocus) return
 
     const focusSearchInput = () => {
       if (!inputRef.current) return
@@ -127,6 +129,15 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         inputRef.current.select()
       } catch {
         // Safe fallback in non-standard environments
+      }
+
+      // Clean up the ?focus=1 query param from the address bar so the URL remains clean
+      if (typeof window !== 'undefined' && window.location.search.includes('focus')) {
+        try {
+          const cleanSearch = window.location.search.replace(/[?&]focus=[^&]*/g, '').replace(/^&/, '?')
+          const cleanUrl = window.location.pathname + (cleanSearch.length > 1 ? cleanSearch : '')
+          window.history.replaceState(null, '', cleanUrl)
+        } catch {}
       }
     }
 
@@ -181,7 +192,18 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       window.removeEventListener('pageshow', handlePageShow)
       window.removeEventListener('popstate', handlePopState)
     }
-  }, [visible])
+  }, [visible, autoFocus])
+
+  // When auto-focus is disabled, guarantee that any residual ?focus=1 query param is immediately cleaned from the URL
+  useEffect(() => {
+    if (!autoFocus && typeof window !== 'undefined' && window.location.search.includes('focus')) {
+      try {
+        const cleanSearch = window.location.search.replace(/[?&]focus=[^&]*/g, '').replace(/^&/, '?')
+        const cleanUrl = window.location.pathname + (cleanSearch.length > 1 ? cleanSearch : '')
+        window.history.replaceState(null, '', cleanUrl)
+      } catch {}
+    }
+  }, [autoFocus])
 
   // Global keydown shortcuts: 'Alt+L' or '/' to focus & select, any typing when idle routes to search, and Escape to blur
   useEffect(() => {
@@ -559,12 +581,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           }`}
         >
           {/* Left Side: Search Engine Selector */}
-          <div className="shrink-0 flex items-center justify-center">
+          <div className={`flex items-center justify-center ${isCollapsed && !isTyping ? 'w-full h-full' : 'shrink-0'}`}>
             <EngineSelector
               currentEngineId={currentEngine}
               engines={activeEnginesList}
               isOpen={dropdownOpen}
-              compact={isCollapsed}
+              compact={isCollapsed && !isTyping}
               onToggle={() => {
                 if (isCollapsed && !isTyping) {
                   inputRef.current?.focus()
@@ -577,7 +599,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           </div>
 
           {/* Search Input Field with Inline Ghost Completion Overlay */}
-          <div className="relative flex-1 min-w-0 flex items-center h-full">
+          <div
+            className={
+              isCollapsed && !isTyping
+                ? 'absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden'
+                : 'relative flex-1 min-w-0 flex items-center h-full'
+            }
+          >
             {/* Ghost Auto-Completion Layer (Strictly Aligned) */}
             {ghostRemainder && selectedIndex === -1 && !isCollapsed && isFocused && (
               <div
@@ -594,7 +622,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             <input
               ref={inputRef}
               id="aura-search-input"
-              autoFocus={visible}
+              autoFocus={visible && autoFocus}
               type="text"
               value={query}
               onChange={(e) => {

@@ -57,6 +57,7 @@ export interface CustomizerSettings {
   wallpaperTexture?: WallpaperTexture
   wallpaperTextureOpacity?: number // 0 to 50 %
   changeFrequency: WallpaperFrequency // 'tabs' | 'hour' | 'day' | 'period' | 'locked'
+  changeOnReload: boolean // Change wallpaper when browser tab is reloaded (F5 / ⟳)
   currentPhoto?: UnsplashPhoto | null
   lastWallpaperChange?: number
 
@@ -76,6 +77,7 @@ export interface CustomizerSettings {
 
   // Search Bar
   showSearch: boolean
+  searchAutoFocus?: boolean
   searchEngine: string
   searchInNewTab: boolean
   searchEngines: SearchEngineItem[]

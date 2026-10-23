@@ -30,12 +30,12 @@ export const EngineSelector: React.FC<EngineSelectorProps> = ({
   const hasMultiple = activeEnginesList.length > 1
 
   return (
-    <div className="relative select-none shrink-0 flex items-center justify-center">
+    <div className={`relative select-none flex items-center justify-center ${compact ? 'w-full h-full' : 'shrink-0'}`}>
       <button
         type="button"
         onClick={onToggle}
-        className={`flex items-center gap-2 rounded-full shrink-0 hover:bg-black/8 dark:hover:bg-white/15 transition-colors text-xs font-semibold text-neutral-950 dark:text-white/90 hover:text-black dark:hover:text-white cursor-pointer border-0 outline-none ${
-          compact ? 'p-1.5 justify-center' : 'px-2.5 sm:px-3 py-1.5'
+        className={`flex items-center rounded-full shrink-0 hover:bg-black/8 dark:hover:bg-white/15 transition-colors text-xs font-semibold text-neutral-950 dark:text-white/90 hover:text-black dark:hover:text-white cursor-pointer border-0 outline-none ${
+          compact ? 'w-full h-full p-0 justify-center' : 'gap-2 px-2.5 sm:px-3 py-1.5'
         }`}
         title={hasMultiple ? `Search Engine: ${activeEngine.name}` : `Active Engine: ${activeEngine.name}`}
       >

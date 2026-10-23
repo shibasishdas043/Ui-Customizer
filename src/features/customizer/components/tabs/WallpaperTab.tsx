@@ -233,7 +233,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                 className={`py-2 px-2.5 rounded-xl font-semibold text-[11px] transition-all cursor-pointer text-center capitalize border-0 outline-none ${
                   (settings.defaultCategory || 'all') === cat
                     ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
                 {cat}
@@ -350,7 +350,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                 className={`px-2.5 py-1 rounded-xl text-[10px] font-semibold transition-all cursor-pointer capitalize border-0 outline-none ${
                   settings.customSearchQuery?.toLowerCase() === tag
                     ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
                 {tag}
@@ -413,7 +413,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                 className={`py-1.5 px-2 rounded-xl text-[10px] font-semibold transition-all cursor-pointer text-center truncate border-0 outline-none ${
                   (settings.redditSubreddit || 'wallpapers') === sub.id
                     ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
                 {sub.name}
@@ -595,6 +595,27 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
             options={FREQUENCY_OPTIONS}
             onChange={(nextFrequency) => onUpdate({ changeFrequency: nextFrequency })}
           />
+
+          {/* Dedicated Option: Change on Browser Tab Reload */}
+          <div className="pt-0.5">
+            <label className="flex items-center justify-between cursor-pointer p-2.5 rounded-xl bg-black/5 dark:bg-white/[0.02] hover:bg-black/10 dark:hover:bg-white/[0.04] transition-colors">
+              <div className="space-y-0.5 pr-3">
+                <span className="text-xs font-semibold text-[#141413] dark:text-[#ece6dc] block">
+                  Change on Tab Reload
+                </span>
+                <p className="text-[10px] text-[#383531] dark:text-[#9c9589] leading-tight">
+                  Always load a new wallpaper when you refresh or reload the browser tab (F5 / ⟳), regardless of rotation frequency
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.changeOnReload ?? false}
+                onChange={(e) => onUpdate({ changeOnReload: e.target.checked })}
+                className="w-4 h-4 accent-[var(--accent-color)] cursor-pointer flex-shrink-0"
+              />
+            </label>
+          </div>
+
           <button
             type="button"
             onClick={handleNextBackground}
@@ -628,7 +649,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               className={`py-2 px-3 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
                 (settings.wallpaperBase || 'window') === 'window'
                   ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                  : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                  : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
               }`}
             >
               Full Viewport
@@ -639,7 +660,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               className={`py-2 px-3 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
                 settings.wallpaperBase === 'screen'
                   ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                  : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                  : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
               }`}
             >
               Whole Monitor
@@ -684,7 +705,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                 className={`py-2 px-1 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
                   (settings.wallpaperFit || 'cover') === mode.id
                     ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
                 title={mode.desc}
               >
@@ -724,7 +745,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                 className={`flex-1 py-1 px-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer border-0 outline-none ${
                   (settings.wallpaperZoom ?? 100) === z
                     ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
                 {z === 100 ? '100% Reset' : `${z}%`}
@@ -795,7 +816,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                 className={`py-1.5 px-2 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
                   (settings.wallpaperOffsetY !== undefined ? settings.wallpaperOffsetY : 50) === item.val
                     ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
                 {item.label}
@@ -841,7 +862,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
                 className={`py-1.5 px-2 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer border-0 outline-none ${
                   (settings.wallpaperOffsetX ?? 50) === item.val
                     ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                    : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
                 }`}
               >
                 {item.label}
@@ -915,7 +936,7 @@ export const WallpaperTab: React.FC<WallpaperTabProps> = ({ settings, onUpdate }
               className={`py-2 px-2 rounded-xl text-center font-semibold text-[11px] transition-all cursor-pointer truncate border-0 outline-none ${
                 (settings.wallpaperTexture || 'none') === tex.id
                   ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                  : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:text-[#faf9f5] shadow-xs'
+                  : 'bg-white dark:bg-white/[0.04] text-[#141413] dark:text-[#ece6dc] hover:bg-[#f5f0e8] dark:hover:bg-white/[0.08] dark:hover:text-[#faf9f5] shadow-xs'
               }`}
             >
               {tex.label}

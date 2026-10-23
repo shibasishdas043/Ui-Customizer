@@ -93,6 +93,17 @@ export default function App() {
     document.documentElement.setAttribute('data-font', settings.fontFamily)
   }, [settings.fontFamily])
 
+  // Clean up ?focus query parameter from the address bar when auto-focus is disabled
+  useEffect(() => {
+    if (settings.searchAutoFocus === false && typeof window !== 'undefined' && window.location.search.includes('focus')) {
+      try {
+        const cleanSearch = window.location.search.replace(/[?&]focus=[^&]*/g, '').replace(/^&/, '?')
+        const cleanUrl = window.location.pathname + (cleanSearch.length > 1 ? cleanSearch : '')
+        window.history.replaceState(null, '', cleanUrl)
+      } catch {}
+    }
+  }, [settings.searchAutoFocus])
+
   return (
     <main className="relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-transparent">
       {/* Live Custom CSS Injection */}
@@ -122,6 +133,7 @@ export default function App() {
           wallpaperTexture: settings.wallpaperTexture,
           wallpaperTextureOpacity: settings.wallpaperTextureOpacity,
           changeFrequency: settings.changeFrequency,
+          changeOnReload: settings.changeOnReload,
           currentPhoto: settings.currentPhoto,
           lastWallpaperChange: settings.lastWallpaperChange,
           onUpdatePhoto: (photo, timestamp) => {
@@ -304,6 +316,7 @@ export default function App() {
                 >
                   <SearchBar
                     visible={settings.showSearch}
+                    autoFocus={settings.searchAutoFocus ?? true}
                     currentEngine={settings.searchEngine}
                     searchInNewTab={settings.searchInNewTab}
                     engines={settings.searchEngines}

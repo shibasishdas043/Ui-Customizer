@@ -33,7 +33,7 @@ import {
 
 export const MAX_TAB_PRELOAD_COUNT = 3
 const BUFFER_KEY_PREFIX = 'aura_tab_ahead_buffer_v3_'
-const TAB_SESSION_PHOTO_KEY = 'aura_tab_session_photo_v1'
+export const TAB_SESSION_PHOTO_KEY = 'aura_tab_session_photo_v1'
 
 export interface PreloadTargetOptions {
   defaultCategory?: DefaultCollectionCategory
@@ -127,6 +127,28 @@ function saveUpcomingBuffer(bufferKey: string, buffer: UnsplashPhoto[]): void {
 }
 
 /**
+ * Detects whether the current page session was loaded via a browser reload
+ * (e.g., clicking browser reload ⟳, pressing F5, or pressing Ctrl+R).
+ */
+export function isBrowserTabReload(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    const navEntries = performance.getEntriesByType('navigation')
+    if (navEntries && navEntries.length > 0) {
+      const navTiming = navEntries[0] as PerformanceNavigationTiming
+      return navTiming.type === 'reload'
+    }
+    // Fallback for legacy PerformanceNavigation API
+    if (window.performance && 'navigation' in window.performance) {
+      return (window.performance as { navigation?: { type?: number } }).navigation?.type === 1
+    }
+  } catch (e) {
+    console.warn('Failed to detect browser navigation type:', e)
+  }
+  return false
+}
+
+/**
  * Pops the next pre-cached photo from the buffer when a new tab opens.
  * Returns null if the buffer is empty or if this tab already has a session photo.
  *
@@ -138,20 +160,27 @@ function saveUpcomingBuffer(bufferKey: string, buffer: UnsplashPhoto[]): void {
 export function popNextBufferedTabPhoto(
   provider: BackgroundProvider,
   options: PreloadTargetOptions,
+  bypassSessionCache: boolean = false,
 ): UnsplashPhoto | null {
-  // 1. Check if this specific tab already has an assigned photo (preserves photo on F5 / reload)
-  try {
-    const sessionRaw = sessionStorage.getItem(TAB_SESSION_PHOTO_KEY)
-    if (sessionRaw) {
-      const parsed: UnsplashPhoto = JSON.parse(sessionRaw)
-      if (parsed?.url) {
-        return {
-          ...parsed,
-          url: optimizeWallpaperResolution(parsed.url),
+  // 1. Check if this specific tab already has an assigned photo (preserves photo on F5 / reload unless bypassed)
+  if (!bypassSessionCache) {
+    try {
+      const sessionRaw = sessionStorage.getItem(TAB_SESSION_PHOTO_KEY)
+      if (sessionRaw) {
+        const parsed: UnsplashPhoto = JSON.parse(sessionRaw)
+        if (parsed?.url) {
+          return {
+            ...parsed,
+            url: optimizeWallpaperResolution(parsed.url),
+          }
         }
       }
-    }
-  } catch {}
+    } catch {}
+  } else {
+    try {
+      sessionStorage.removeItem(TAB_SESSION_PHOTO_KEY)
+    } catch {}
+  }
 
   // Tier 1: Brand new tab: pop from the pre-warmed upfront buffer (strictly 2-3 images)
   const bufferKey = getTabBufferKey(provider, options)

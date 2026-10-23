@@ -144,8 +144,8 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
                 onClick={() => onToggleNewTab(false)}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 outline-none ${
                   !openInNewTab
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                    : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                 }`}
               >
                 Same Tab
@@ -155,8 +155,8 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
                 onClick={() => onToggleNewTab(true)}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 outline-none ${
                   openInNewTab
-                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                    : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                    ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                    : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                 }`}
               >
                 New Tab
@@ -188,8 +188,8 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
                     onClick={() => onUpdateStyle(opt.id)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 outline-none ${
                       styleMode === opt.id
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                        : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                     }`}
                   >
                     {opt.label}
@@ -240,8 +240,8 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
                     onClick={() => onUpdateCols(opt)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 outline-none ${
                       cols === opt
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                        : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                     }`}
                   >
                     {opt === 'auto' ? 'Auto' : opt}
@@ -274,8 +274,8 @@ export const QuickLinksManager: React.FC<QuickLinksManagerProps> = ({
                     onClick={() => onUpdateSize(opt.id)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 outline-none ${
                       size === opt.id
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)]'
-                        : 'bg-white dark:bg-transparent text-[#141413] dark:text-slate-400 hover:bg-[#f5f0e8] dark:hover:text-white shadow-xs'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-contrast,#ffffff)] shadow-xs'
+                        : 'text-[#524f49] dark:text-[#a8a49c] hover:text-[#141413] dark:hover:text-[#faf9f5] hover:bg-black/5 dark:hover:bg-white/[0.06] font-medium'
                     }`}
                   >
                     {opt.label}

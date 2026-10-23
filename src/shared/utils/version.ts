@@ -20,7 +20,7 @@ export function getAppVersion(): string {
     return __APP_VERSION__
   }
 
-  return '1.1.3'
+  return '1.1.4'
 }
 
 /**
