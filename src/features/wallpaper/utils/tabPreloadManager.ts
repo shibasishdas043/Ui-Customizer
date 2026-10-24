@@ -127,41 +127,59 @@ function saveUpcomingBuffer(bufferKey: string, buffer: UnsplashPhoto[]): void {
 }
 
 /**
- * Detects whether the current page session was loaded via a browser reload
+ * Detects whether the current page session was loaded strictly via a browser reload
  * (e.g., clicking browser reload ⟳, pressing F5, or pressing Ctrl+R).
+ * Strictly excludes new tab creation (Ctrl+T) and home button navigations.
  */
 export function isBrowserTabReload(): boolean {
   if (typeof window === 'undefined') return false
+
+  // Check 0: Transient single-use reload marker (set by focus-init before any redirects)
+  try {
+    if (sessionStorage.getItem('aura_tab_reloaded_once') === '1') {
+      sessionStorage.removeItem('aura_tab_reloaded_once')
+      return true
+    }
+  } catch {}
+
+  // Check 1: Modern Navigation Timing API Level 2 (Standard in Chrome, Edge, Firefox, Safari)
   try {
     const navEntries = performance.getEntriesByType('navigation')
     if (navEntries && navEntries.length > 0) {
       const navTiming = navEntries[0] as PerformanceNavigationTiming
       return navTiming.type === 'reload'
     }
-    // Fallback for legacy PerformanceNavigation API
+  } catch {}
+
+  // Check 2: Legacy Navigation Timing API Level 1 (fallback for older browsers)
+  try {
     if (window.performance && 'navigation' in window.performance) {
       return (window.performance as { navigation?: { type?: number } }).navigation?.type === 1
     }
-  } catch (e) {
-    console.warn('Failed to detect browser navigation type:', e)
-  }
+  } catch {}
+
   return false
 }
 
 /**
- * Pops the next pre-cached photo from the buffer when a new tab opens.
- * Returns null if the buffer is empty or if this tab already has a session photo.
- *
- * Provides a 2-Tiered Resolution:
+ * Pops the next pre-cached photo from the buffer when a new tab opens or tab is reloaded.
+ * Provides a 3-Tiered 0ms Resolution:
  * - Tier 1: 0ms instant display from the pre-warmed upfront 2-3 binary buffer.
- * - Tier 2: Instant pop from the candidate rotation queue in localStorage when user
- *   opens multiple tabs continuously faster than the background binary preloader finishes.
+ * - Tier 2: Instant pop from the candidate rotation queue in localStorage.
+ * - Tier 3: Resilient instant local fallback from bundled collections / cached photos,
+ *   guaranteeing that reload never returns the current photo and never returns null.
  */
 export function popNextBufferedTabPhoto(
   provider: BackgroundProvider,
   options: PreloadTargetOptions,
   bypassSessionCache: boolean = false,
+  currentPhotoUrl?: string,
 ): UnsplashPhoto | null {
+  // If static single-image or color provider, no rotation
+  if (provider === 'solid_color' || provider === 'local_file' || provider === 'custom_url') {
+    return null
+  }
+
   // 1. Check if this specific tab already has an assigned photo (preserves photo on F5 / reload unless bypassed)
   if (!bypassSessionCache) {
     try {
@@ -182,37 +200,45 @@ export function popNextBufferedTabPhoto(
     } catch {}
   }
 
-  // Tier 1: Brand new tab: pop from the pre-warmed upfront buffer (strictly 2-3 images)
+  const currentKey = currentPhotoUrl ? currentPhotoUrl.split('?')[0] : ''
+
+  // Tier 1: Pop from the pre-warmed upfront buffer (strictly skipping current photo)
   const bufferKey = getTabBufferKey(provider, options)
   const buffer = getUpcomingBuffer(bufferKey)
 
   if (buffer.length > 0) {
-    const nextPhoto = buffer[0]
-    const remaining = buffer.slice(1)
-    saveUpcomingBuffer(bufferKey, remaining)
+    const matchIdx = buffer.findIndex((p) => {
+      const k = p.id && !p.id.startsWith('http') ? p.id : p.url.split('?')[0]
+      return p.url !== currentPhotoUrl && k !== currentKey
+    })
 
-    const optimizedPhoto: UnsplashPhoto = {
-      ...nextPhoto,
-      url: optimizeWallpaperResolution(nextPhoto.url),
+    if (matchIdx !== -1) {
+      const nextPhoto = buffer[matchIdx]
+      const remaining = [...buffer.slice(0, matchIdx), ...buffer.slice(matchIdx + 1)]
+      saveUpcomingBuffer(bufferKey, remaining)
+
+      const optimizedPhoto: UnsplashPhoto = {
+        ...nextPhoto,
+        url: optimizeWallpaperResolution(nextPhoto.url),
+      }
+
+      try {
+        sessionStorage.setItem(TAB_SESSION_PHOTO_KEY, JSON.stringify(optimizedPhoto))
+      } catch {}
+
+      markPhotoAsSeen(optimizedPhoto)
+      return optimizedPhoto
     }
-
-    try {
-      sessionStorage.setItem(TAB_SESSION_PHOTO_KEY, JSON.stringify(optimizedPhoto))
-    } catch {}
-
-    // Mark as seen so subsequent new tabs and background replenishments avoid repeating it
-    markPhotoAsSeen(optimizedPhoto)
-
-    return optimizedPhoto
   }
 
-  // Tier 2: Upfront buffer empty because user is opening tabs continuously!
+  // Tier 2: Upfront buffer didn't have an unseen photo:
   // Pop next unseen candidate directly from the candidate rotation queue in localStorage
   try {
     const queueKey = getQueueStorageKey(provider, {
       defaultCategory: options.defaultCategory,
       customCollectionId: options.customCollectionId || options.unsplashCollectionId,
       customSearchQuery: options.customSearchQuery,
+      redditSubreddit: options.redditSubreddit,
     })
     const seenKeys = getSeenPhotoKeys()
 
@@ -220,7 +246,9 @@ export function popNextBufferedTabPhoto(
     while (
       queued &&
       queued.url &&
-      seenKeys.has(queued.id && !queued.id.startsWith('http') ? queued.id : queued.url.split('?')[0])
+      (queued.url === currentPhotoUrl ||
+        queued.url.split('?')[0] === currentKey ||
+        seenKeys.has(queued.id && !queued.id.startsWith('http') ? queued.id : queued.url.split('?')[0]))
     ) {
       queued = popNextPhotoFromQueue(queueKey)
     }
@@ -240,6 +268,41 @@ export function popNextBufferedTabPhoto(
     }
   } catch (err) {
     console.warn('Tier 2 continuous tabs queue pop failed:', err)
+  }
+
+  // Tier 3: Upfront buffer and queue empty (e.g. continuous reload storm before network preloader finishes)
+  // Guaranteed instant local selection from bundled collections ONLY for default provider
+  // For dynamic providers (unsplash_search, unsplash_collection, etc.), return null so caller fetches fresh keyword photos
+  if (provider === 'default') {
+    try {
+      let cat = options.defaultCategory || 'all'
+      if (cat === 'all') {
+        const cats: ('nature' | 'mountains' | 'beaches')[] = ['nature', 'mountains', 'beaches']
+        cat = cats[Math.floor(Math.random() * cats.length)]
+      }
+      const col = DEFAULT_COLLECTIONS[cat as 'nature' | 'mountains' | 'beaches'] || DEFAULT_COLLECTIONS.nature
+      const fallbacks = col.fallbackPhotos
+
+      const differentFallback = fallbacks.find((f) => {
+        const k = f.id || f.url.split('?')[0]
+        return f.url !== currentPhotoUrl && k !== currentKey
+      }) || fallbacks[0]
+
+      if (differentFallback) {
+        const optimizedPhoto: UnsplashPhoto = {
+          ...differentFallback,
+          url: optimizeWallpaperResolution(differentFallback.url),
+        }
+
+        try {
+          sessionStorage.setItem(TAB_SESSION_PHOTO_KEY, JSON.stringify(optimizedPhoto))
+        } catch {}
+
+        return optimizedPhoto
+      }
+    } catch (err) {
+      console.warn('Tier 3 fallback selection failed:', err)
+    }
   }
 
   return null
@@ -433,6 +496,7 @@ export function replenishPreloadBufferInBackground(
           defaultCategory: options.defaultCategory,
           customCollectionId: options.customCollectionId || options.unsplashCollectionId,
           customSearchQuery: options.customSearchQuery,
+          redditSubreddit: options.redditSubreddit,
         })
         enqueuePhotos(queueKey, remainingForQueue)
       }

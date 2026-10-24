@@ -899,12 +899,16 @@ export async function getNextPhotoForProvider(params: {
   }
 
   const seenKeys = getSeenPhotoKeys()
+  const currentKey = currentPhotoUrl ? currentPhotoUrl.split('?')[0] : ''
   const unseenPool = pool.filter((p) => {
     const k = p.id && !p.id.startsWith('http') ? p.id : p.url.split('?')[0]
-    return p.url !== currentPhotoUrl && !seenKeys.has(k)
+    return p.url !== currentPhotoUrl && k !== currentKey && !seenKeys.has(k)
   })
 
-  const candidates = unseenPool.length > 0 ? unseenPool : pool.filter((p) => p.url !== currentPhotoUrl)
+  const candidates = unseenPool.length > 0 ? unseenPool : pool.filter((p) => {
+    const k = p.id && !p.id.startsWith('http') ? p.id : p.url.split('?')[0]
+    return p.url !== currentPhotoUrl && k !== currentKey
+  })
   const finalPool = candidates.length > 0 ? candidates : pool
   const randomIndex = Math.floor(Math.random() * finalPool.length)
   const chosen = finalPool[randomIndex]

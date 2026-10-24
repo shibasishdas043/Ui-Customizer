@@ -139,6 +139,7 @@ export default function App() {
           onUpdatePhoto: (photo, timestamp) => {
             updateSettings({
               currentPhoto: photo,
+              currentUnsplashPhoto: photo,
               lastWallpaperChange: timestamp,
             })
           },
@@ -148,6 +149,7 @@ export default function App() {
           currentUnsplashPhoto: settings.currentUnsplashPhoto,
           onUpdateUnsplashPhoto: (photo, timestamp) => {
             updateSettings({
+              currentPhoto: photo,
               currentUnsplashPhoto: photo,
               lastWallpaperChange: timestamp,
             })

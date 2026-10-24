@@ -10,6 +10,29 @@
       window.location.protocol === 'moz-extension:' ||
       window.location.protocol === 'edge-extension:';
 
+    if (!isExtension) return;
+
+    // Detect if this session is a browser page reload (F5 / Ctrl+R / ⟳ reload button)
+    var isReload = false;
+    try {
+      var navEntries = performance.getEntriesByType('navigation');
+      if (navEntries && navEntries.length > 0) {
+        isReload = navEntries[0].type === 'reload';
+      } else if (window.performance && window.performance.navigation) {
+        isReload = window.performance.navigation.type === 1;
+      }
+    } catch {}
+
+    // On reload, persist reload marker for React and NEVER perform location replace.
+    // Chrome does NOT lock omnibox focus on reloaded tabs, and redirecting would
+    // wipe out the browser's native reload navigation timing.
+    if (isReload) {
+      try {
+        sessionStorage.setItem('aura_tab_reloaded_once', '1');
+      } catch {}
+      return;
+    }
+
     var rawSettings = localStorage.getItem('aura_customizer_settings_v1');
     var isAutoFocusEnabled = true;
 
@@ -40,9 +63,10 @@
       return;
     }
 
-    // 3. When Auto-Focus IS enabled:
-    // Only in extension context, replace URL once with '?focus=1' to relinquish omnibox focus to the page
-    if (isExtension && !search.includes('focus')) {
+    // 3. When Auto-Focus IS enabled on a brand new tab:
+    // Only in extension context on initial new tab creation, replace URL once with '?focus=1'
+    // to break Chrome's omnibox focus lock and relinquish focus to the page
+    if (!search.includes('focus')) {
       var sep = search.length > 0 ? '&' : '?';
       window.location.replace(window.location.pathname + search + sep + 'focus=1');
     }

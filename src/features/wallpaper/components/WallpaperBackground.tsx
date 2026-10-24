@@ -73,6 +73,7 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
 
     const isReload = isBrowserTabReload()
     const shouldChangeOnReload = isReload && !!config.changeOnReload
+    const currentUrl = config.currentPhoto?.url || config.currentUnsplashPhoto?.url
 
     // When changeOnReload is enabled and browser tab is reloaded:
     // Pop a fresh photo directly from the upfront buffer for 0ms instant display!
@@ -85,7 +86,8 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
           customSearchQuery: config.customSearchQuery,
           redditSubreddit: config.redditSubreddit,
         },
-        true // bypass session cache
+        true, // bypass session cache
+        currentUrl
       )
       if (popped?.url) {
         return popped
@@ -104,7 +106,8 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
           customSearchQuery: config.customSearchQuery,
           redditSubreddit: config.redditSubreddit,
         },
-        shouldChangeOnReload
+        shouldChangeOnReload,
+        currentUrl
       )
       if (popped?.url) {
         return popped
@@ -145,6 +148,31 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
   useEffect(() => {
     configRef.current = config
   })
+
+
+  // Proactively pre-warm preload buffer in background whenever changeOnReload is enabled
+  useEffect(() => {
+    if (config.changeOnReload && provider !== 'solid_color' && provider !== 'local_file' && provider !== 'custom_url') {
+      replenishPreloadBufferInBackground(
+        provider,
+        {
+          defaultCategory: config.defaultCategory,
+          customCollectionId: config.customCollectionId || config.unsplashCollectionId,
+          customSearchQuery: config.customSearchQuery,
+          redditSubreddit: config.redditSubreddit,
+        },
+        activeUrlRef.current
+      )
+    }
+  }, [
+    config.changeOnReload,
+    provider,
+    config.defaultCategory,
+    config.customCollectionId,
+    config.unsplashCollectionId,
+    config.customSearchQuery,
+    config.redditSubreddit,
+  ])
 
   // Handle solid color ready state
   useEffect(() => {
@@ -283,25 +311,28 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
         !hasHandledReloadRef.current
 
       if (shouldTriggerReloadCycle) {
-        hasHandledReloadRef.current = true
-
         // Check if a fresh photo was already popped from the buffer during initial mount:
         let freshPoppedPhoto: UnsplashPhoto | null = null
         try {
           const sessionRaw = sessionStorage.getItem(TAB_SESSION_PHOTO_KEY)
           if (sessionRaw) {
             const parsed: UnsplashPhoto = JSON.parse(sessionRaw)
-            if (parsed?.url && parsed.url === activeUrlRef.current && parsed.url !== config.currentPhoto?.url) {
+            if (parsed?.url) {
               freshPoppedPhoto = parsed
             }
           }
         } catch {}
 
         if (freshPoppedPhoto) {
+          hasHandledReloadRef.current = true
           activeUrlRef.current = freshPoppedPhoto.url
           setActivePhotoMetadata(freshPoppedPhoto)
           setCanonicalPhotoKey(freshPoppedPhoto.id || freshPoppedPhoto.url)
-          configRef.current.onUpdatePhoto?.(freshPoppedPhoto, Date.now())
+          if (configRef.current.onUpdatePhoto) {
+            configRef.current.onUpdatePhoto(freshPoppedPhoto, Date.now())
+          } else if (configRef.current.onUpdateUnsplashPhoto) {
+            configRef.current.onUpdateUnsplashPhoto(freshPoppedPhoto, Date.now())
+          }
 
           // Ensure cached binary is loaded and replenish buffer for future reload:
           getOrFetchWallpaper(freshPoppedPhoto.url, freshPoppedPhoto)
@@ -316,9 +347,8 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
           return
         }
 
-        // Otherwise (buffer was empty on mount), fetch a fresh photo live:
+        // Resilient Fallback: if buffer was empty on mount and session photo was missing, fetch fresh photo live:
         try {
-          sessionStorage.removeItem(TAB_SESSION_PHOTO_KEY)
           const freshPhoto = await getNextPhotoForProvider({
             provider,
             ...targetOptions,
@@ -333,11 +363,16 @@ export const WallpaperBackground: React.FC<WallpaperBackgroundProps> = ({ config
             sessionStorage.setItem(TAB_SESSION_PHOTO_KEY, JSON.stringify(freshPhoto))
           } catch {}
 
+          hasHandledReloadRef.current = true
           activeUrlRef.current = freshPhoto.url
           setActivePhotoMetadata(freshPhoto)
           setCanonicalPhotoKey(freshPhoto.id || freshPhoto.url)
           setActiveImageSrc(finalSrc)
-          configRef.current.onUpdatePhoto?.(freshPhoto, Date.now())
+          if (configRef.current.onUpdatePhoto) {
+            configRef.current.onUpdatePhoto(freshPhoto, Date.now())
+          } else if (configRef.current.onUpdateUnsplashPhoto) {
+            configRef.current.onUpdateUnsplashPhoto(freshPhoto, Date.now())
+          }
 
           replenishPreloadBufferInBackground(provider, targetOptions, freshPhoto.url)
         } catch (e) {
