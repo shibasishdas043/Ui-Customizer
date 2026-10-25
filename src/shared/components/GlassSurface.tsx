@@ -571,17 +571,23 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
   useEffect(() => {
     if (!containerRef.current) return
 
+    let rafId: number | null = null
     const resizeObserver = new ResizeObserver(() => {
-      const element = containerRef.current
-      if (element) {
-        const next = `${element.offsetWidth}x${element.offsetHeight}`
-        setBoxSize((prev) => (prev !== next ? next : prev))
-      }
+      if (rafId !== null) return
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        const element = containerRef.current
+        if (element) {
+          const next = `${Math.round(element.offsetWidth / 4) * 4}x${element.offsetHeight}`
+          setBoxSize((prev) => (prev !== next ? next : prev))
+        }
+      })
     })
 
     resizeObserver.observe(containerRef.current)
 
     return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId)
       resizeObserver.disconnect()
     }
   }, [])

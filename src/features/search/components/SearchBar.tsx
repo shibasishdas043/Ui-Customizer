@@ -65,6 +65,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const isTyping = query.trim().length > 0
+  const isDropdownActive = dropdownOpen && !isCollapsed
+  const isSuggestionsActive = showSuggestions && !isCollapsed
 
   // Cleanup pending blur timers on unmount
   useEffect(() => {
@@ -85,6 +87,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   useEffect(() => {
     onTypingChange?.(isTyping)
   }, [isTyping, onTypingChange])
+
+  // Automatically blur search input when search bar collapses
+  useEffect(() => {
+    if (isCollapsed) {
+      inputRef.current?.blur()
+    }
+  }, [isCollapsed])
 
   // Background permanent search engine icon migrator:
   // Converts any uncached search engine icons into permanent Base64 Data URLs on mount.
@@ -545,7 +554,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     <div
       ref={containerRef}
       className={`w-full mx-auto relative ${
-        dropdownOpen || (isTyping && showSuggestions && dropdownItems.length > 0) ? 'z-50' : 'z-20'
+        isDropdownActive || (isTyping && isSuggestionsActive && dropdownItems.length > 0) ? 'z-50' : 'z-20'
       } ${className !== undefined ? className : 'px-4'}`}
     >
       <div className="relative w-full">
@@ -567,25 +576,21 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           className={`w-full transition-shadow duration-300 ${
             isFocused ? 'ring-2 ring-[var(--accent-color)]/45 shadow-[0_16px_48px_rgba(0,0,0,0.5)]' : 'shadow-lg'
           }`}
-          contentClassName={`!p-0 w-full h-full flex items-center ${
-            isCollapsed && !isTyping ? 'justify-center' : 'justify-start'
-          }`}
+          contentClassName="!p-0 w-full h-full flex items-center justify-start overflow-hidden"
         >
         <form
           onSubmit={handleFormSubmit}
           onScroll={(e) => {
             e.currentTarget.scrollLeft = 0
           }}
-          className={`w-full h-full flex items-center bg-transparent min-w-0 ${
-            isCollapsed && !isTyping ? 'justify-center p-0' : 'px-3.5 sm:px-4'
-          }`}
+          className="w-full h-full flex items-center bg-transparent min-w-0 justify-start p-0 overflow-hidden"
         >
           {/* Left Side: Search Engine Selector */}
-          <div className={`flex items-center justify-center ${isCollapsed && !isTyping ? 'w-full h-full' : 'shrink-0'}`}>
+          <div className="flex items-center justify-center shrink-0 h-full">
             <EngineSelector
               currentEngineId={currentEngine}
               engines={activeEnginesList}
-              isOpen={dropdownOpen}
+              isOpen={isDropdownActive}
               compact={isCollapsed && !isTyping}
               onToggle={() => {
                 if (isCollapsed && !isTyping) {
@@ -599,12 +604,20 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           </div>
 
           {/* Search Input Field with Inline Ghost Completion Overlay */}
-          <div
-            className={
-              isCollapsed && !isTyping
-                ? 'absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden'
-                : 'relative flex-1 min-w-0 flex items-center h-full'
-            }
+          <motion.div
+            initial={false}
+            animate={{
+              opacity: isCollapsed && !isTyping ? 0 : 1,
+              filter: isCollapsed && !isTyping ? 'blur(3px)' : 'blur(0px)',
+            }}
+            transition={{
+              duration: isCollapsed && !isTyping ? 0.22 : 0.34,
+              delay: isCollapsed && !isTyping ? 0 : 0.08,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            className={`relative flex-1 min-w-0 flex items-center h-full will-change-[opacity,filter] ${
+              isCollapsed && !isTyping ? 'pointer-events-none' : ''
+            }`}
           >
             {/* Ghost Auto-Completion Layer (Strictly Aligned) */}
             {ghostRemainder && selectedIndex === -1 && !isCollapsed && isFocused && (
@@ -694,19 +707,19 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 isCollapsed && !isTyping ? 'sr-only' : 'px-2.5 opacity-100'
               }`}
             />
-          </div>
+          </motion.div>
 
           {/* Right Side: Normal submit button (when empty) OR row of round engine icons (when typing) */}
-          {(!isCollapsed || isTyping) && (
-            <AnimatePresence mode="wait" initial={false}>
-              {!isTyping ? (
+          <AnimatePresence mode="wait" initial={false}>
+            {(!isCollapsed || isTyping) && (
+              !isTyping ? (
                 <motion.div
                   key="submit-button"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex items-center shrink-0"
+                  initial={{ opacity: 0, scale: 0.8, filter: 'blur(2px)' }}
+                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, scale: 0.8, filter: 'blur(2px)' }}
+                  transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-center shrink-0 pr-2 will-change-transform"
                 >
                   <button
                     type="submit"
@@ -718,11 +731,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               ) : (
                 <motion.div
                   key="engine-thumbnails"
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 8 }}
-                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                  className="h-full flex items-center gap-1.5 shrink-0 pl-1.5 pr-1 select-none overflow-x-auto scrollbar-none max-w-[280px] sm:max-w-[340px]"
+                  initial={{ opacity: 0, x: 8, filter: 'blur(2px)' }}
+                  animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, x: 8, filter: 'blur(2px)' }}
+                  transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+                  className="h-full flex items-center gap-1.5 shrink-0 pl-1.5 pr-2 select-none overflow-x-auto scrollbar-none max-w-[280px] sm:max-w-[340px] will-change-transform"
                 >
                   {/* Subtle glass separator between input and engine thumbnails */}
                   <div className="w-px h-5 bg-neutral-900/10 dark:bg-white/15 mr-0.5 shrink-0" aria-hidden="true" />
@@ -750,15 +763,15 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                     )
                   })}
                 </motion.div>
-              )}
-            </AnimatePresence>
-          )}
+              )
+            )}
+          </AnimatePresence>
         </form>
       </GlassSurface>
 
       {/* Frosted Glass Dropdown rendered outside form to sample direct page backdrop */}
       <AnimatePresence>
-        {!isTyping && dropdownOpen && (
+        {!isTyping && isDropdownActive && (
           <EngineSelectorDropdown
             currentEngineId={currentEngine}
             engines={activeEnginesList}
@@ -775,7 +788,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
       {/* Realtime Autocomplete & History Suggestions Dropdown */}
       <AnimatePresence>
-        {isTyping && showSuggestions && dropdownItems.length > 0 && (
+        {isTyping && isSuggestionsActive && dropdownItems.length > 0 && (
           <SearchSuggestionsDropdown
             items={dropdownItems}
             selectedIndex={selectedIndex}

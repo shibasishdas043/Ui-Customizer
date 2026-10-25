@@ -887,3 +887,14 @@
   background: var(--settings-scrollbar-hover) !important;
 }
 
+/* Media Pill Vinyl Slow Rotation */
+@keyframes vinyl-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+

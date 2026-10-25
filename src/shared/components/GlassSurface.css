@@ -193,15 +193,24 @@
   background: transparent;
 }
 .scrollbar-glass::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(120, 120, 120, 0.35);
   border-radius: 9999px;
 }
+:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *) .scrollbar-glass::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+}
 .scrollbar-glass::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.55);
+}
+:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *) .scrollbar-glass::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.45);
 }
 .scrollbar-glass {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  scrollbar-color: rgba(120, 120, 120, 0.35) transparent;
+}
+:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *) .scrollbar-glass {
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
 /* Completely invisible scrollbar with full wheel/touch scroll functionality */

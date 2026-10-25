@@ -296,23 +296,29 @@ export default function App() {
               {settings.showSearch && (
                 <motion.div
                   initial={false}
+                  onMouseEnter={() => {
+                    // Instantly restore search bar if user intentionally moves back onto it
+                    if (isMediaPillHovered) {
+                      setIsMediaPillHovered(false)
+                    }
+                  }}
                   animate={{
                     width:
                       activeMedia && settings.showMediaPill
                         ? isMediaPillHovered
                           ? isSearchTyping
-                            ? 220
+                            ? 230
                             : 50
                           : isSearchTyping
-                          ? 560
+                          ? 620
                           : 480
                         : '100%',
                   }}
                   transition={{
-                    duration: isInitialMount ? 0 : 0.45,
-                    ease: [0.22, 1, 0.36, 1],
+                    duration: isInitialMount ? 0 : 0.42,
+                    ease: [0.16, 1, 0.3, 1],
                   }}
-                  className={`flex items-center justify-center shrink-0 ${
+                  className={`flex items-center justify-center shrink-0 will-change-[width] ${
                     !(activeMedia && settings.showMediaPill) ? 'w-full max-w-2xl' : ''
                   }`}
                 >
@@ -326,28 +332,31 @@ export default function App() {
                     onOpenSettings={() => setIsCustomizerOpen(true)}
                     onUpdateEngines={(newEngines) => updateSettings({ searchEngines: newEngines })}
                     className="px-0 w-full"
-                    isCollapsed={!!(activeMedia && settings.showMediaPill && isMediaPillHovered)}
+                    isCollapsed={!!(activeMedia && settings.showMediaPill && isMediaPillHovered && !isSearchTyping)}
                     onTypingChange={setIsSearchTyping}
                   />
                 </motion.div>
               )}
 
               {/* Now Playing Media Pill */}
-              {settings.showMediaPill && activeMedia && (
-                <div className="shrink-0 relative z-30 flex items-center justify-center">
-                  <MediaPill
-                    media={activeMedia}
-                    hasSearchAdjacent={settings.showSearch}
-                    autoExpandOnHover={settings.mediaPillHoverExpand}
-                    showControls={settings.mediaPillShowControls}
-                    onHoverChange={setIsMediaPillHovered}
-                    onTogglePlayPause={togglePlayPause}
-                    onToggleMute={toggleMute}
-                    onJumpToTab={jumpToTab}
-                    isSearchTyping={isSearchTyping}
-                  />
-                </div>
-              )}
+              <AnimatePresence>
+                {settings.showMediaPill && activeMedia && (
+                  <div className="shrink-0 relative z-30 flex items-center justify-center">
+                    <MediaPill
+                      media={activeMedia}
+                      hasSearchAdjacent={settings.showSearch}
+                      autoExpandOnHover={settings.mediaPillHoverExpand}
+                      showControls={settings.mediaPillShowControls}
+                      isExpanded={isMediaPillHovered}
+                      onHoverChange={setIsMediaPillHovered}
+                      onTogglePlayPause={togglePlayPause}
+                      onToggleMute={toggleMute}
+                      onJumpToTab={jumpToTab}
+                      isSearchTyping={isSearchTyping}
+                    />
+                  </div>
+                )}
+              </AnimatePresence>
             </div>
           )}
 
