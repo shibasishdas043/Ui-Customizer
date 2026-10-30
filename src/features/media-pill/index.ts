@@ -1,5 +1,13 @@
 export { MediaPill } from './components/MediaPill'
 export { AudioEqualizer } from './components/AudioEqualizer'
 export { Topography } from './components/Topography'
-export { useNowPlayingTab } from './hooks/useNowPlayingTab'
+export {
+  useNowPlayingTab,
+  isExcludedNonMediaUrl,
+  isExcludedTab,
+  getPlatformFromUrl,
+  isKnownMediaPlatform,
+  isYouTubeWatchUrl,
+} from './hooks/useNowPlayingTab'
 export type { NowPlayingMedia, MediaPlatform, MediaPillConfig } from './types'
+

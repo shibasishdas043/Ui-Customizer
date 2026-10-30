@@ -13,7 +13,103 @@ interface ChromeTabInfo {
   windowId?: number
 }
 
-function getPlatformFromUrl(url?: string): MediaPlatform {
+// 1. AI Chatbots & LLM Tools (voice mode, TTS, or audio context must never activate media pill)
+const EXCLUDED_AI_DOMAINS = [
+  'chatgpt.com',
+  'chat.openai.com',
+  'oaistatic.com',
+  'claude.ai',
+  'anthropic.com',
+  'gemini.google.com',
+  'bard.google.com',
+  'copilot.microsoft.com',
+  'perplexity.ai',
+  'poe.com',
+  'character.ai',
+  'mistral.ai',
+  'chat.mistral.ai',
+  'deepseek.com',
+  'chat.deepseek.com',
+  'grok.com',
+  'x.ai',
+  'huggingface.co',
+  'meta.ai',
+  'pi.ai',
+]
+
+// 2. Communication, Meetings, VoIP & Messaging Tools (calls, notification chimes)
+const EXCLUDED_COMM_DOMAINS = [
+  'meet.google.com',
+  'zoom.us',
+  'teams.microsoft.com',
+  'teams.live.com',
+  'discord.com',
+  'slack.com',
+  'web.whatsapp.com',
+  'web.telegram.org',
+  'messenger.com',
+  'skype.com',
+  'web.skype.com',
+]
+
+/**
+ * Returns true if the URL belongs to an AI chatbot, meeting tool, or browser internal page.
+ */
+export function isExcludedNonMediaUrl(url?: string): boolean {
+  if (!url) return false
+  const lower = url.toLowerCase()
+
+  // Browser internal or extension pages
+  if (
+    lower.startsWith('chrome://') ||
+    lower.startsWith('chrome-extension://') ||
+    lower.startsWith('edge://') ||
+    lower.startsWith('brave://') ||
+    lower.startsWith('about:') ||
+    lower.startsWith('view-source:')
+  ) {
+    return true
+  }
+
+  if (EXCLUDED_AI_DOMAINS.some((domain) => lower.includes(domain))) {
+    return true
+  }
+
+  if (EXCLUDED_COMM_DOMAINS.some((domain) => lower.includes(domain))) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Checks both URL and tab title to prevent AI chatbots or meeting calls from being treated as media.
+ */
+export function isExcludedTab(tab?: ChromeTabInfo): boolean {
+  if (!tab) return true
+  if (tab.url && isExcludedNonMediaUrl(tab.url)) return true
+  if (tab.title) {
+    const lowerTitle = tab.title.toLowerCase()
+    if (
+      lowerTitle.endsWith(' - chatgpt') ||
+      lowerTitle.endsWith(' | chatgpt') ||
+      lowerTitle.endsWith(' - claude') ||
+      lowerTitle.endsWith(' | claude') ||
+      lowerTitle.endsWith(' - gemini') ||
+      lowerTitle.endsWith(' | gemini') ||
+      lowerTitle.endsWith(' - deepseek')
+    ) {
+      return true
+    }
+  }
+  return false
+}
+
+/**
+ * Detects the media platform from the tab URL.
+ * Recognizes all major audio/video services and falls back to 'generic' for arbitrary media playback.
+ */
+export function getPlatformFromUrl(url?: string): MediaPlatform {
   if (!url) return 'generic'
   const lower = url.toLowerCase()
   if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'youtube'
@@ -21,28 +117,65 @@ function getPlatformFromUrl(url?: string): MediaPlatform {
   if (lower.includes('soundcloud.com')) return 'soundcloud'
   if (lower.includes('netflix.com')) return 'netflix'
   if (lower.includes('music.apple.com')) return 'apple_music'
+  if (lower.includes('twitch.tv')) return 'twitch'
+  if (lower.includes('deezer.com')) return 'deezer'
+  if (lower.includes('tidal.com')) return 'tidal'
+  if (lower.includes('bandcamp.com')) return 'bandcamp'
+  if (lower.includes('music.amazon.')) return 'amazon_music'
+  if (lower.includes('vimeo.com')) return 'vimeo'
   return 'generic'
 }
 
-function cleanMediaTitle(title?: string): string {
+export function isKnownMediaPlatform(url?: string): boolean {
+  if (!url) return false
+  return getPlatformFromUrl(url) !== 'generic'
+}
+
+export function isYouTubeWatchUrl(url?: string): boolean {
+  if (!url) return false
+  const lower = url.toLowerCase()
+  return (
+    lower.includes('/watch') ||
+    lower.includes('/shorts/') ||
+    lower.includes('/embed/') ||
+    lower.includes('music.youtube.com')
+  )
+}
+
+/**
+ * Dynamically sanitizes song, video, or sound titles across any platform.
+ */
+export function cleanMediaTitle(title?: string): string {
   if (!title) return 'Playing Audio'
   let clean = title.trim()
 
-  // Remove platform branding suffixes
+  // Remove notification counts like "(1) Song Title" or "(99+) "
+  clean = clean.replace(/^\(\d+\+?\)\s*/, '')
+
+  // Remove leading playback / stream indicators
+  clean = clean.replace(/^[▶►⏸🔴]\s*/u, '')
+
+  // Remove platform branding suffixes across known platforms
   clean = clean
     .replace(/\s*-\s*YouTube\s*$/i, '')
     .replace(/\s*\|\s*Spotify\s*$/i, '')
     .replace(/\s*\|\s*SoundCloud\s*$/i, '')
     .replace(/\s*-\s*Netflix\s*$/i, '')
     .replace(/\s*\|\s*Apple Music\s*$/i, '')
-
-  // Remove notification counts like "(1) Song Title"
-  clean = clean.replace(/^\(\d+\)\s*/, '')
+    .replace(/\s*-\s*Twitch\s*$/i, '')
+    .replace(/\s*-\s*Deezer\s*$/i, '')
+    .replace(/\s*-\s*TIDAL\s*$/i, '')
+    .replace(/\s*\|\s*Bandcamp\s*$/i, '')
+    .replace(/\s*on\s*Vimeo\s*$/i, '')
+    .replace(/\s*-\s*Vimeo\s*$/i, '')
+    .replace(/\s*\|\s*Amazon Music\s*$/i, '')
+    .replace(/\s*-\s*Soundpuddle\s*$/i, '')
+    .replace(/\s*-\s*Mixcloud\s*$/i, '')
 
   return clean.trim() || title
 }
 
-function getYouTubeThumbnail(url?: string): string | undefined {
+export function getYouTubeThumbnail(url?: string): string | undefined {
   if (!url) return undefined
   try {
     const parsed = new URL(url)
@@ -73,16 +206,13 @@ interface TabMediaMetadata {
   artwork?: string
   isPlaying?: boolean
   isMuted?: boolean
+  hasMedia?: boolean
 }
 
-const MEDIA_URL_PATTERNS = [
-  '*://*.youtube.com/*',
-  '*://*.spotify.com/*',
-  '*://*.soundcloud.com/*',
-  '*://music.apple.com/*',
-  '*://*.netflix.com/*',
-]
-
+/**
+ * Universal in-page metadata extraction.
+ * Injected into the target media tab to inspect live MediaSession, player APIs, or HTML5 audio/video elements.
+ */
 function fetchTabMediaMetadata(
   tabId: number,
   callback: (meta: TabMediaMetadata) => void,
@@ -100,47 +230,187 @@ function fetchTabMediaMetadata(
           try {
             let isPlaying = false
             let isMuted = false
+            let hasMedia = false
             let title = ''
             let artist = ''
             let artwork = ''
 
-            // 1. HTML5 Media Elements check (<video> and <audio>)
-            const mainVideo = (document.querySelector('video.html5-main-video') ||
-              document.querySelector('#movie_player video') ||
-              document.querySelector('video')) as HTMLVideoElement | null
-
-            if (mainVideo) {
-              artwork = mainVideo.poster || ''
-              isPlaying = !mainVideo.paused && !mainVideo.ended
-              isMuted = mainVideo.muted || mainVideo.volume === 0
-            } else {
-              const mediaElements = Array.from(
-                document.querySelectorAll('video, audio'),
-              ) as (HTMLVideoElement | HTMLAudioElement)[]
-              if (mediaElements.length > 0) {
-                isPlaying = mediaElements.some((el) => !el.paused && !el.ended)
-                isMuted = mediaElements.every((el) => el.muted || el.volume === 0)
-              }
-            }
-
-            // 2. MediaSession API (used by Spotify Web, Apple Music, YouTube Music, SoundCloud)
+            // 1. Highest Priority: navigator.mediaSession (live, dynamically updated on song/video change)
             const ms = navigator.mediaSession
             if (ms) {
               if (ms.playbackState === 'playing') {
                 isPlaying = true
-              } else if (ms.playbackState === 'paused' && (!mainVideo || mainVideo.paused)) {
-                isPlaying = false
+                hasMedia = true
+              } else if (ms.playbackState === 'paused') {
+                hasMedia = true
               }
               if (ms.metadata) {
-                title = title || ms.metadata.title || ''
-                artist = artist || ms.metadata.artist || ''
-                artwork = artwork || ms.metadata.artwork?.[0]?.src || ''
+                hasMedia = true
+                if (ms.metadata.title) title = ms.metadata.title.trim()
+                if (ms.metadata.artist) artist = ms.metadata.artist.trim()
+                if (ms.metadata.album && !artist) artist = ms.metadata.album.trim()
+                if (ms.metadata.artwork && ms.metadata.artwork.length > 0) {
+                  const artList = Array.from(ms.metadata.artwork)
+                  const bestArt = artList.sort((a, b) => {
+                    const sA = parseInt(a.sizes?.split('x')[0] || '0', 10)
+                    const sB = parseInt(b.sizes?.split('x')[0] || '0', 10)
+                    return sB - sA
+                  })[0]
+                  if (bestArt?.src) artwork = bestArt.src
+                }
               }
             }
 
-            // 3. Fallback for title
+            // 2. YouTube Player & Real-time DOM check
+            const ytPlayer = (document.getElementById('movie_player') as any)
+            if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+              const state = ytPlayer.getPlayerState()
+              // 1 = PLAYING, 3 = BUFFERING
+              if (state === 1 || state === 3) {
+                isPlaying = true
+                hasMedia = true
+              } else if (state === 2) {
+                hasMedia = true
+              }
+              if (typeof ytPlayer.isMuted === 'function') {
+                isMuted = ytPlayer.isMuted()
+              }
+
+              // Live DOM title for YouTube (updates immediately on SPA navigation)
+              const ytDomTitle = (
+                document.querySelector(
+                  'h1.ytd-watch-metadata yt-formatted-string, #title h1 yt-formatted-string, ytd-watch-metadata #title h1, h1.title yt-formatted-string'
+                )?.textContent || ''
+              ).trim()
+              if (ytDomTitle) {
+                title = ytDomTitle
+              }
+
+              const ytDomChannel = (
+                document.querySelector(
+                  'ytd-channel-name #text, #upload-info #channel-name a, #owner #channel-name a'
+                )?.textContent || ''
+              ).trim()
+              if (ytDomChannel && !artist) {
+                artist = ytDomChannel
+              }
+
+              // Secondary fallback to videoData if DOM title wasn't found
+              if (!title && typeof ytPlayer.getVideoData === 'function') {
+                const videoData = ytPlayer.getVideoData()
+                if (videoData?.title) title = videoData.title.trim()
+                if (videoData?.author && !artist) artist = videoData.author.trim()
+              }
+            }
+
+            // 3. Platform-specific DOM queries for Spotify, SoundCloud, Twitch
+            // Spotify Web Player
+            const spotifyTrack = (
+              document.querySelector(
+                '[data-testid="context-item-info-title"] a, [data-testid="track-info-name"]'
+              )?.textContent || ''
+            ).trim()
+            if (spotifyTrack) {
+              hasMedia = true
+              if (!title) title = spotifyTrack
+              const spotifyArtist = (
+                document.querySelector(
+                  '[data-testid="context-item-info-artist"] a, [data-testid="track-info-artists"]'
+                )?.textContent || ''
+              ).trim()
+              if (spotifyArtist && !artist) artist = spotifyArtist
+              const spotifyCover = document.querySelector('[data-testid="cover-art-image"]')?.getAttribute('src')
+              if (spotifyCover && !artwork) artwork = spotifyCover
+              const playBtn = document.querySelector('[data-testid="control-button-playpause"]')
+              const playLabel = playBtn?.getAttribute('aria-label')?.toLowerCase() || ''
+              if (playLabel.includes('pause')) isPlaying = true
+            }
+
+            // SoundCloud
+            const scTitle = (
+              document.querySelector('.playbackSoundBadge__titleLink')?.getAttribute('title') ||
+              document.querySelector('.playbackSoundBadge__titleLink')?.textContent ||
+              ''
+            ).trim()
+            if (scTitle) {
+              hasMedia = true
+              if (!title) title = scTitle
+              const scArtist = (
+                document.querySelector('.playbackSoundBadge__lightLink')?.textContent || ''
+              ).trim()
+              if (scArtist && !artist) artist = scArtist
+              const scCoverEl = document.querySelector('.playbackSoundBadge__avatar span') as HTMLElement | null
+              if (scCoverEl && !artwork) {
+                const bg = scCoverEl.style.backgroundImage
+                const match = bg.match(/url\(["']?([^"']+)["']?\)/)
+                if (match && match[1]) artwork = match[1]
+              }
+            }
+
+            // Twitch
+            const twitchTitle = (
+              document.querySelector('[data-a-target="stream-title"]')?.textContent || ''
+            ).trim()
+            if (twitchTitle) {
+              hasMedia = true
+              if (!title) title = twitchTitle
+              const streamer = (
+                document.querySelector('[data-a-target="user-channel-name"]')?.textContent || ''
+              ).trim()
+              if (streamer && !artist) artist = streamer
+              const twitchAvatar = document.querySelector('.channel-header__user-avatar img')?.getAttribute('src')
+              if (twitchAvatar && !artwork) artwork = twitchAvatar
+            }
+
+            // 4. HTML5 <video> and <audio> elements (Universal across ALL websites)
+            const mediaElements = Array.from(
+              document.querySelectorAll('video, audio'),
+            ) as (HTMLVideoElement | HTMLAudioElement)[]
+            if (mediaElements.length > 0) {
+              hasMedia = true
+              const activeEl = mediaElements.find(
+                (el) => !el.paused && !el.ended && el.readyState > 1,
+              )
+              if (activeEl) {
+                isPlaying = true
+                isMuted = activeEl.muted || activeEl.volume === 0
+                if (!artwork && (activeEl as HTMLVideoElement).poster) {
+                  artwork = (activeEl as HTMLVideoElement).poster
+                }
+              } else {
+                const first = mediaElements[0]
+                if (first && (first.muted || first.volume === 0)) {
+                  isMuted = true
+                }
+              }
+
+              if (!title) {
+                for (const el of mediaElements) {
+                  const t = el.getAttribute('title') || el.getAttribute('aria-label')
+                  if (t && t.trim()) {
+                    title = t.trim()
+                    break
+                  }
+                }
+              }
+            }
+
+            // 5. Universal OpenGraph & Page Metadata Fallback
+            if (!artwork) {
+              const ogImg =
+                document.querySelector('meta[property="og:image"]')?.getAttribute('content') ||
+                document.querySelector('meta[name="twitter:image"]')?.getAttribute('content')
+              if (ogImg) artwork = ogImg
+            }
+
             if (!title) {
-              title = document.title || ''
+              const ogTitle =
+                document.querySelector('meta[property="og:title"]')?.getAttribute('content') ||
+                document.querySelector('meta[name="twitter:title"]')?.getAttribute('content') ||
+                document.querySelector('h1')?.textContent?.trim() ||
+                document.title ||
+                ''
+              if (ogTitle) title = ogTitle
             }
 
             return {
@@ -149,12 +419,14 @@ function fetchTabMediaMetadata(
               artwork,
               isPlaying,
               isMuted,
+              hasMedia,
             }
           } catch {
             return {
               title: document.title || '',
               isPlaying: false,
               isMuted: false,
+              hasMedia: false,
             }
           }
         },
@@ -176,12 +448,44 @@ function fetchTabMediaMetadata(
 const MEDIA_STORAGE_KEY = 'aura_last_active_media_v2'
 const TAB_ID_STORAGE_KEY = 'aura_last_media_tab_id_v2'
 
+function purgeMediaStorage() {
+  try {
+    localStorage.removeItem(MEDIA_STORAGE_KEY)
+    localStorage.removeItem(TAB_ID_STORAGE_KEY)
+    localStorage.removeItem('aura_last_active_media')
+    localStorage.removeItem('aura_last_media_tab_id')
+    sessionStorage.removeItem('aura_last_media_tab_id')
+    sessionStorage.removeItem('aura_last_active_media')
+  } catch {
+    // Safe fallback
+  }
+}
+
 export function useNowPlayingTab(enabled: boolean = true) {
   const isExtensionEnv = typeof chrome !== 'undefined' && !!chrome.tabs && !!chrome.tabs.query
+  const lastFetchRef = useRef<{ tabId: number; time: number; meta: TabMediaMetadata } | null>(null)
+
   const activeTabIdRef = useRef<number | null>(
-    typeof window !== 'undefined'
-      ? Number(localStorage.getItem(TAB_ID_STORAGE_KEY) || sessionStorage.getItem('aura_last_media_tab_id')) || null
-      : null
+    (() => {
+      if (typeof window === 'undefined') return null
+      try {
+        const cached = localStorage.getItem(MEDIA_STORAGE_KEY) || localStorage.getItem('aura_last_active_media')
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          // Purge invalid cached tabs (AI chatbots or meeting calls)
+          if (parsed?.url && isExcludedNonMediaUrl(parsed.url)) {
+            purgeMediaStorage()
+            return null
+          }
+        }
+        return (
+          Number(localStorage.getItem(TAB_ID_STORAGE_KEY) || sessionStorage.getItem('aura_last_media_tab_id')) ||
+          null
+        )
+      } catch {
+        return null
+      }
+    })(),
   )
 
   const [activeMedia, setActiveMedia] = useState<NowPlayingMedia | null>(() => {
@@ -190,8 +494,13 @@ export function useNowPlayingTab(enabled: boolean = true) {
         const cached = localStorage.getItem(MEDIA_STORAGE_KEY) || sessionStorage.getItem('aura_last_active_media')
         if (cached) {
           const parsed = JSON.parse(cached)
-          // Accept cached active media if it has a valid tabId and was seen within the last 45 seconds
-          if (parsed && parsed.tabId && (!parsed._savedAt || Date.now() - parsed._savedAt < 45000)) {
+          // Reject cached active media if it belongs to an excluded URL
+          if (parsed?.url && isExcludedNonMediaUrl(parsed.url)) {
+            purgeMediaStorage()
+            return null
+          }
+          // Accept cached active media if recent (< 30 seconds)
+          if (parsed && parsed.tabId && (!parsed._savedAt || Date.now() - parsed._savedAt < 30000)) {
             const { _savedAt, ...mediaData } = parsed
             return mediaData as NowPlayingMedia
           }
@@ -220,220 +529,274 @@ export function useNowPlayingTab(enabled: boolean = true) {
     return null
   })
 
-  // Inspect playback state and metadata of a target tab
-  const inspectTabState = useCallback((candidateTab: ChromeTabInfo) => {
-    if (!candidateTab || candidateTab.id === undefined) return
-    const tabId = candidateTab.id
-    activeTabIdRef.current = tabId
-    try {
-      localStorage.setItem(TAB_ID_STORAGE_KEY, String(tabId))
-      sessionStorage.setItem('aura_last_media_tab_id', String(tabId))
-    } catch {
-      // Safe fallback
-    }
+  // Completely resets active media state and clears persistent storage
+  const clearActiveMedia = useCallback(() => {
+    setActiveMedia(null)
+    activeTabIdRef.current = null
+    lastFetchRef.current = null
+    purgeMediaStorage()
+  }, [])
 
-    const platform = getPlatformFromUrl(candidateTab.url)
-    const cleanTitle = cleanMediaTitle(candidateTab.title)
-    const thumbnailUrl =
-      platform === 'youtube'
-        ? getYouTubeThumbnail(candidateTab.url)
-        : candidateTab.favIconUrl
+  // Inspect playback state and metadata of a target candidate tab
+  const inspectTabState = useCallback(
+    (candidateTab: ChromeTabInfo, forceRefresh: boolean = false) => {
+      if (!candidateTab || candidateTab.id === undefined) return
+      const tabId = candidateTab.id
 
-    // 1. Reflect tab audible/playing and mute states
-    setActiveMedia((prev) => {
-      const isSame = prev && prev.tabId === tabId
-      const initialPlaying = candidateTab.audible ? true : (isSame ? prev.isPlaying : false)
-      const initialMuted = candidateTab.mutedInfo?.muted ?? (isSame ? prev.isMuted : false)
-      return {
-        tabId,
-        title: isSame && prev.title ? prev.title : (candidateTab.title || 'Playing Audio'),
-        cleanTitle: isSame && prev.cleanTitle ? prev.cleanTitle : cleanTitle,
-        url: candidateTab.url || '',
-        favIconUrl: candidateTab.favIconUrl,
-        thumbnailUrl: isSame && prev.thumbnailUrl ? prev.thumbnailUrl : thumbnailUrl,
-        artist: isSame ? prev.artist : undefined,
-        isPlaying: initialPlaying,
-        isMuted: initialMuted,
-        platform,
-      }
-    })
-
-    // 2. Enrich with DOM metadata and verify playback state
-    fetchTabMediaMetadata(tabId, (meta) => {
-      if (activeTabIdRef.current !== tabId) return
-
-      // Authoritative playback state:
-      // Tab is playing if audible in Chrome OR if DOM video/audio is active (!paused)
-      const isPlaying = Boolean(candidateTab.audible || meta.isPlaying === true)
-
-      // Authoritative mute state:
-      // Tab is muted if Chrome tab is muted OR if in-page video/audio is muted or volume === 0
-      const isMuted = Boolean(
-        candidateTab.mutedInfo?.muted ||
-        (meta.isMuted !== undefined ? meta.isMuted : false)
-      )
-
-      const finalTitle = meta.title ? cleanMediaTitle(meta.title) : cleanTitle
-      const finalThumb = meta.artwork || thumbnailUrl
-
-      const updatedMedia: NowPlayingMedia = {
-        tabId,
-        title: meta.title || candidateTab.title || 'Playing Audio',
-        cleanTitle: finalTitle,
-        url: candidateTab.url || '',
-        favIconUrl: candidateTab.favIconUrl,
-        thumbnailUrl: finalThumb,
-        artist: meta.artist || undefined,
-        isPlaying,
-        isMuted,
-        platform,
+      // 1. Instantly reject any excluded non-media tab (AI chatbots, meetings, browser internal URLs)
+      if (isExcludedTab(candidateTab)) {
+        if (activeTabIdRef.current === tabId) {
+          clearActiveMedia()
+        }
+        return
       }
 
-      setActiveMedia(updatedMedia)
+      const platform = getPlatformFromUrl(candidateTab.url)
+      const cleanTitle = cleanMediaTitle(candidateTab.title)
+      const thumbnailUrl =
+        platform === 'youtube'
+          ? getYouTubeThumbnail(candidateTab.url)
+          : candidateTab.favIconUrl
+
+      // 2. INSTANT OPTIMISTIC SYNC:
+      // Prevent frozen titles when opening a new tab by syncing the tab's current title immediately
+      activeTabIdRef.current = tabId
       try {
-        localStorage.setItem(MEDIA_STORAGE_KEY, JSON.stringify({ ...updatedMedia, _savedAt: Date.now() }))
-        sessionStorage.setItem('aura_last_active_media', JSON.stringify(updatedMedia))
+        localStorage.setItem(TAB_ID_STORAGE_KEY, String(tabId))
+        sessionStorage.setItem('aura_last_media_tab_id', String(tabId))
       } catch {
         // Safe fallback
       }
-    })
-  }, [])
 
-  // Scan open tabs for active media or currently tracked media tab
-  const scanTabs = useCallback(() => {
-    if (!enabled || !isExtensionEnv) return
+      setActiveMedia((prev) => {
+        // If already tracking this tab with this exact title and playing status, maintain prev
+        if (
+          prev &&
+          prev.tabId === tabId &&
+          prev.cleanTitle === cleanTitle &&
+          prev.isPlaying === (candidateTab.audible ?? prev.isPlaying)
+        ) {
+          return prev
+        }
+        return {
+          tabId,
+          title: candidateTab.title || 'Playing Audio',
+          cleanTitle,
+          url: candidateTab.url || '',
+          favIconUrl: candidateTab.favIconUrl,
+          thumbnailUrl: prev && prev.tabId === tabId && prev.thumbnailUrl ? prev.thumbnailUrl : thumbnailUrl,
+          artist: prev && prev.tabId === tabId ? prev.artist : undefined,
+          isPlaying: candidateTab.audible ? true : (prev && prev.tabId === tabId ? prev.isPlaying : false),
+          isMuted: candidateTab.mutedInfo?.muted ?? (prev && prev.tabId === tabId ? prev.isMuted : false),
+          platform,
+        }
+      })
 
-    try {
-      const trackedId = activeTabIdRef.current
+      const applyMetadata = (meta: TabMediaMetadata) => {
+        // Authoritative playback state:
+        const isPlaying = Boolean(candidateTab.audible || meta.isPlaying === true)
+        const hasRealMedia = Boolean(
+          candidateTab.audible ||
+            meta.isPlaying ||
+            meta.hasMedia ||
+            meta.artwork ||
+            meta.artist ||
+            (platform === 'youtube' && isYouTubeWatchUrl(candidateTab.url)),
+        )
 
-      const checkTrackedTab = (callbackIfClosed: () => void) => {
-        if (trackedId === null) {
-          callbackIfClosed()
+        // If tab is silent and has no loaded media, clear it
+        if (!hasRealMedia && !candidateTab.audible) {
+          if (activeTabIdRef.current === tabId) {
+            clearActiveMedia()
+          }
           return
         }
-        chrome.tabs.get(trackedId, (tab?: ChromeTabInfo) => {
-          if (chrome.runtime?.lastError || !tab || !tab.id) {
-            callbackIfClosed()
-            return
-          }
-          inspectTabState(tab)
-        })
-      }
 
-      const discoverMediaTabs = () => {
-        chrome.tabs.query({ url: MEDIA_URL_PATTERNS }, (mediaTabs: ChromeTabInfo[]) => {
-          if (!chrome.runtime?.lastError && mediaTabs && mediaTabs.length > 0) {
-            const bestTab = mediaTabs.find((t) => t.audible) || mediaTabs[0]
-            inspectTabState(bestTab)
-            return
-          }
+        const isMuted = Boolean(
+          candidateTab.mutedInfo?.muted ||
+            (meta.isMuted !== undefined ? meta.isMuted : false),
+        )
 
-          chrome.tabs.query({ audible: true }, (audibleTabs: ChromeTabInfo[]) => {
-            if (!chrome.runtime?.lastError && audibleTabs && audibleTabs.length > 0) {
-              inspectTabState(audibleTabs[0])
-              return
-            }
+        const finalTitle = meta.title ? cleanMediaTitle(meta.title) : cleanTitle
+        const finalThumb = meta.artwork || thumbnailUrl
 
-            // No media tabs or audible tabs exist
-            setActiveMedia(null)
-            activeTabIdRef.current = null
-            try {
-              localStorage.removeItem(TAB_ID_STORAGE_KEY)
-              localStorage.removeItem(MEDIA_STORAGE_KEY)
-              sessionStorage.removeItem('aura_last_media_tab_id')
-              sessionStorage.removeItem('aura_last_active_media')
-            } catch {
-              // Safe fallback
-            }
-          })
-        })
-      }
-
-      // 1. Prioritize any currently audible tab
-      chrome.tabs.query({ audible: true }, (audibleTabs: ChromeTabInfo[]) => {
-        if (!chrome.runtime?.lastError && audibleTabs && audibleTabs.length > 0) {
-          const audibleMedia = audibleTabs.find((t) => getPlatformFromUrl(t.url) !== 'generic')
-          const candidate = audibleMedia || audibleTabs[0]
-          if (candidate && candidate.id !== undefined) {
-            inspectTabState(candidate)
-            return
-          }
+        const updatedMedia: NowPlayingMedia = {
+          tabId,
+          title: meta.title || candidateTab.title || 'Playing Audio',
+          cleanTitle: finalTitle,
+          url: candidateTab.url || '',
+          favIconUrl: candidateTab.favIconUrl,
+          thumbnailUrl: finalThumb,
+          artist: meta.artist || undefined,
+          isPlaying,
+          isMuted,
+          platform,
         }
 
-        // 2. If no tab is audible, maintain and inspect tracked tab or discover media tabs
-        checkTrackedTab(discoverMediaTabs)
+        setActiveMedia(updatedMedia)
+        try {
+          localStorage.setItem(
+            MEDIA_STORAGE_KEY,
+            JSON.stringify({ ...updatedMedia, _savedAt: Date.now() }),
+          )
+          sessionStorage.setItem('aura_last_active_media', JSON.stringify(updatedMedia))
+        } catch {
+          // Safe fallback
+        }
+      }
+
+      // 3. Enrich with live DOM & MediaSession metadata (with 1.5s cache unless forceRefresh)
+      if (
+        !forceRefresh &&
+        lastFetchRef.current &&
+        lastFetchRef.current.tabId === tabId &&
+        Date.now() - lastFetchRef.current.time < 1500
+      ) {
+        applyMetadata(lastFetchRef.current.meta)
+        return
+      }
+
+      fetchTabMediaMetadata(tabId, (meta) => {
+        lastFetchRef.current = { tabId, time: Date.now(), meta }
+        applyMetadata(meta)
       })
-    } catch {
-      // Ignored
-    }
-  }, [enabled, isExtensionEnv, inspectTabState])
+    },
+    [clearActiveMedia],
+  )
+
+  // Scan open tabs for active media or currently tracked media tab
+  const scanTabs = useCallback(
+    (forceRefresh: boolean = false) => {
+      if (!enabled || !isExtensionEnv) return
+
+      try {
+        // 1. Check for any currently audible tab
+        chrome.tabs.query({ audible: true }, (audibleTabs: ChromeTabInfo[]) => {
+          if (chrome.runtime?.lastError) return
+
+          // Filter out excluded AI chatbots, video calls, and browser internal pages
+          const validAudibleTabs = (audibleTabs || []).filter((t) => !isExcludedTab(t))
+
+          if (validAudibleTabs.length > 0) {
+            // Prioritize known media platforms (YouTube, Spotify, etc.) over generic audible tabs
+            const knownAudible = validAudibleTabs.find((t) => getPlatformFromUrl(t.url) !== 'generic')
+            const candidate = knownAudible || validAudibleTabs[0]
+            if (candidate && candidate.id !== undefined) {
+              inspectTabState(candidate, forceRefresh)
+              return
+            }
+          }
+
+          // 2. If NO tab is currently audible, check the currently tracked media tab
+          const trackedId = activeTabIdRef.current
+          if (trackedId !== null) {
+            chrome.tabs.get(trackedId, (tab?: ChromeTabInfo) => {
+              if (chrome.runtime?.lastError || !tab || !tab.id) {
+                clearActiveMedia()
+                return
+              }
+
+              if (isExcludedTab(tab)) {
+                clearActiveMedia()
+                return
+              }
+
+              // Tracked tab is open: inspect its paused/holding state
+              inspectTabState(tab, forceRefresh)
+            })
+            return
+          }
+
+          // 3. No audible tabs and no tracked tab: clean state
+          clearActiveMedia()
+        })
+      } catch {
+        // Ignored
+      }
+    },
+    [enabled, isExtensionEnv, inspectTabState, clearActiveMedia],
+  )
 
   useEffect(() => {
     if (!enabled || !isExtensionEnv) return
 
-    // Initial query
-    scanTabs()
+    // Immediately trigger a force scan on mount to eliminate frozen titles on opening a new tab
+    scanTabs(true)
 
     // Realtime Tab Listeners
     const handleTabUpdated = (
       tabId: number,
-      changeInfo: { audible?: boolean; title?: string; mutedInfo?: { muted: boolean } },
+      changeInfo: { audible?: boolean; title?: string; url?: string; mutedInfo?: { muted: boolean } },
     ) => {
+      // If the tracked tab changed URL to an excluded domain or non-media page, clear it immediately
+      if (activeTabIdRef.current === tabId && changeInfo.url && isExcludedNonMediaUrl(changeInfo.url)) {
+        clearActiveMedia()
+        return
+      }
+
       if (activeTabIdRef.current === tabId) {
-        if (changeInfo.audible === true) {
+        lastFetchRef.current = null
+        if (changeInfo.audible !== undefined) {
           setActiveMedia((prev) =>
-            prev && prev.tabId === tabId ? { ...prev, isPlaying: true } : prev
+            prev && prev.tabId === tabId ? { ...prev, isPlaying: changeInfo.audible! } : prev,
           )
         }
         if (changeInfo.mutedInfo !== undefined) {
           setActiveMedia((prev) =>
-            prev && prev.tabId === tabId ? { ...prev, isMuted: changeInfo.mutedInfo!.muted } : prev
+            prev && prev.tabId === tabId ? { ...prev, isMuted: changeInfo.mutedInfo!.muted } : prev,
           )
         }
         if (changeInfo.title) {
+          const clean = cleanMediaTitle(changeInfo.title)
           setActiveMedia((prev) =>
             prev && prev.tabId === tabId
-              ? { ...prev, title: changeInfo.title!, cleanTitle: cleanMediaTitle(changeInfo.title!) }
-              : prev
+              ? { ...prev, title: changeInfo.title!, cleanTitle: clean }
+              : prev,
           )
         }
       }
+
       if (
         changeInfo.audible !== undefined ||
         changeInfo.title !== undefined ||
+        changeInfo.url !== undefined ||
         changeInfo.mutedInfo !== undefined
       ) {
-        scanTabs()
+        scanTabs(true)
       }
     }
 
     const handleTabRemoved = (tabId: number) => {
       if (activeTabIdRef.current === tabId) {
-        setActiveMedia(null)
-        activeTabIdRef.current = null
-        scanTabs()
+        clearActiveMedia()
+        scanTabs(true)
       }
     }
 
     const handleActivated = () => {
-      scanTabs()
+      lastFetchRef.current = null
+      scanTabs(true)
     }
 
     const handleFocusOrVisible = () => {
       if (!document.hidden) {
-        scanTabs()
+        lastFetchRef.current = null
+        scanTabs(true)
       }
     }
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === MEDIA_STORAGE_KEY) {
         if (!e.newValue) {
-          setActiveMedia(null)
-          activeTabIdRef.current = null
+          clearActiveMedia()
         } else {
           try {
             const parsed = JSON.parse(e.newValue)
             if (parsed && parsed.tabId) {
+              if (parsed.url && isExcludedNonMediaUrl(parsed.url)) {
+                clearActiveMedia()
+                return
+              }
               const { _savedAt, ...mediaData } = parsed
               setActiveMedia(mediaData)
               activeTabIdRef.current = mediaData.tabId
@@ -450,8 +813,8 @@ export function useNowPlayingTab(enabled: boolean = true) {
     document.addEventListener('visibilitychange', handleFocusOrVisible)
     window.addEventListener('storage', handleStorageChange)
 
-    // Interval polling ensures immediate detection of play/pause transitions across background tabs
-    const interval = setInterval(scanTabs, 800)
+    // Polling interval ensures immediate detection of background track transitions
+    const interval = setInterval(() => scanTabs(false), 800)
 
     return () => {
       chrome.tabs.onUpdated.removeListener(handleTabUpdated)
@@ -462,11 +825,12 @@ export function useNowPlayingTab(enabled: boolean = true) {
       window.removeEventListener('storage', handleStorageChange)
       clearInterval(interval)
     }
-  }, [enabled, isExtensionEnv, scanTabs])
+  }, [enabled, isExtensionEnv, scanTabs, clearActiveMedia])
 
-  // Media Control: Toggle Play/Pause on the target tab
+  // Universal Media Control: Toggle Play/Pause on the target tab
   const togglePlayPause = useCallback(async () => {
     if (!activeMedia) return
+    lastFetchRef.current = null
 
     if (!isExtensionEnv) {
       // Toggle local state in dev
@@ -483,118 +847,142 @@ export function useNowPlayingTab(enabled: boolean = true) {
         await chrome.scripting.executeScript({
           target: { tabId: activeMedia.tabId },
           func: () => {
-            // Find main video or active video/audio element
-            const mainVideo = (document.querySelector('video.html5-main-video') ||
-              document.querySelector('#movie_player video') ||
-              document.querySelector('video')) as HTMLVideoElement | null
-            if (mainVideo) {
-              if (mainVideo.paused) {
-                mainVideo.play().catch(() => {})
+            // 1. YouTube Player API
+            const ytPlayer = (document.getElementById('movie_player') as any)
+            if (
+              ytPlayer &&
+              typeof ytPlayer.playVideo === 'function' &&
+              typeof ytPlayer.pauseVideo === 'function'
+            ) {
+              const state = ytPlayer.getPlayerState?.()
+              if (state === 1) {
+                ytPlayer.pauseVideo()
               } else {
-                mainVideo.pause()
+                ytPlayer.playVideo()
               }
               return
             }
 
-            const mediaEl = document.querySelector('video, audio') as HTMLMediaElement | null
-            if (mediaEl) {
-              if (mediaEl.paused) {
-                mediaEl.play().catch(() => {})
-              } else {
-                mediaEl.pause()
-              }
+            // 2. Platform UI buttons (Spotify, SoundCloud, Apple Music, Twitch)
+            const spotifyBtn = document.querySelector(
+              '[data-testid="control-button-playpause"]',
+            ) as HTMLElement | null
+            if (spotifyBtn) {
+              spotifyBtn.click()
               return
             }
 
-            // Fallback: send space key event
-            const spaceEvent = new KeyboardEvent('keydown', {
-              code: 'Space',
-              key: ' ',
-              keyCode: 32,
-              which: 32,
-              bubbles: true,
-            })
-            document.dispatchEvent(spaceEvent)
+            const scBtn = document.querySelector('.playControls__play') as HTMLElement | null
+            if (scBtn) {
+              scBtn.click()
+              return
+            }
+
+            const appleBtn = document.querySelector('button.playback-play') as HTMLElement | null
+            if (appleBtn) {
+              appleBtn.click()
+              return
+            }
+
+            const twitchBtn = document.querySelector(
+              'button[data-a-target="player-play-pause-button"]',
+            ) as HTMLElement | null
+            if (twitchBtn) {
+              twitchBtn.click()
+              return
+            }
+
+            // 3. Universal HTML5 Media Elements (<video> and <audio>)
+            const mediaElements = Array.from(
+              document.querySelectorAll('video, audio'),
+            ) as (HTMLVideoElement | HTMLAudioElement)[]
+            if (mediaElements.length > 0) {
+              const playingEl = mediaElements.find((el) => !el.paused && !el.ended)
+              if (playingEl) {
+                playingEl.pause()
+              } else {
+                const candidate = mediaElements[0]
+                candidate.play().catch(() => {})
+              }
+            }
           },
         })
       }
     } catch {
-      // Scripting might fail if tab URL is chrome:// or restricted
+      // Revert optimistic toggle if injection fails
+      setActiveMedia((prev) => (prev ? { ...prev, isPlaying: !nextPlaying } : null))
     }
   }, [activeMedia, isExtensionEnv])
 
-  // Media Control: Toggle Mute on the target tab
+  // Universal Media Control: Toggle Mute on the target tab
   const toggleMute = useCallback(() => {
     if (!activeMedia) return
+    lastFetchRef.current = null
 
     if (!isExtensionEnv) {
       setActiveMedia((prev) => (prev ? { ...prev, isMuted: !prev.isMuted } : null))
       return
     }
 
-    const targetMuted = !activeMedia.isMuted
+    const nextMuted = !activeMedia.isMuted
+    setActiveMedia((prev) => (prev ? { ...prev, isMuted: nextMuted } : null))
 
-    // Optimistically update UI immediately for snappy feedback
-    setActiveMedia((prev) => (prev ? { ...prev, isMuted: targetMuted } : null))
-
-    // 1. Update tab-level mute state in Chrome
-    chrome.tabs.update(activeMedia.tabId, { muted: targetMuted }, () => {
-      if (chrome.runtime?.lastError) {
-        // Tab might be closed or restricted
-      }
-    })
-
-    // 2. Synchronize in-page HTML5 video/audio elements (YouTube, Spotify, etc.)
     try {
+      chrome.tabs.update(activeMedia.tabId, { muted: nextMuted }, () => {
+        if (chrome.runtime?.lastError) {
+          // Tab may have been closed
+        }
+      })
+
       if (chrome.scripting?.executeScript) {
         chrome.scripting.executeScript({
           target: { tabId: activeMedia.tabId },
           func: (mutedVal: boolean) => {
-            const mainVideo = (document.querySelector('video.html5-main-video') ||
-              document.querySelector('#movie_player video') ||
-              document.querySelector('video')) as HTMLVideoElement | null
-            if (mainVideo) {
-              mainVideo.muted = mutedVal
-              if (!mutedVal && mainVideo.volume === 0) {
-                mainVideo.volume = 0.8
+            // YouTube
+            const ytPlayer = (document.getElementById('movie_player') as any)
+            if (ytPlayer) {
+              if (mutedVal && typeof ytPlayer.mute === 'function') {
+                ytPlayer.mute()
+              } else if (!mutedVal && typeof ytPlayer.unMute === 'function') {
+                ytPlayer.unMute()
               }
             }
+
+            // Universal HTML5 Media
             const mediaElements = Array.from(
               document.querySelectorAll('video, audio'),
             ) as (HTMLVideoElement | HTMLAudioElement)[]
-            mediaElements.forEach((el) => {
+            for (const el of mediaElements) {
               el.muted = mutedVal
-              if (!mutedVal && el.volume === 0) {
-                el.volume = 0.8
-              }
-            })
+            }
           },
-          args: [targetMuted],
-        }).catch(() => {})
+          args: [nextMuted],
+        })
       }
     } catch {
-      // Scripting might fail if tab URL is restricted
+      // Revert on error
+      setActiveMedia((prev) => (prev ? { ...prev, isMuted: !nextMuted } : null))
     }
   }, [activeMedia, isExtensionEnv])
 
-  // Jump directly to the playing tab
+  // Media Navigation: Focus the active media tab and its window
   const jumpToTab = useCallback(() => {
-    if (!activeMedia) return
-
-    if (!isExtensionEnv) {
-      window.open(activeMedia.url, '_blank')
-      return
+    if (!activeMedia || !isExtensionEnv) return
+    try {
+      chrome.tabs.get(activeMedia.tabId, (tab?: ChromeTabInfo) => {
+        if (chrome.runtime?.lastError || !tab) return
+        chrome.tabs.update(activeMedia.tabId, { active: true })
+        if (tab.windowId) {
+          chrome.windows.update(tab.windowId, { focused: true })
+        }
+      })
+    } catch {
+      // Ignored
     }
-
-    chrome.tabs.update(activeMedia.tabId, { active: true }, (tab?: ChromeTabInfo) => {
-      if (tab?.windowId) {
-        chrome.windows.update(tab.windowId, { focused: true })
-      }
-    })
   }, [activeMedia, isExtensionEnv])
 
   return {
-    activeMedia: enabled ? activeMedia : null,
+    activeMedia,
     togglePlayPause,
     toggleMute,
     jumpToTab,

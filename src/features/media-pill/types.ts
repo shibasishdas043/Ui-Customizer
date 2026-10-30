@@ -1,4 +1,16 @@
-export type MediaPlatform = 'youtube' | 'spotify' | 'soundcloud' | 'netflix' | 'apple_music' | 'generic'
+export type MediaPlatform =
+  | 'youtube'
+  | 'spotify'
+  | 'soundcloud'
+  | 'netflix'
+  | 'apple_music'
+  | 'twitch'
+  | 'deezer'
+  | 'tidal'
+  | 'bandcamp'
+  | 'amazon_music'
+  | 'vimeo'
+  | 'generic'
 
 export interface NowPlayingMedia {
   tabId: number

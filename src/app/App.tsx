@@ -315,7 +315,7 @@ export default function App() {
                         : '100%',
                   }}
                   transition={{
-                    duration: isInitialMount ? 0 : 0.42,
+                    duration: isInitialMount ? 0 : 0.36,
                     ease: [0.16, 1, 0.3, 1],
                   }}
                   className={`flex items-center justify-center shrink-0 will-change-[width] ${

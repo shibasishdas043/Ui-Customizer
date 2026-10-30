@@ -608,14 +608,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             initial={false}
             animate={{
               opacity: isCollapsed && !isTyping ? 0 : 1,
-              filter: isCollapsed && !isTyping ? 'blur(3px)' : 'blur(0px)',
             }}
             transition={{
-              duration: isCollapsed && !isTyping ? 0.22 : 0.34,
-              delay: isCollapsed && !isTyping ? 0 : 0.08,
+              duration: isCollapsed && !isTyping ? 0.2 : 0.3,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className={`relative flex-1 min-w-0 flex items-center h-full will-change-[opacity,filter] ${
+            className={`relative flex-1 min-w-0 flex items-center h-full will-change-[opacity] ${
               isCollapsed && !isTyping ? 'pointer-events-none' : ''
             }`}
           >
