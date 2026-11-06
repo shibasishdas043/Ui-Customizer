@@ -52,6 +52,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onTypingChange,
 }) => {
   const [query, setQuery] = useState('')
+  const [typedQuery, setTypedQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [suggestions, setSuggestions] = useState<string[]>([])
@@ -64,7 +65,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const rawTypedQueryRef = useRef<string>('')
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const isTyping = query.trim().length > 0
+  const isTyping = typedQuery.trim().length > 0
   const isDropdownActive = dropdownOpen && !isCollapsed
   const isSuggestionsActive = showSuggestions && !isCollapsed
 
@@ -285,9 +286,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Real-time suggestions fetching based on query and active search engine
+  // Real-time suggestions fetching based on what the user actually typed and active search engine
   useEffect(() => {
-    const trimmed = query.trim()
+    const trimmed = typedQuery.trim()
     if (!trimmed || !isFocused) {
       const resetTimer = setTimeout(() => {
         setSuggestions((prev) => (prev.length > 0 ? [] : prev))
@@ -311,53 +312,55 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       clearTimeout(timer)
       controller.abort()
     }
-  }, [query, currentEngine, isFocused])
+  }, [typedQuery, currentEngine, isFocused])
 
   const activeEnginesList = engines && engines.length > 0 ? engines : DEFAULT_SEARCH_ENGINES
   const activeEngine =
     activeEnginesList.find((e) => e.id === currentEngine) || activeEnginesList[0]
 
 
-  const trimmedQuery = query.trim()
+  const trimmedTypedQuery = typedQuery.trim()
 
   // Compute matching history items based on frecency and query match
   const historyMatches = useMemo(() => {
-    return getHistoryMatches(trimmedQuery, history, 4)
-  }, [trimmedQuery, history])
+    return getHistoryMatches(trimmedTypedQuery, history, 4)
+  }, [trimmedTypedQuery, history])
 
   // Calculate top candidate for inline ghost auto-completion
   const ghostCandidate = useMemo(() => {
-    return getTopGhostCompletion(query, historyMatches, suggestions)
-  }, [query, historyMatches, suggestions])
+    return getTopGhostCompletion(typedQuery, historyMatches, suggestions)
+  }, [typedQuery, historyMatches, suggestions])
 
-  // Remainder to show as ghost text overlay
+  // Remainder to show as ghost text overlay (only active when no suggestion is highlighted via arrow keys)
   const ghostRemainder =
+    selectedIndex === -1 &&
     ghostCandidate &&
-    ghostCandidate.toLowerCase().startsWith(query.toLowerCase()) &&
-    ghostCandidate.length > query.length
-      ? ghostCandidate.slice(query.length)
+    ghostCandidate.toLowerCase().startsWith(typedQuery.toLowerCase()) &&
+    ghostCandidate.length > typedQuery.length
+      ? ghostCandidate.slice(typedQuery.length)
       : ''
 
   // Unified items for the suggestions dropdown (strictly active only when typing)
   const dropdownItems: SuggestionItem[] = useMemo(() => {
-    if (!isTyping || !trimmedQuery) {
+    if (!isTyping || !trimmedTypedQuery) {
       return []
     }
     return [
       {
         id: 'current_query',
         type: 'current-query',
-        query: trimmedQuery,
+        query: trimmedTypedQuery,
         score: 1000,
       },
-      ...blendSuggestions(trimmedQuery, historyMatches, suggestions, 7),
+      ...blendSuggestions(trimmedTypedQuery, historyMatches, suggestions, 7),
     ]
-  }, [isTyping, trimmedQuery, historyMatches, suggestions])
+  }, [isTyping, trimmedTypedQuery, historyMatches, suggestions])
 
 
   const executeDirectUrlNavigation = (url: string) => {
     setShowSuggestions(false)
     setDropdownOpen(false)
+    setSelectedIndex(-1)
     if (searchInNewTab) {
       window.open(url, '_blank')
     } else {
@@ -405,6 +408,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
     setShowSuggestions(false)
     setDropdownOpen(false)
+    setSelectedIndex(-1)
 
     const targetUrl = buildSearchUrl(engineToUse.url, trimmed)
     if (searchInNewTab) {
@@ -424,6 +428,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   const handleInsertSuggestion = (suggestionText: string) => {
     setQuery(suggestionText)
+    setTypedQuery(suggestionText)
     rawTypedQueryRef.current = suggestionText
     setSelectedIndex(-1)
     setShowSuggestions(true)
@@ -475,8 +480,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     if (e.key === 'Tab') {
       if (ghostRemainder && selectedIndex === -1) {
         e.preventDefault()
-        const completed = query + ghostRemainder
+        const completed = typedQuery + ghostRemainder
         setQuery(completed)
+        setTypedQuery(completed)
         rawTypedQueryRef.current = completed
         return
       }
@@ -504,8 +510,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       const input = inputRef.current
       if (input && input.selectionStart === query.length && input.selectionEnd === query.length) {
         e.preventDefault()
-        const completed = query + ghostRemainder
+        const completed = typedQuery + ghostRemainder
         setQuery(completed)
+        setTypedQuery(completed)
         rawTypedQueryRef.current = completed
         return
       }
@@ -518,11 +525,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         const nextIndex = selectedIndex + 1 >= dropdownItems.length ? -1 : selectedIndex + 1
         setSelectedIndex(nextIndex)
         setShowSuggestions(true)
-        if (nextIndex >= 0 && dropdownItems[nextIndex]) {
-          setQuery(dropdownItems[nextIndex].query)
-        } else {
-          setQuery(rawTypedQueryRef.current)
-        }
+        const nextVal =
+          nextIndex >= 0 && dropdownItems[nextIndex]
+            ? dropdownItems[nextIndex].query
+            : rawTypedQueryRef.current
+        setQuery(nextVal)
+        requestAnimationFrame(() => {
+          if (inputRef.current) {
+            const len = nextVal.length
+            inputRef.current.setSelectionRange(len, len)
+          }
+        })
       }
     } else if (e.key === 'ArrowUp') {
       if (dropdownItems.length > 0) {
@@ -530,11 +543,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         const nextIndex = selectedIndex <= -1 ? dropdownItems.length - 1 : selectedIndex - 1
         setSelectedIndex(nextIndex)
         setShowSuggestions(true)
-        if (nextIndex >= 0 && dropdownItems[nextIndex]) {
-          setQuery(dropdownItems[nextIndex].query)
-        } else {
-          setQuery(rawTypedQueryRef.current)
-        }
+        const nextVal =
+          nextIndex >= 0 && dropdownItems[nextIndex]
+            ? dropdownItems[nextIndex].query
+            : rawTypedQueryRef.current
+        setQuery(nextVal)
+        requestAnimationFrame(() => {
+          if (inputRef.current) {
+            const len = nextVal.length
+            inputRef.current.setSelectionRange(len, len)
+          }
+        })
       }
     } else if (e.key === 'Escape') {
       if (showSuggestions || ghostRemainder || selectedIndex >= 0) {
@@ -653,6 +672,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   if (matchedEngine) {
                     onEngineChange(matchedEngine.id)
                     setQuery(remainderQuery)
+                    setTypedQuery(remainderQuery)
                     rawTypedQueryRef.current = remainderQuery
                     setSelectedIndex(-1)
                     setShowSuggestions(true)
@@ -661,13 +681,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 }
 
                 setQuery(val)
+                setTypedQuery(val)
                 rawTypedQueryRef.current = val
+                setSelectedIndex(-1)
                 if (dropdownOpen) setDropdownOpen(false)
                 if (val.trim().length > 0) {
                   setShowSuggestions(true)
                 } else {
                   setShowSuggestions(false)
-                  setSelectedIndex(-1)
                 }
               }}
               onKeyDown={handleInputKeyDown}
@@ -677,7 +698,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   blurTimerRef.current = null
                 }
                 setIsFocused(true)
-                if (query.trim().length > 0) {
+                if (typedQuery.trim().length > 0) {
                   setShowSuggestions(true)
                 } else {
                   setShowSuggestions(false)
@@ -692,6 +713,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 blurTimerRef.current = setTimeout(() => {
                   setIsFocused(false)
                   setShowSuggestions(false)
+                  setSelectedIndex(-1)
+                  if (rawTypedQueryRef.current !== query) {
+                    setQuery(rawTypedQueryRef.current)
+                  }
                 }, 250)
               }}
 
@@ -790,10 +815,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <SearchSuggestionsDropdown
             items={dropdownItems}
             selectedIndex={selectedIndex}
-            query={query}
+            query={typedQuery}
             activeEngine={activeEngine}
             onSelect={(selectedSuggestion) => {
               setQuery(selectedSuggestion)
+              setTypedQuery(selectedSuggestion)
+              rawTypedQueryRef.current = selectedSuggestion
               executeSearchWithEngine(currentEngine, selectedSuggestion)
             }}
             onInsert={handleInsertSuggestion}
